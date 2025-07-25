@@ -133,20 +133,45 @@ def create_tire_strategy_plot(data_loader, drivers):
                     'laps': prev_lap_num - stint_start + 1
                 })
             
-            # Plot stints
-            for stint in stints:
-                color = TIRE_COLORS.get(stint['compound'], '#808080')
+            # Plot stints with enhanced styling
+            team = DRIVER_TEAMS.get(driver, 'Unknown')
+            team_color = TEAM_COLORS.get(team, '#FFFFFF')
+            
+            for i, stint in enumerate(stints):
+                tire_color = TIRE_COLORS.get(stint['compound'], '#808080')
+                
+                # Create gradient effect by varying opacity
+                opacity = 0.8 if i % 2 == 0 else 0.9
                 
                 fig.add_trace(go.Bar(
                     x=[stint['laps']],
                     y=[driver],
                     orientation='h',
                     name=f"{driver} - {stint['compound']}",
-                    marker_color=color,
+                    marker=dict(
+                        color=tire_color,
+                        opacity=opacity,
+                        line=dict(color=team_color, width=2)
+                    ),
                     base=stint['start_lap'] - 1,
-                    hovertemplate=f"<b>{driver}</b><br>Compound: {stint['compound']}<br>Laps: {stint['start_lap']}-{stint['end_lap']}<br>Stint Length: {stint['laps']} laps<extra></extra>",
+                    hovertemplate=(
+                        f"<b>{driver}</b> ({team})<br>"
+                        f"Compound: {stint['compound']}<br>"
+                        f"Laps: {stint['start_lap']}-{stint['end_lap']}<br>"
+                        f"Stint Length: {stint['laps']} laps"
+                        "<extra></extra>"
+                    ),
                     showlegend=False
                 ))
+                
+                # Add stint length annotation
+                fig.add_annotation(
+                    x=stint['start_lap'] + stint['laps']/2 - 1,
+                    y=y_pos,
+                    text=str(stint['laps']),
+                    showarrow=False,
+                    font=dict(color="white", size=10, family="monospace")
+                )
             
             y_pos += 1
         
@@ -163,20 +188,25 @@ def create_tire_strategy_plot(data_loader, drivers):
                 ))
         
         fig.update_layout(
-            title="Tire Strategy Analysis",
+            title="Enhanced Tire Strategy Analysis",
             xaxis_title="Lap Number",
             yaxis_title="Driver",
             plot_bgcolor='rgba(0,0,0,0)',
             paper_bgcolor='rgba(0,0,0,0)',
             font_color='white',
             barmode='overlay',
+            height=500,
             legend=dict(
                 orientation="h",
                 yanchor="bottom",
                 y=1.02,
                 xanchor="right",
-                x=1
-            )
+                x=1,
+                bgcolor="rgba(0,0,0,0.5)",
+                bordercolor="rgba(255,255,255,0.2)",
+                borderwidth=1
+            ),
+            hovermode='closest'
         )
         
         return fig

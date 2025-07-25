@@ -13,7 +13,7 @@ from datetime import datetime
 from utils.data_loader import DataLoader
 from utils.visualizations import create_telemetry_plot, create_tire_strategy_plot, create_race_progression_plot
 from utils.track_dominance import create_track_dominance_map
-from utils.constants import TEAM_COLORS, DRIVER_TEAMS, GRANDS_PRIX, SESSIONS
+from utils.constants import TEAM_COLORS, DRIVER_TEAMS, GRANDS_PRIX, SESSIONS, TIRE_COLORS
 from utils.formatters import format_lap_time, format_sector_time, get_lap_time_color_class, get_position_change_text
 
 # Configure page
@@ -269,6 +269,52 @@ st.markdown("""
         border: 2px solid rgba(255, 255, 255, 0.2);
         box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
         text-align: center;
+    }
+    
+    /* Enhanced Position Badges */
+    .position-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        font-weight: 700;
+        font-size: 1.2rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    }
+    
+    .position-badge.fastest-lap {
+        background: linear-gradient(135deg, #FFD700, #FFA500);
+        color: #000;
+        animation: pulse 2s infinite;
+    }
+    
+    .position-badge.second-lap {
+        background: linear-gradient(135deg, #C0C0C0, #A0A0A0);
+        color: #000;
+    }
+    
+    .position-badge.third-lap {
+        background: linear-gradient(135deg, #CD7F32, #B8860B);
+        color: #000;
+    }
+    
+    @keyframes pulse {
+        0% { transform: scale(1); box-shadow: 0 4px 16px rgba(255, 215, 0, 0.3); }
+        50% { transform: scale(1.05); box-shadow: 0 6px 20px rgba(255, 215, 0, 0.5); }
+        100% { transform: scale(1); box-shadow: 0 4px 16px rgba(255, 215, 0, 0.3); }
+    }
+    
+    /* Enhanced Driver Selection */
+    .driver-selection-container {
+        background: linear-gradient(135deg, rgba(35, 39, 47, 0.6), rgba(24, 25, 26, 0.8));
+        padding: 2rem;
+        border-radius: 20px;
+        border: 1px solid rgba(0, 210, 190, 0.2);
+        margin: 1rem 0 2rem 0;
+        backdrop-filter: blur(10px);
     }
     
     /* Enhanced Buttons */
@@ -800,30 +846,146 @@ def main():
                     st.error(f"Error analyzing lap times: {str(e)}")
     
     with tab4:
-        st.header("🔧 Tire Strategy Analysis")
+        st.header("🔧 Enhanced Tire Strategy Analysis")
         
         if selected_drivers:
-            with st.spinner("Analyzing tire strategies..."):
+            with st.spinner("Analyzing enhanced tire strategies..."):
                 try:
                     fig = create_tire_strategy_plot(st.session_state.data_loader, selected_drivers)
                     if fig:
                         st.plotly_chart(fig, use_container_width=True)
                         
-                        # Tire compound usage summary
-                        st.subheader("📊 Tire Compound Usage")
+                        # Enhanced tire strategy statistics
+                        st.subheader("📊 Detailed Tire Strategy Statistics")
                         tire_data = st.session_state.data_loader.get_tire_data(selected_drivers)
                         if tire_data is not None and not tire_data.empty:
-                            compound_summary = tire_data.groupby(['Driver', 'Compound']).size().unstack(fill_value=0)
-                            st.dataframe(compound_summary, use_container_width=True)
+                            
+                            # Create tire usage summary with enhanced styling
+                            tire_usage = tire_data.groupby(['Driver', 'Compound']).size().reset_index(name='Laps')
+                            
+                            # Display statistics in columns
+                            stat_cols = st.columns(len(selected_drivers))
+                            
+                            for i, driver in enumerate(selected_drivers):
+                                with stat_cols[i]:
+                                    driver_tire_data = tire_usage[tire_usage['Driver'] == driver]
+                                    team = DRIVER_TEAMS.get(driver, 'Unknown')
+                                    team_color = TEAM_COLORS.get(team, '#FFFFFF')
+                                    
+                                    st.markdown(f"""
+                                    <div class="metric-card">
+                                        <div style="background: linear-gradient(135deg, {team_color}20, {team_color}40); border-left: 4px solid {team_color}; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                                            <h4 style="color: {team_color}; margin: 0; font-size: 1.2rem;">{driver}</h4>
+                                            <span style="color: #888; font-size: 0.9rem;">{team}</span>
+                                        </div>
+                                    """, unsafe_allow_html=True)
+                                    
+                                    if not driver_tire_data.empty:
+                                        total_laps = driver_tire_data['Laps'].sum()
+                                        st.metric("Total Race Laps", total_laps)
+                                        
+                                        st.markdown("**Tire Compound Usage:**")
+                                        for _, row in driver_tire_data.iterrows():
+                                            compound = row['Compound']
+                                            laps = row['Laps']
+                                            percentage = (laps / total_laps * 100) if total_laps > 0 else 0
+                                            tire_color = TIRE_COLORS.get(compound, '#808080')
+                                            
+                                            st.markdown(f"""
+                                            <div style="display: flex; align-items: center; margin: 0.5rem 0; padding: 0.5rem; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                                                <div style="width: 24px; height: 24px; background-color: {tire_color}; border-radius: 50%; margin-right: 0.75rem; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>
+                                                <span style="flex: 1; font-weight: 500;">{compound}</span>
+                                                <div style="text-align: right;">
+                                                    <div style="font-weight: 600; color: white;">{laps} laps</div>
+                                                    <div style="font-size: 0.85rem; color: #888;">{percentage:.1f}%</div>
+                                                </div>
+                                            </div>
+                                            """, unsafe_allow_html=True)
+                                    else:
+                                        st.info("No tire data available for this driver")
+                                    
+                                    st.markdown("</div>", unsafe_allow_html=True)
+                            
+                            # Compound performance comparison
+                            st.subheader("🔍 Compound Performance Analysis")
+                            if 'LapTime' in tire_data.columns:
+                                # Filter out invalid lap times
+                                valid_tire_data = tire_data[tire_data['LapTime'].notna()].copy()
+                                if not valid_tire_data.empty:
+                                    # Convert lap times to seconds for analysis
+                                    valid_tire_data['LapTimeSeconds'] = valid_tire_data['LapTime'].dt.total_seconds()
+                                    # Filter reasonable lap times (between 1 and 3 minutes)
+                                    valid_tire_data = valid_tire_data[
+                                        (valid_tire_data['LapTimeSeconds'] > 60) & 
+                                        (valid_tire_data['LapTimeSeconds'] < 180)
+                                    ]
+                                    
+                                    if not valid_tire_data.empty:
+                                        compound_stats = valid_tire_data.groupby('Compound').agg({
+                                            'LapTimeSeconds': ['mean', 'min', 'count', 'std']
+                                        }).round(3)
+                                        
+                                        compound_stats.columns = ['Average Lap Time (s)', 'Best Lap Time (s)', 'Total Laps', 'Std Dev (s)']
+                                        
+                                        # Create enhanced dataframe display
+                                        performance_data = []
+                                        for compound in compound_stats.index:
+                                            tire_color = TIRE_COLORS.get(compound, '#808080')
+                                            avg_time = compound_stats.loc[compound, 'Average Lap Time (s)']
+                                            best_time = compound_stats.loc[compound, 'Best Lap Time (s)']
+                                            total_laps = int(compound_stats.loc[compound, 'Total Laps'])
+                                            std_dev = compound_stats.loc[compound, 'Std Dev (s)']
+                                            
+                                            performance_data.append({
+                                                'Compound': compound,
+                                                'Color': tire_color,
+                                                'Avg Time': f"{avg_time:.3f}s",
+                                                'Best Time': f"{best_time:.3f}s",
+                                                'Total Laps': total_laps,
+                                                'Consistency': f"±{std_dev:.3f}s"
+                                            })
+                                        
+                                        # Display performance table with colors
+                                        for data in performance_data:
+                                            st.markdown(f"""
+                                            <div style="display: flex; align-items: center; padding: 0.75rem; margin: 0.5rem 0; background: rgba(255,255,255,0.05); border-radius: 12px; border-left: 4px solid {data['Color']};">
+                                                <div style="width: 32px; height: 32px; background-color: {data['Color']}; border-radius: 50%; margin-right: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.3);"></div>
+                                                <div style="flex: 1;">
+                                                    <div style="font-weight: 600; font-size: 1.1rem; margin-bottom: 0.25rem;">{data['Compound']}</div>
+                                                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1rem; font-size: 0.9rem; color: #ccc;">
+                                                        <div><strong>Avg:</strong> {data['Avg Time']}</div>
+                                                        <div><strong>Best:</strong> {data['Best Time']}</div>
+                                                        <div><strong>Laps:</strong> {data['Total Laps']}</div>
+                                                        <div><strong>±:</strong> {data['Consistency']}</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            """, unsafe_allow_html=True)
+                                    else:
+                                        st.info("No valid lap time data available for compound analysis")
+                                else:
+                                    st.info("No lap time data available for performance analysis")
+                            else:
+                                st.info("Lap time data not available in the current dataset")
                         
-                        # Export button
-                        if st.button("💾 Export Tire Strategy"):
-                            fig.write_html("tire_strategy.html")
-                            st.success("Strategy chart exported as tire_strategy.html")
+                        # Export functionality
+                        col1, col2 = st.columns(2)
+                        with col1:
+                            if st.button("💾 Export Strategy Chart", use_container_width=True):
+                                fig.write_html("enhanced_tire_strategy.html")
+                                st.success("Enhanced strategy chart exported as enhanced_tire_strategy.html")
+                        
+                        with col2:
+                            if st.button("📋 Export Strategy Data", use_container_width=True):
+                                if tire_data is not None and not tire_data.empty:
+                                    tire_data.to_csv("tire_strategy_data.csv", index=False)
+                                    st.success("Strategy data exported as tire_strategy_data.csv")
                     else:
-                        st.error("Unable to generate tire strategy plot")
+                        st.error("Unable to generate tire strategy plot - no data available")
                 except Exception as e:
                     st.error(f"Error analyzing tire strategy: {str(e)}")
+        else:
+            st.info("Please select at least one driver from the sidebar to view enhanced tire strategy analysis.")
     
     with tab5:
         st.header("📊 Race Progression")
