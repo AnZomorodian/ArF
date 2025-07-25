@@ -280,24 +280,22 @@ def create_race_progression_plot(data_loader, drivers):
                 'font': {'size': 24, 'color': 'white'}
             },
             xaxis=dict(
-                title="Lap Number",
+                title=dict(text="Lap Number", font=dict(size=14, color='white')),
                 showgrid=True,
                 gridwidth=1,
                 gridcolor='rgba(255,255,255,0.1)',
                 range=[0, max_laps + 2],
                 dtick=5,
-                titlefont=dict(size=14, color='white'),
                 tickfont=dict(size=12, color='white')
             ),
             yaxis=dict(
-                title="Track Position",
+                title=dict(text="Track Position", font=dict(size=14, color='white')),
                 showgrid=True,
                 gridwidth=1,
                 gridcolor='rgba(255,255,255,0.1)',
                 autorange='reversed',  # Reverse so P1 is at top
                 dtick=1,
                 range=[max_pos + 0.5, 0.5],
-                titlefont=dict(size=14, color='white'),
                 tickfont=dict(size=12, color='white')
             ),
             plot_bgcolor='rgba(0,0,0,0)',

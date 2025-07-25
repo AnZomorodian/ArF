@@ -12,7 +12,7 @@ from datetime import datetime
 # Import utility modules
 from utils.data_loader import DataLoader
 from utils.visualizations import create_telemetry_plot, create_tire_strategy_plot, create_race_progression_plot
-from utils.track_dominance import create_track_dominance_map
+from utils.track_dominance import create_track_dominance_plot
 from utils.constants import TEAM_COLORS, DRIVER_TEAMS, GRANDS_PRIX, SESSIONS
 from utils.formatters import format_lap_time, format_sector_time, get_lap_time_color_class, get_position_change_text
 

@@ -41,7 +41,7 @@ def interpolate_track_coordinates(X, Y, num_points=2000):
         st.error(f"Error interpolating track coordinates: {str(e)}")
         return X, Y, np.linspace(0, 1, len(X))
 
-def create_track_dominance_map(data_loader, drivers, num_minisectors=200, show_track_outline=True):
+def create_track_dominance_plot(data_loader, drivers, num_minisectors=200, show_track_outline=True):
     """Create professional track dominance map showing fastest mini-sectors with enhanced visualization"""
     try:
         telemetry_data = data_loader.get_fastest_lap_telemetry(drivers)
