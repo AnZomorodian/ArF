@@ -295,6 +295,120 @@ st.markdown("""
         border-color: rgba(0, 210, 190, 0.3);
         border-top-color: #00D2BE;
     }
+    
+    /* Force Dark Background */
+    .main .block-container {
+        background-color: #0E1117 !important;
+    }
+    
+    .stApp {
+        background-color: #0E1117 !important;
+    }
+    
+    /* Enhanced Driver Selection with Minimal Design */
+    .driver-selection-container {
+        background: linear-gradient(135deg, rgba(35, 39, 47, 0.95), rgba(24, 25, 26, 0.98));
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin: 1rem 0;
+        border: 1px solid rgba(0, 210, 190, 0.2);
+        backdrop-filter: blur(15px);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    }
+    
+    .driver-selection-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+    
+    .driver-option {
+        background: linear-gradient(135deg, rgba(35, 39, 47, 0.8), rgba(24, 25, 26, 0.9));
+        border: 2px solid rgba(0, 210, 190, 0.2);
+        border-radius: 12px;
+        padding: 1rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .driver-option:hover {
+        border-color: rgba(0, 210, 190, 0.5);
+        transform: translateY(-3px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+    }
+    
+    .driver-option.selected {
+        border-color: #00D2BE;
+        background: linear-gradient(135deg, rgba(0, 210, 190, 0.1), rgba(35, 39, 47, 0.9));
+        box-shadow: 0 0 20px rgba(0, 210, 190, 0.3);
+    }
+    
+    .driver-number {
+        font-size: 2rem;
+        font-weight: 900;
+        opacity: 0.3;
+        position: absolute;
+        top: 0.5rem;
+        right: 0.5rem;
+        line-height: 1;
+    }
+    
+    .driver-info {
+        position: relative;
+        z-index: 2;
+    }
+    
+    .driver-name {
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        color: white;
+    }
+    
+    .driver-team {
+        font-size: 0.85rem;
+        opacity: 0.8;
+        margin-bottom: 0.3rem;
+    }
+    
+    /* Sidebar Enhancement */
+    .css-1d391kg {
+        background: linear-gradient(180deg, rgba(14, 17, 23, 0.98), rgba(24, 25, 26, 0.95)) !important;
+    }
+    
+    /* Multiselect styling */
+    .stMultiSelect > label {
+        color: white !important;
+        font-weight: 600;
+    }
+    
+    .stMultiSelect [data-baseweb=select] {
+        background: rgba(35, 39, 47, 0.9) !important;
+        border: 1px solid rgba(0, 210, 190, 0.3) !important;
+        border-radius: 8px !important;
+    }
+    
+    .stMultiSelect [data-baseweb=tag] {
+        background-color: rgba(0, 210, 190, 0.2) !important;
+        border: 1px solid rgba(0, 210, 190, 0.4) !important;
+        color: #00D2BE !important;
+    }
+    
+    /* Selectbox styling */
+    .stSelectbox > label {
+        color: white !important;
+        font-weight: 600;
+    }
+    
+    .stSelectbox [data-baseweb=select] {
+        background: rgba(35, 39, 47, 0.9) !important;
+        border: 1px solid rgba(0, 210, 190, 0.3) !important;
+        border-radius: 8px !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -336,26 +450,46 @@ def main():
                 except Exception as e:
                     st.error(f"❌ Error loading data: {str(e)}")
         
-        # Driver selection (only show if session is loaded)
+        # Enhanced Driver Selection (only show if session is loaded)
         if hasattr(st.session_state.data_loader, 'session') and st.session_state.data_loader.session is not None:
-            st.header("🏁 Driver Selection")
+            st.markdown('<div class="driver-selection-container">', unsafe_allow_html=True)
+            st.markdown("### 🏁 Driver Selection")
+            st.markdown("Choose drivers to compare in the analysis below", unsafe_allow_html=True)
+            
             available_drivers = st.session_state.data_loader.get_available_drivers()
             
             if available_drivers:
                 selected_drivers = st.multiselect(
                     "Select Drivers for Comparison",
                     available_drivers,
-                    default=available_drivers[:2] if len(available_drivers) >= 2 else available_drivers
+                    default=available_drivers[:2] if len(available_drivers) >= 2 else available_drivers,
+                    help="Select 2-4 drivers for optimal comparison visualization"
                 )
                 
-                # Display selected drivers with team colors
+                # Display selected drivers with enhanced cards
                 if selected_drivers:
-                    st.markdown("**Selected Drivers:**")
-                    for driver in selected_drivers:
-                        team = DRIVER_TEAMS.get(driver, 'Unknown')
-                        color = TEAM_COLORS.get(team, '#FFFFFF')
-                        st.markdown(f'<span class="driver-tag" style="background-color: {color};">{driver} ({team})</span>', 
-                                  unsafe_allow_html=True)
+                    st.markdown("### 🎯 Selected Drivers")
+                    driver_cols = st.columns(len(selected_drivers))
+                    
+                    for i, driver in enumerate(selected_drivers):
+                        with driver_cols[i]:
+                            team = DRIVER_TEAMS.get(driver, 'Unknown')
+                            color = TEAM_COLORS.get(team, '#FFFFFF')
+                            
+                            st.markdown(f"""
+                            <div class="driver-comparison-card" style="margin: 0.5rem 0;">
+                                <div class="team-badge-enhanced" style="background-color: {color};">
+                                    {driver}
+                                </div>
+                                <div style="color: {color}; font-size: 0.9rem; margin-top: 0.5rem; font-weight: 600;">
+                                    {team}
+                                </div>
+                            </div>
+                            """, unsafe_allow_html=True)
+                else:
+                    st.info("👆 Select drivers above to begin analysis")
+            
+            st.markdown('</div>', unsafe_allow_html=True)
     
     # Main content area
     if not hasattr(st.session_state.data_loader, 'session') or st.session_state.data_loader.session is None:

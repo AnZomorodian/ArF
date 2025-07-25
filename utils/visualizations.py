@@ -23,6 +23,16 @@ def create_telemetry_plot(data_loader, drivers, telemetry_type='speed'):
         
         fig = go.Figure()
         
+        # Initialize y_title based on telemetry_type
+        y_title_map = {
+            'speed': 'Speed (km/h)',
+            'throttle': 'Throttle (%)',
+            'brake': 'Brake Pressure',
+            'rpm': 'Engine RPM',
+            'gear': 'Gear'
+        }
+        y_title = y_title_map.get(telemetry_type.lower(), telemetry_type.title())
+        
         for driver in drivers:
             if driver not in telemetry_data:
                 continue
@@ -31,19 +41,14 @@ def create_telemetry_plot(data_loader, drivers, telemetry_type='speed'):
             
             if telemetry_type.lower() == 'speed' and 'Speed' in telemetry.columns:
                 y_data = telemetry['Speed']
-                y_title = 'Speed (km/h)'
             elif telemetry_type.lower() == 'throttle' and 'Throttle' in telemetry.columns:
                 y_data = telemetry['Throttle']
-                y_title = 'Throttle (%)'
             elif telemetry_type.lower() == 'brake' and 'Brake' in telemetry.columns:
                 y_data = telemetry['Brake']
-                y_title = 'Brake Pressure'
             elif telemetry_type.lower() == 'rpm' and 'RPM' in telemetry.columns:
                 y_data = telemetry['RPM']
-                y_title = 'Engine RPM'
             elif telemetry_type.lower() == 'gear' and 'nGear' in telemetry.columns:
                 y_data = telemetry['nGear']
-                y_title = 'Gear'
             else:
                 continue
             
@@ -59,9 +64,7 @@ def create_telemetry_plot(data_loader, drivers, telemetry_type='speed'):
                 hovertemplate=f"<b>{driver}</b><br>Distance: %{{x:.0f}}m<br>{y_title}: %{{y:.1f}}<extra></extra>"
             ))
         
-        # Set default y_title if not defined
-        if 'y_title' not in locals():
-            y_title = telemetry_type.title()
+        # y_title is already defined above
             
         fig.update_layout(
             title=f"{telemetry_type.title()} Comparison - Fastest Laps",
@@ -283,7 +286,8 @@ def create_race_progression_plot(data_loader, drivers):
                 gridcolor='rgba(255,255,255,0.1)',
                 range=[0, max_laps + 2],
                 dtick=5,
-                font=dict(size=12)
+                titlefont=dict(size=14, color='white'),
+                tickfont=dict(size=12, color='white')
             ),
             yaxis=dict(
                 title="Track Position",
@@ -293,7 +297,8 @@ def create_race_progression_plot(data_loader, drivers):
                 autorange='reversed',  # Reverse so P1 is at top
                 dtick=1,
                 range=[max_pos + 0.5, 0.5],
-                font=dict(size=12)
+                titlefont=dict(size=14, color='white'),
+                tickfont=dict(size=12, color='white')
             ),
             plot_bgcolor='rgba(0,0,0,0)',
             paper_bgcolor='rgba(0,0,0,0)',
