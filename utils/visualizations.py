@@ -183,7 +183,7 @@ def create_tire_strategy_plot(data_loader, drivers):
         return None
 
 def create_race_progression_plot(data_loader, drivers):
-    """Create race progression visualization"""
+    """Create professional race progression visualization with enhanced features"""
     try:
         position_data = data_loader.get_position_data(drivers)
         
@@ -192,41 +192,138 @@ def create_race_progression_plot(data_loader, drivers):
         
         fig = go.Figure()
         
+        # Add background grid for better readability
+        max_laps = position_data['LapNumber'].max()
+        max_pos = position_data['Position'].max()
+        
+        # Create enhanced traces for each driver
         for driver in drivers:
-            driver_data = position_data[position_data['Driver'] == driver]
+            driver_data = position_data[position_data['Driver'] == driver].sort_values('LapNumber')
             if driver_data.empty:
                 continue
             
             team = DRIVER_TEAMS.get(driver, 'Unknown')
             color = TEAM_COLORS.get(team, '#FFFFFF')
             
+            # Get position changes for annotations
+            start_pos = driver_data['Position'].iloc[0]
+            end_pos = driver_data['Position'].iloc[-1]
+            position_change = start_pos - end_pos
+            
+            # Create smooth line with markers
             fig.add_trace(go.Scatter(
                 x=driver_data['LapNumber'],
                 y=driver_data['Position'],
                 mode='lines+markers',
-                name=f"{driver} ({team})",
-                line=dict(color=color, width=3),
-                marker=dict(size=6, color=color),
-                hovertemplate=f"<b>{driver}</b><br>Lap: %{{x}}<br>Position: P%{{y}}<extra></extra>"
+                name=f"{driver} (P{start_pos}→P{end_pos})",
+                line=dict(
+                    color=color, 
+                    width=4,
+                    shape='spline',
+                    smoothing=1.0
+                ),
+                marker=dict(
+                    size=8, 
+                    color=color,
+                    line=dict(width=2, color='white')
+                ),
+                fill=None,
+                connectgaps=True,
+                hovertemplate=f"""
+                <b>{driver} ({team})</b><br>
+                Lap: %{{x}}<br>
+                Position: P%{{y}}<br>
+                <extra></extra>
+                """
             ))
+            
+            # Add start/finish position annotations
+            fig.add_annotation(
+                x=driver_data['LapNumber'].iloc[0],
+                y=start_pos,
+                text=f"P{start_pos}",
+                showarrow=True,
+                arrowhead=2,
+                arrowsize=1,
+                arrowwidth=2,
+                arrowcolor=color,
+                font=dict(size=10, color=color),
+                bgcolor="rgba(0,0,0,0.7)",
+                bordercolor=color,
+                borderwidth=1
+            )
+            
+            fig.add_annotation(
+                x=driver_data['LapNumber'].iloc[-1],
+                y=end_pos,
+                text=f"P{end_pos}",
+                showarrow=True,
+                arrowhead=2,
+                arrowsize=1,
+                arrowwidth=2,
+                arrowcolor=color,
+                font=dict(size=10, color=color),
+                bgcolor="rgba(0,0,0,0.7)",
+                bordercolor=color,
+                borderwidth=1
+            )
         
+        # Enhanced layout with professional styling
         fig.update_layout(
-            title="Race Progression - Position Changes",
-            xaxis_title="Lap Number",
-            yaxis_title="Position",
+            title={
+                'text': "📊 Race Progression Analysis<br><sub>Position Changes Throughout the Race</sub>",
+                'x': 0.5,
+                'xanchor': 'center',
+                'font': {'size': 24, 'color': 'white'}
+            },
+            xaxis=dict(
+                title="Lap Number",
+                showgrid=True,
+                gridwidth=1,
+                gridcolor='rgba(255,255,255,0.1)',
+                range=[0, max_laps + 2],
+                dtick=5,
+                font=dict(size=12)
+            ),
+            yaxis=dict(
+                title="Track Position",
+                showgrid=True,
+                gridwidth=1,
+                gridcolor='rgba(255,255,255,0.1)',
+                autorange='reversed',  # Reverse so P1 is at top
+                dtick=1,
+                range=[max_pos + 0.5, 0.5],
+                font=dict(size=12)
+            ),
             plot_bgcolor='rgba(0,0,0,0)',
             paper_bgcolor='rgba(0,0,0,0)',
             font_color='white',
-            yaxis=dict(autorange='reversed'),  # Reverse Y-axis so P1 is at top
             legend=dict(
-                orientation="h",
-                yanchor="bottom",
-                y=1.02,
-                xanchor="right",
-                x=1
+                orientation="v",
+                yanchor="top",
+                y=0.98,
+                xanchor="left",
+                x=0.02,
+                bgcolor='rgba(24, 25, 26, 0.8)',
+                bordercolor='rgba(0, 210, 190, 0.3)',
+                borderwidth=1,
+                font=dict(size=11)
             ),
-            hovermode='x unified'
+            hovermode='x unified',
+            margin=dict(l=60, r=20, t=80, b=60)
         )
+        
+        # Add position lines for reference
+        for pos in range(1, min(max_pos + 1, 21)):  # Only show up to P20
+            fig.add_shape(
+                type="line",
+                x0=0, y0=pos, x1=max_laps, y1=pos,
+                line=dict(
+                    color="rgba(255,255,255,0.05)",
+                    width=1,
+                    dash="dot"
+                )
+            )
         
         return fig
         

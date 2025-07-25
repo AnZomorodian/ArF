@@ -14,6 +14,7 @@ from utils.data_loader import DataLoader
 from utils.visualizations import create_telemetry_plot, create_tire_strategy_plot, create_race_progression_plot
 from utils.track_dominance import create_track_dominance_map
 from utils.constants import TEAM_COLORS, DRIVER_TEAMS, GRANDS_PRIX, SESSIONS
+from utils.formatters import format_lap_time, format_sector_time, get_lap_time_color_class, get_position_change_text
 
 # Configure page
 st.set_page_config(
@@ -23,44 +24,127 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS for F1 styling
+# Custom CSS for Professional F1 Styling
 st.markdown("""
 <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    
+    * {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+    
     .main-header {
         text-align: center;
-        padding: 1rem 0;
-        background: linear-gradient(135deg, #DC0000, #00D2BE);
+        padding: 2rem 0;
+        background: linear-gradient(135deg, #DC0000 0%, #FF4444 50%, #00D2BE 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
-        font-size: 3rem;
-        font-weight: bold;
+        font-size: 2.8rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
         margin-bottom: 2rem;
     }
     
     .metric-card {
-        background: linear-gradient(135deg, #23272F, #18191A);
-        padding: 1rem;
-        border-radius: 10px;
-        border-left: 4px solid #00D2BE;
+        background: linear-gradient(135deg, rgba(35, 39, 47, 0.8), rgba(24, 25, 26, 0.9));
+        padding: 1.5rem;
+        border-radius: 16px;
+        border: 1px solid rgba(0, 210, 190, 0.2);
         margin: 0.5rem 0;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
     }
     
     .driver-tag {
         display: inline-block;
-        padding: 0.2rem 0.8rem;
-        border-radius: 15px;
-        font-weight: bold;
-        margin: 0.2rem;
+        padding: 0.4rem 1rem;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        margin: 0.3rem 0.2rem;
         color: white;
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .lap-time {
+        font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+        font-weight: 600;
+        font-size: 1.1rem;
+        background: linear-gradient(135deg, #23272F, #2A2E36);
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        border: 1px solid rgba(0, 210, 190, 0.3);
+        display: inline-block;
+        margin: 0.2rem;
+    }
+    
+    .sector-time {
+        font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+        font-weight: 500;
+        font-size: 0.9rem;
+        color: #B0B8C3;
+    }
+    
+    .position-badge {
+        display: inline-block;
+        width: 2rem;
+        height: 2rem;
+        border-radius: 50%;
+        text-align: center;
+        line-height: 2rem;
+        font-weight: 700;
+        font-size: 0.9rem;
+        margin-right: 0.5rem;
+    }
+    
+    .fastest-lap {
+        background: linear-gradient(135deg, #FFD700, #FFA500);
+        color: #000;
+    }
+    
+    .second-lap {
+        background: linear-gradient(135deg, #C0C0C0, #A8A8A8);
+        color: #000;
+    }
+    
+    .third-lap {
+        background: linear-gradient(135deg, #CD7F32, #B8860B);
+        color: #fff;
     }
     
     .stSelectbox > div > div {
-        background-color: #23272F;
+        background-color: rgba(35, 39, 47, 0.8);
+        border: 1px solid rgba(0, 210, 190, 0.2);
+        border-radius: 8px;
+    }
+    
+    .stMultiSelect > div > div {
+        background-color: rgba(35, 39, 47, 0.8);
+        border: 1px solid rgba(0, 210, 190, 0.2);
+        border-radius: 8px;
     }
     
     .sidebar .sidebar-content {
-        background: linear-gradient(180deg, #23272F, #18191A);
+        background: linear-gradient(180deg, rgba(35, 39, 47, 0.95), rgba(24, 25, 26, 0.95));
+        backdrop-filter: blur(10px);
+    }
+    
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 8px;
+    }
+    
+    .stTabs [data-baseweb="tab"] {
+        background: rgba(35, 39, 47, 0.6);
+        border-radius: 8px;
+        border: 1px solid rgba(0, 210, 190, 0.2);
+        padding: 0.5rem 1rem;
+    }
+    
+    .stTabs [aria-selected="true"] {
+        background: linear-gradient(135deg, rgba(0, 210, 190, 0.2), rgba(220, 0, 0, 0.1));
+        border: 1px solid rgba(0, 210, 190, 0.5);
     }
 </style>
 """, unsafe_allow_html=True)
@@ -259,26 +343,113 @@ def main():
                     lap_data = st.session_state.data_loader.get_lap_comparison(selected_drivers)
                     
                     if lap_data is not None and not lap_data.empty:
-                        # Fastest lap times
+                        # Professional Fastest Lap Times Display
                         st.subheader("🏆 Fastest Lap Times")
-                        fastest_laps = lap_data.groupby('Driver')['LapTime'].min().sort_values()
+                        fastest_laps = lap_data.groupby('Driver')['LapTime_seconds'].min().sort_values()
                         
-                        for i, (driver, lap_time) in enumerate(fastest_laps.items()):
-                            team = DRIVER_TEAMS.get(driver, 'Unknown')
-                            color = TEAM_COLORS.get(team, '#FFFFFF')
-                            
-                            col1, col2, col3 = st.columns([1, 2, 1])
-                            with col2:
+                        cols = st.columns(len(selected_drivers))
+                        for i, (driver, lap_time_seconds) in enumerate(fastest_laps.items()):
+                            with cols[i]:
+                                team = DRIVER_TEAMS.get(driver, 'Unknown')
+                                color = TEAM_COLORS.get(team, '#FFFFFF')
+                                formatted_time = format_lap_time(lap_time_seconds)
+                                
                                 if i == 0:
-                                    st.success(f"🥇 {driver}: {lap_time}")
+                                    st.markdown(f"""
+                                    <div class="metric-card">
+                                        <div class="position-badge fastest-lap">1</div>
+                                        <strong>{driver}</strong><br>
+                                        <div class="lap-time">{formatted_time}</div>
+                                        <small style="color: {color};">🏎️ {team}</small>
+                                    </div>
+                                    """, unsafe_allow_html=True)
                                 elif i == 1:
-                                    st.info(f"🥈 {driver}: {lap_time}")
+                                    gap = lap_time_seconds - fastest_laps.iloc[0]
+                                    st.markdown(f"""
+                                    <div class="metric-card">
+                                        <div class="position-badge second-lap">2</div>
+                                        <strong>{driver}</strong><br>
+                                        <div class="lap-time">{formatted_time}</div>
+                                        <small style="color: #C0C0C0;">+{gap:.3f}s</small><br>
+                                        <small style="color: {color};">🏎️ {team}</small>
+                                    </div>
+                                    """, unsafe_allow_html=True)
                                 elif i == 2:
-                                    st.warning(f"🥉 {driver}: {lap_time}")
+                                    gap = lap_time_seconds - fastest_laps.iloc[0]
+                                    st.markdown(f"""
+                                    <div class="metric-card">
+                                        <div class="position-badge third-lap">3</div>
+                                        <strong>{driver}</strong><br>
+                                        <div class="lap-time">{formatted_time}</div>
+                                        <small style="color: #CD7F32;">+{gap:.3f}s</small><br>
+                                        <small style="color: {color};">🏎️ {team}</small>
+                                    </div>
+                                    """, unsafe_allow_html=True)
                                 else:
-                                    st.text(f"{i+1}. {driver}: {lap_time}")
+                                    gap = lap_time_seconds - fastest_laps.iloc[0]
+                                    st.markdown(f"""
+                                    <div class="metric-card">
+                                        <div class="position-badge" style="background: #404040; color: white;">{i+1}</div>
+                                        <strong>{driver}</strong><br>
+                                        <div class="lap-time">{formatted_time}</div>
+                                        <small style="color: #999;">+{gap:.3f}s</small><br>
+                                        <small style="color: {color};">🏎️ {team}</small>
+                                    </div>
+                                    """, unsafe_allow_html=True)
                         
-                        # Lap time distribution
+                        # Sector Analysis
+                        st.subheader("🎯 Sector Analysis")
+                        
+                        sector_data = []
+                        for driver in selected_drivers:
+                            driver_data = lap_data[lap_data['Driver'] == driver]
+                            if not driver_data.empty:
+                                fastest_lap_idx = driver_data['LapTime_seconds'].idxmin()
+                                fastest_lap = driver_data.loc[fastest_lap_idx]
+                                
+                                sector_data.append({
+                                    'Driver': driver,
+                                    'Team': DRIVER_TEAMS.get(driver, 'Unknown'),
+                                    'S1': fastest_lap.get('Sector1Time', None),
+                                    'S2': fastest_lap.get('Sector2Time', None),
+                                    'S3': fastest_lap.get('Sector3Time', None),
+                                    'LapTime': fastest_lap['LapTime_seconds']
+                                })
+                        
+                        if sector_data:
+                            for i, data in enumerate(sector_data):
+                                driver = data['Driver']
+                                team = data['Team']
+                                color = TEAM_COLORS.get(team, '#FFFFFF')
+                                
+                                col1, col2, col3, col4, col5 = st.columns([1, 1, 1, 1, 2])
+                                
+                                with col1:
+                                    st.markdown(f"""
+                                    <div style="text-align: center;">
+                                        <div class="driver-tag" style="background-color: {color};">
+                                            {driver}
+                                        </div>
+                                    </div>
+                                    """, unsafe_allow_html=True)
+                                
+                                with col2:
+                                    s1_time = format_sector_time(data['S1']) if data['S1'] else "N/A"
+                                    st.markdown(f'<div class="sector-time">S1: {s1_time}</div>', unsafe_allow_html=True)
+                                
+                                with col3:
+                                    s2_time = format_sector_time(data['S2']) if data['S2'] else "N/A"
+                                    st.markdown(f'<div class="sector-time">S2: {s2_time}</div>', unsafe_allow_html=True)
+                                
+                                with col4:
+                                    s3_time = format_sector_time(data['S3']) if data['S3'] else "N/A"
+                                    st.markdown(f'<div class="sector-time">S3: {s3_time}</div>', unsafe_allow_html=True)
+                                
+                                with col5:
+                                    formatted_lap = format_lap_time(data['LapTime'])
+                                    st.markdown(f'<div class="lap-time">{formatted_lap}</div>', unsafe_allow_html=True)
+                        
+                        # Enhanced Lap Time Distribution
                         st.subheader("📊 Lap Time Distribution")
                         fig = px.box(
                             lap_data, 
@@ -289,19 +460,41 @@ def main():
                                 driver: TEAM_COLORS.get(DRIVER_TEAMS.get(driver, 'Unknown'), '#FFFFFF')
                                 for driver in selected_drivers
                             },
-                            title="Lap Time Distribution by Driver"
+                            title="Lap Time Consistency Analysis"
                         )
                         fig.update_layout(
                             plot_bgcolor='rgba(0,0,0,0)',
                             paper_bgcolor='rgba(0,0,0,0)',
-                            font_color='white'
+                            font_color='white',
+                            title_font_size=18,
+                            xaxis_title="Driver",
+                            yaxis_title="Lap Time (seconds)"
                         )
                         st.plotly_chart(fig, use_container_width=True)
                         
-                        # Detailed lap times table
-                        st.subheader("📋 Detailed Lap Times")
-                        display_data = lap_data[['Driver', 'LapNumber', 'LapTime', 'Compound']].copy()
-                        st.dataframe(display_data, use_container_width=True)
+                        # Professional Detailed Lap Times by Driver
+                        st.subheader("📋 Detailed Lap Times by Driver")
+                        
+                        for driver in selected_drivers:
+                            driver_data = lap_data[lap_data['Driver'] == driver].copy()
+                            if not driver_data.empty:
+                                team = DRIVER_TEAMS.get(driver, 'Unknown')
+                                color = TEAM_COLORS.get(team, '#FFFFFF')
+                                
+                                with st.expander(f"🏎️ {driver} ({team}) - {len(driver_data)} laps", expanded=False):
+                                    driver_data['Formatted_LapTime'] = driver_data['LapTime_seconds'].apply(format_lap_time)
+                                    driver_data['Formatted_S1'] = driver_data['Sector1Time'].apply(lambda x: format_sector_time(x) if pd.notna(x) else "N/A")
+                                    driver_data['Formatted_S2'] = driver_data['Sector2Time'].apply(lambda x: format_sector_time(x) if pd.notna(x) else "N/A")
+                                    driver_data['Formatted_S3'] = driver_data['Sector3Time'].apply(lambda x: format_sector_time(x) if pd.notna(x) else "N/A")
+                                    
+                                    display_data = driver_data[['LapNumber', 'Formatted_LapTime', 'Formatted_S1', 'Formatted_S2', 'Formatted_S3', 'Compound', 'TyreLife']].copy()
+                                    display_data.columns = ['Lap', 'Lap Time', 'Sector 1', 'Sector 2', 'Sector 3', 'Compound', 'Tyre Age']
+                                    
+                                    st.dataframe(
+                                        display_data,
+                                        use_container_width=True,
+                                        hide_index=True
+                                    )
                         
                     else:
                         st.error("No lap time data available for selected drivers")
@@ -345,26 +538,119 @@ def main():
                     if fig:
                         st.plotly_chart(fig, use_container_width=True)
                         
-                        # Position changes summary
-                        st.subheader("📈 Position Changes")
+                        # Professional Position Changes Analysis
+                        st.subheader("📈 Position Changes Summary")
                         position_data = st.session_state.data_loader.get_position_data(selected_drivers)
+                        
                         if position_data is not None and not position_data.empty:
                             start_positions = position_data.groupby('Driver')['Position'].first()
                             end_positions = position_data.groupby('Driver')['Position'].last()
                             position_changes = start_positions - end_positions
                             
-                            for driver in selected_drivers:
+                            # Create professional cards for position changes
+                            cols = st.columns(len(selected_drivers))
+                            for i, driver in enumerate(selected_drivers):
                                 if driver in position_changes:
-                                    change = position_changes[driver]
-                                    start_pos = start_positions[driver]
-                                    end_pos = end_positions[driver]
-                                    
-                                    if change > 0:
-                                        st.success(f"📈 {driver}: P{start_pos} → P{end_pos} (+{change} positions)")
-                                    elif change < 0:
-                                        st.error(f"📉 {driver}: P{start_pos} → P{end_pos} ({change} positions)")
-                                    else:
-                                        st.info(f"➡️ {driver}: P{start_pos} → P{end_pos} (no change)")
+                                    with cols[i]:
+                                        change = position_changes[driver]
+                                        start_pos = int(start_positions[driver])
+                                        end_pos = int(end_positions[driver])
+                                        team = DRIVER_TEAMS.get(driver, 'Unknown')
+                                        color = TEAM_COLORS.get(team, '#FFFFFF')
+                                        
+                                        change_text, change_type = get_position_change_text(start_pos, end_pos)
+                                        
+                                        if change > 0:
+                                            change_color = "#00FF88"
+                                            arrow = "📈"
+                                        elif change < 0:
+                                            change_color = "#FF4444"
+                                            arrow = "📉"
+                                        else:
+                                            change_color = "#888888"
+                                            arrow = "➡️"
+                                        
+                                        st.markdown(f"""
+                                        <div class="metric-card">
+                                            <div style="text-align: center;">
+                                                <div class="driver-tag" style="background-color: {color};">
+                                                    {driver}
+                                                </div>
+                                                <br>
+                                                <div style="font-size: 2rem; margin: 0.5rem 0;">
+                                                    {arrow}
+                                                </div>
+                                                <div style="font-size: 1.2rem; font-weight: 600;">
+                                                    P{start_pos} → P{end_pos}
+                                                </div>
+                                                <div style="color: {change_color}; font-weight: 600; margin-top: 0.5rem;">
+                                                    {change_text[2:]}
+                                                </div>
+                                                <small style="color: {color}; margin-top: 0.5rem; display: block;">
+                                                    🏎️ {team}
+                                                </small>
+                                            </div>
+                                        </div>
+                                        """, unsafe_allow_html=True)
+                            
+                            # Add race statistics
+                            st.subheader("🏁 Race Statistics")
+                            
+                            col1, col2, col3 = st.columns(3)
+                            
+                            with col1:
+                                biggest_gain = position_changes.max()
+                                best_climber = position_changes.idxmax() if biggest_gain > 0 else None
+                                if best_climber:
+                                    team = DRIVER_TEAMS.get(best_climber, 'Unknown')
+                                    st.markdown(f"""
+                                    <div class="metric-card">
+                                        <h4 style="color: #00FF88; margin: 0;">🚀 Biggest Climber</h4>
+                                        <div style="font-size: 1.5rem; font-weight: 600; margin: 0.5rem 0;">
+                                            {best_climber}
+                                        </div>
+                                        <div style="color: #00FF88;">
+                                            +{biggest_gain} positions
+                                        </div>
+                                        <small style="color: {TEAM_COLORS.get(team, '#FFFFFF')};">
+                                            🏎️ {team}
+                                        </small>
+                                    </div>
+                                    """, unsafe_allow_html=True)
+                            
+                            with col2:
+                                biggest_loss = position_changes.min()
+                                worst_drop = position_changes.idxmin() if biggest_loss < 0 else None
+                                if worst_drop:
+                                    team = DRIVER_TEAMS.get(worst_drop, 'Unknown')
+                                    st.markdown(f"""
+                                    <div class="metric-card">
+                                        <h4 style="color: #FF4444; margin: 0;">📉 Biggest Drop</h4>
+                                        <div style="font-size: 1.5rem; font-weight: 600; margin: 0.5rem 0;">
+                                            {worst_drop}
+                                        </div>
+                                        <div style="color: #FF4444;">
+                                            {biggest_loss} positions
+                                        </div>
+                                        <small style="color: {TEAM_COLORS.get(team, '#FFFFFF')};">
+                                            🏎️ {team}
+                                        </small>
+                                    </div>
+                                    """, unsafe_allow_html=True)
+                            
+                            with col3:
+                                total_laps = position_data['LapNumber'].max()
+                                avg_changes = abs(position_changes).mean()
+                                st.markdown(f"""
+                                <div class="metric-card">
+                                    <h4 style="color: #00D2BE; margin: 0;">📊 Race Stats</h4>
+                                    <div style="margin: 0.5rem 0;">
+                                        <strong>Total Laps:</strong> {total_laps}<br>
+                                        <strong>Avg Position Change:</strong> {avg_changes:.1f}<br>
+                                        <strong>Drivers Tracked:</strong> {len(selected_drivers)}
+                                    </div>
+                                </div>
+                                """, unsafe_allow_html=True)
                         
                         # Export button
                         if st.button("💾 Export Race Progression"):

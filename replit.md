@@ -7,6 +7,9 @@ This is a Formula 1 data analysis platform built with Streamlit that provides co
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
+Design preferences: Professional, minimal, attractive design with enhanced F1-themed styling.
+Data formatting: Lap times in M:SS.mmm format (e.g., 1:34.342).
+Analysis requirements: Comprehensive sector analysis, detailed driver comparisons, enhanced track dominance visualization.
 
 ## System Architecture
 
@@ -45,12 +48,12 @@ Preferred communication style: Simple, everyday language.
   - Error handling for data loading failures
 
 ### Visualization Module (utils/visualizations.py)
-- **Purpose**: Creates interactive Plotly visualizations
+- **Purpose**: Creates professional interactive Plotly visualizations with enhanced styling
 - **Supported Charts**:
-  - Telemetry comparison plots (speed, throttle, brake, RPM, gear)
-  - Tire strategy visualizations
-  - Race progression analysis
-  - Team color-coded displays
+  - Telemetry comparison plots (speed, throttle, brake, RPM, gear) with enhanced legends
+  - Professional tire strategy visualizations with stint analysis
+  - Advanced race progression analysis with position tracking and annotations
+  - Team color-coded displays with professional gradients and styling
 
 ### Track Dominance Module (utils/track_dominance.py)
 - **Purpose**: Generates track dominance maps showing fastest sectors
