@@ -26,7 +26,7 @@ args = "install_dependencies"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "F1 TypeScript React Platform"
+args = "F1 Streamlit Platform"
 
 [[workflows.workflow]]
 name = "Install Dependencies"
@@ -45,12 +45,12 @@ task = "shell.exec"
 args = "uv add fastf1 plotly scipy matplotlib"
 
 [[workflows.workflow]]
-name = "F1 TypeScript React Platform"
+name = "F1 Streamlit Platform"
 author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "npx vite --host 0.0.0.0 --port 5000 --config vite.config.js"
+args = "streamlit run app.py --server.port 5000 --server.address 0.0.0.0"
 waitForPort = 5000
 
 [[ports]]
