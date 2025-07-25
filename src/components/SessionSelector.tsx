@@ -46,14 +46,14 @@ const SessionSelector: React.FC<SessionSelectorProps> = ({ selectedSession, onSe
       className="glass-card p-6 space-y-4"
     >
       <div className="flex items-center space-x-2 mb-4">
-        <Calendar className="w-5 h-5 text-f1-red" />
+        <Calendar className="w-5 h-5" style={{ color: '#DC0000' }} />
         <h2 className="text-lg font-semibold">Session Selection</h2>
       </div>
       
       <div className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-300 mb-2">Year</label>
-          <select className="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white focus:border-f1-red focus:outline-none transition-colors">
+          <select className="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none transition-colors">
             {years.map(year => (
               <option key={year} value={year}>{year}</option>
             ))}
@@ -62,7 +62,7 @@ const SessionSelector: React.FC<SessionSelectorProps> = ({ selectedSession, onSe
         
         <div>
           <label className="block text-sm font-medium text-gray-300 mb-2">Grand Prix</label>
-          <select className="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white focus:border-f1-red focus:outline-none transition-colors">
+          <select className="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none transition-colors">
             {grandsPrix.map(gp => (
               <option key={gp} value={gp}>{gp}</option>
             ))}
@@ -71,7 +71,7 @@ const SessionSelector: React.FC<SessionSelectorProps> = ({ selectedSession, onSe
         
         <div>
           <label className="block text-sm font-medium text-gray-300 mb-2">Session Type</label>
-          <select className="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white focus:border-f1-red focus:outline-none transition-colors">
+          <select className="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none transition-colors">
             {sessions.map(session => (
               <option key={session} value={session}>{session}</option>
             ))}
@@ -81,7 +81,8 @@ const SessionSelector: React.FC<SessionSelectorProps> = ({ selectedSession, onSe
         <motion.button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
-          className="w-full bg-gradient-to-r from-f1-red to-red-600 text-white py-2 px-4 rounded-lg font-medium hover:shadow-lg transition-all duration-200"
+          className="w-full text-white py-2 px-4 rounded-lg font-medium hover:shadow-lg transition-all duration-200"
+          style={{ background: 'linear-gradient(to right, #DC0000, #B91C1C)' }}
         >
           Load Session Data
         </motion.button>

@@ -13,7 +13,7 @@ const Header: React.FC = () => {
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-2">
-            <Flag className="w-8 h-8 text-f1-red" />
+            <Flag className="w-8 h-8" style={{ color: '#DC0000' }} />
             <h1 className="text-3xl font-bold f1-gradient">
               F1 Analysis Platform
             </h1>

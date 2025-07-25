@@ -7,20 +7,18 @@ export default {
   theme: {
     extend: {
       colors: {
-        f1: {
-          red: '#DC0000',
-          silver: '#C0C0C0',
-          gold: '#FFD700',
-          mercedes: '#00D2BE',
-          redbull: '#1E41FF',
-          ferrari: '#DC0000',
-          mclaren: '#FF8700',
-          alpine: '#0090FF',
-          aston: '#006F62',
-          haas: '#808080',
-          williams: '#87CEEB',
-          sauber: '#00E701'
-        }
+        'f1-red': '#DC0000',
+        'f1-silver': '#C0C0C0',
+        'f1-gold': '#FFD700',
+        'f1-mercedes': '#00D2BE',
+        'f1-redbull': '#1E41FF',
+        'f1-ferrari': '#DC0000',
+        'f1-mclaren': '#FF8700',
+        'f1-alpine': '#0090FF',
+        'f1-aston': '#006F62',
+        'f1-haas': '#808080',
+        'f1-williams': '#87CEEB',
+        'f1-sauber': '#00E701'
       },
       animation: {
         'fade-in': 'fadeIn 0.5s ease-in-out',

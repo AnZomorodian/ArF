@@ -27,7 +27,7 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+    <div className="min-h-screen" style={{ background: 'linear-gradient(135deg, #111827 0%, #1f2937 50%, #111827 100%)' }}>
       <div className="racing-stripes opacity-5 absolute inset-0" />
       
       <div className="relative z-10">
@@ -126,9 +126,10 @@ const App: React.FC = () => {
                       onClick={() => setActiveTab(tab.id as any)}
                       className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
                         activeTab === tab.id
-                          ? 'bg-f1-red text-white shadow-lg'
-                          : 'text-gray-300 hover:text-white hover:bg-gray-700/50'
+                          ? 'text-white shadow-lg'
+                          : 'text-gray-300 hover:text-white hover:bg-gray-700'
                       }`}
+                      style={activeTab === tab.id ? { backgroundColor: '#DC0000' } : {}}
                     >
                       {tab.icon}
                       <span>{tab.label}</span>
