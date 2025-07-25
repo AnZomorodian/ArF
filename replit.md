@@ -2,11 +2,19 @@
 
 ## Overview
 
-This is a Formula 1 data analysis platform built with Streamlit that provides comprehensive race data visualization and analysis capabilities. The platform leverages the FastF1 library to access official F1 timing data and creates interactive visualizations using Plotly. The application focuses on telemetry analysis, race progression tracking, tire strategy visualization, and track dominance mapping.
+This is a comprehensive Formula 1 data analysis platform built with Streamlit that provides advanced race data visualization and analytics capabilities. The platform leverages the FastF1 library to access official F1 timing data and creates interactive visualizations using Plotly. The application features telemetry analysis, race progression tracking, tire strategy visualization, track dominance mapping, advanced driver performance analytics, weather impact analysis, and sophisticated race strategy evaluation.
 
 ## Recent Changes (July 25, 2025)
 
-### Major Version 2.0 Update - TypeScript React Migration
+### Major Version 3.0 Update - Advanced Analytics Platform
+- **Advanced Analytics Module**: Added comprehensive driver performance analysis with consistency metrics
+- **Weather Impact Analysis**: Integrated weather data correlation with lap time performance
+- **Race Strategy Analyzer**: Advanced pit stop strategy and fuel effect analysis with pace evolution tracking
+- **Enhanced Telemetry Comparison**: Multi-parameter telemetry analysis with 6-channel visualization
+- **Tire Degradation Analytics**: Detailed compound performance analysis with degradation rate calculations
+- **Sector Dominance Metrics**: Statistical analysis of driver performance across track sectors
+
+### Previous Version 2.0 Update - TypeScript React Migration
 - **Complete platform modernization**: Migrated from Streamlit to TypeScript React application
 - **Advanced UI framework**: Implemented with Vite, Tailwind CSS, and Framer Motion animations  
 - **Enhanced component architecture**: Modular React components with TypeScript type safety

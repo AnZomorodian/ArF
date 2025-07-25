@@ -15,6 +15,9 @@ from utils.visualizations import create_telemetry_plot, create_tire_strategy_plo
 from utils.track_dominance import create_track_dominance_map
 from utils.constants import TEAM_COLORS, DRIVER_TEAMS, GRANDS_PRIX, SESSIONS, TIRE_COLORS
 from utils.formatters import format_lap_time, format_sector_time, get_lap_time_color_class, get_position_change_text
+from utils.advanced_analytics import AdvancedF1Analytics
+from utils.weather_analytics import WeatherAnalytics
+from utils.race_strategy import RaceStrategyAnalyzer
 
 # Configure page
 st.set_page_config(
@@ -591,12 +594,13 @@ def main():
         return
     
     # Analysis tabs
-    tab1, tab2, tab3, tab4, tab5 = st.tabs([
+    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
         "📈 Telemetry Analysis", 
         "🗺️ Track Dominance", 
         "⏱️ Lap Comparison", 
         "🔧 Tire Strategy", 
-        "📊 Race Progression"
+        "📊 Race Progression",
+        "🧠 Advanced Analytics"
     ])
     
     with tab1:
@@ -1133,6 +1137,265 @@ def main():
                 st.info("Race progression analysis is only available for Race sessions.")
             else:
                 st.info("Select drivers to view race progression analysis.")
+    
+    with tab6:
+        st.header("🧠 Advanced Analytics")
+        
+        if selected_drivers:
+            # Initialize analytics modules
+            session = st.session_state.data_loader.session
+            analytics = AdvancedF1Analytics(session)
+            weather_analytics = WeatherAnalytics(session)
+            strategy_analyzer = RaceStrategyAnalyzer(session)
+            
+            # Advanced analytics sub-tabs
+            adv_tab1, adv_tab2, adv_tab3, adv_tab4 = st.tabs([
+                "👤 Driver Performance", "🌤️ Weather Impact", "🏁 Strategy Analysis", "📊 Advanced Metrics"
+            ])
+            
+            with adv_tab1:
+                st.subheader("Driver Consistency Analysis")
+                
+                consistency_data = []
+                for driver in selected_drivers:
+                    consistency = analytics.calculate_driver_consistency(driver)
+                    if consistency:
+                        team = DRIVER_TEAMS.get(driver, 'Unknown')
+                        team_color = TEAM_COLORS.get(team, '#FFFFFF')
+                        
+                        consistency_data.append({
+                            'driver': driver,
+                            'team': team,
+                            'team_color': team_color,
+                            'consistency_score': consistency['consistency_score'],
+                            'mean_lap_time': consistency['mean_lap_time'],
+                            'std_deviation': consistency['std_deviation'],
+                            'total_laps': consistency['total_laps']
+                        })
+                
+                # Display consistency metrics
+                for data in consistency_data:
+                    st.markdown(f"""
+                    <div class="metric-card">
+                        <div style="background: linear-gradient(135deg, {data['team_color']}20, {data['team_color']}40); 
+                                    border-left: 4px solid {data['team_color']}; padding: 1.5rem; border-radius: 12px;">
+                            <h3 style="color: {data['team_color']}; margin: 0 0 0.5rem 0;">{data['driver']} - {data['team']}</h3>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-top: 1rem;">
+                                <div style="text-align: center;">
+                                    <div style="font-size: 1.5rem; font-weight: 700; color: white;">{data['consistency_score']:.3f}</div>
+                                    <div style="color: #888; font-size: 0.9rem;">Consistency Score</div>
+                                </div>
+                                <div style="text-align: center;">
+                                    <div style="font-size: 1.5rem; font-weight: 700; color: white;">{data['mean_lap_time']:.3f}s</div>
+                                    <div style="color: #888; font-size: 0.9rem;">Average Lap Time</div>
+                                </div>
+                                <div style="text-align: center;">
+                                    <div style="font-size: 1.5rem; font-weight: 700; color: white;">±{data['std_deviation']:.3f}s</div>
+                                    <div style="color: #888; font-size: 0.9rem;">Standard Deviation</div>
+                                </div>
+                                <div style="text-align: center;">
+                                    <div style="font-size: 1.5rem; font-weight: 700; color: white;">{data['total_laps']}</div>
+                                    <div style="color: #888; font-size: 0.9rem;">Total Laps</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+                
+                # Tire degradation analysis
+                st.subheader("🛞 Tire Degradation Analysis")
+                degradation_driver = st.selectbox("Select driver for tire degradation analysis:", selected_drivers)
+                
+                if degradation_driver:
+                    degradation_data = analytics.analyze_tire_degradation(degradation_driver)
+                    
+                    if degradation_data:
+                        for stint_data in degradation_data:
+                            compound = stint_data['compound']
+                            tire_color = TIRE_COLORS.get(compound, '#808080')
+                            
+                            st.markdown(f"""
+                            <div style="background: linear-gradient(135deg, rgba(35, 39, 47, 0.8), rgba(24, 25, 26, 0.9)); 
+                                        border-left: 4px solid {tire_color}; padding: 1rem; border-radius: 8px; margin: 0.5rem 0;">
+                                <div style="display: flex; align-items: center; margin-bottom: 0.5rem;">
+                                    <div style="width: 24px; height: 24px; background-color: {tire_color}; border-radius: 50%; margin-right: 0.75rem;"></div>
+                                    <h4 style="color: white; margin: 0;">{compound} Compound</h4>
+                                </div>
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 0.5rem; font-size: 0.9rem;">
+                                    <div><strong>Stint Length:</strong> {stint_data['stint_length']} laps</div>
+                                    <div><strong>Degradation Rate:</strong> {stint_data['degradation_rate']:.3f}s/lap</div>
+                                    <div><strong>Total Degradation:</strong> {stint_data['total_degradation']:.3f}s</div>
+                                </div>
+                            </div>
+                            """, unsafe_allow_html=True)
+                    else:
+                        st.info("No tire degradation data available for this driver.")
+            
+            with adv_tab2:
+                st.subheader("Weather Evolution")
+                try:
+                    weather_plot = weather_analytics.create_weather_evolution_plot()
+                    st.plotly_chart(weather_plot, use_container_width=True)
+                except Exception as e:
+                    st.info("Weather data visualization not available for this session type.")
+                
+                st.subheader("Weather Summary")
+                try:
+                    weather_summary = weather_analytics.get_weather_summary()
+                    
+                    if isinstance(weather_summary, dict) and 'air_temperature' in weather_summary:
+                        col1, col2, col3 = st.columns(3)
+                        
+                        with col1:
+                            st.markdown(f"""
+                            <div class="metric-card">
+                                <h4>🌡️ Air Temperature</h4>
+                                <div style="font-size: 1.2rem; font-weight: 600;">
+                                    Min: {weather_summary['air_temperature']['min']:.1f}°C<br>
+                                    Max: {weather_summary['air_temperature']['max']:.1f}°C<br>
+                                    Avg: {weather_summary['air_temperature']['mean']:.1f}°C
+                                </div>
+                            </div>
+                            """, unsafe_allow_html=True)
+                        
+                        with col2:
+                            st.markdown(f"""
+                            <div class="metric-card">
+                                <h4>🏁 Track Temperature</h4>
+                                <div style="font-size: 1.2rem; font-weight: 600;">
+                                    Min: {weather_summary['track_temperature']['min']:.1f}°C<br>
+                                    Max: {weather_summary['track_temperature']['max']:.1f}°C<br>
+                                    Avg: {weather_summary['track_temperature']['mean']:.1f}°C
+                                </div>
+                            </div>
+                            """, unsafe_allow_html=True)
+                        
+                        with col3:
+                            st.markdown(f"""
+                            <div class="metric-card">
+                                <h4>💨 Wind Conditions</h4>
+                                <div style="font-size: 1.2rem; font-weight: 600;">
+                                    Min: {weather_summary['wind_speed']['min']:.1f} km/h<br>
+                                    Max: {weather_summary['wind_speed']['max']:.1f} km/h<br>
+                                    Avg: {weather_summary['wind_speed']['mean']:.1f} km/h
+                                </div>
+                            </div>
+                            """, unsafe_allow_html=True)
+                    else:
+                        st.info("Detailed weather data not available for this session.")
+                except Exception as e:
+                    st.info("Weather analysis not available for this session type.")
+            
+            with adv_tab3:
+                st.subheader("Pit Stop Strategy Analysis")
+                try:
+                    strategy_timeline = strategy_analyzer.create_strategy_timeline_plot()
+                    st.plotly_chart(strategy_timeline, use_container_width=True)
+                    
+                    st.subheader("Pace Evolution (Fuel Effect)")  
+                    pace_evolution = strategy_analyzer.create_pace_evolution_plot()
+                    st.plotly_chart(pace_evolution, use_container_width=True)
+                    
+                    # Strategy effectiveness analysis
+                    st.subheader("Strategy Effectiveness")
+                    pit_strategies = strategy_analyzer.analyze_pit_stop_strategies()
+                    
+                    strategy_summary = []
+                    for driver in selected_drivers:
+                        if driver in pit_strategies:
+                            strategy = pit_strategies[driver]
+                            team = DRIVER_TEAMS.get(driver, 'Unknown')
+                            team_color = TEAM_COLORS.get(team, '#FFFFFF')
+                            
+                            strategy_summary.append({
+                                'driver': driver,
+                                'team': team,
+                                'team_color': team_color,
+                                'strategy_type': strategy['strategy_type'],
+                                'total_pit_stops': strategy['total_pit_stops'],
+                                'stints': len(strategy['stints'])
+                            })
+                    
+                    # Display strategy summary
+                    if strategy_summary:
+                        cols = st.columns(min(3, len(strategy_summary)))
+                        for i, data in enumerate(strategy_summary):
+                            with cols[i % len(cols)]:
+                                st.markdown(f"""
+                                <div class="metric-card">
+                                    <div style="background: linear-gradient(135deg, {data['team_color']}20, {data['team_color']}40); 
+                                                border-left: 4px solid {data['team_color']}; padding: 1rem; border-radius: 8px;">
+                                        <h4 style="color: {data['team_color']}; margin: 0 0 0.5rem 0;">{data['driver']}</h4>
+                                        <div style="color: #ccc; font-size: 0.9rem; margin-bottom: 0.5rem;">{data['team']}</div>
+                                        <div style="font-weight: 600; color: white;">{data['strategy_type']}</div>
+                                        <div style="color: #888; font-size: 0.85rem;">{data['total_pit_stops']} pit stops</div>
+                                    </div>
+                                </div>
+                                """, unsafe_allow_html=True)
+                except Exception as e:
+                    st.info("Strategy analysis not available for this session type.")
+            
+            with adv_tab4:
+                st.subheader("Advanced Telemetry Comparison")
+                
+                if len(selected_drivers) >= 2:
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        driver1 = st.selectbox("First driver:", selected_drivers, key="adv_driver1")
+                    with col2:
+                        available_drivers_2 = [d for d in selected_drivers if d != driver1]
+                        driver2 = st.selectbox("Second driver:", available_drivers_2, key="adv_driver2") if available_drivers_2 else None
+                    
+                    if driver1 and driver2:
+                        try:
+                            advanced_telemetry = analytics.create_advanced_telemetry_comparison(driver1, driver2)
+                            
+                            if advanced_telemetry:
+                                st.plotly_chart(advanced_telemetry, use_container_width=True)
+                            else:
+                                st.info("Unable to create telemetry comparison. Telemetry data may not be available.")
+                        except Exception as e:
+                            st.info(f"Advanced telemetry comparison not available: {str(e)}")
+                else:
+                    st.info("Select at least 2 drivers to enable advanced telemetry comparison.")
+                
+                # Sector dominance analysis
+                st.subheader("📊 Sector Dominance Analysis")
+                try:
+                    sector_dominance = analytics.calculate_sector_dominance()
+                    
+                    if sector_dominance:
+                        for sector, sector_data in sector_dominance.items():
+                            st.markdown(f"**{sector} Leaders:**")
+                            
+                            # Sort drivers by best time in this sector and filter selected drivers
+                            sorted_drivers = sorted(sector_data.items(), key=lambda x: x[1]['best_time'])
+                            selected_sector_drivers = [(d, data) for d, data in sorted_drivers if d in selected_drivers]
+                            
+                            if selected_sector_drivers:
+                                for i, (driver, data) in enumerate(selected_sector_drivers[:5]):
+                                    team = DRIVER_TEAMS.get(driver, 'Unknown')
+                                    team_color = TEAM_COLORS.get(team, '#FFFFFF')
+                                    position_badge = "🥇" if i == 0 else "🥈" if i == 1 else "🥉" if i == 2 else f"{i+1}."
+                                    
+                                    st.markdown(f"""
+                                    <div style="display: flex; align-items: center; padding: 0.5rem; margin: 0.25rem 0; 
+                                                background: rgba(255,255,255,0.05); border-radius: 8px; border-left: 3px solid {team_color};">
+                                        <span style="margin-right: 0.5rem; font-size: 1.1rem;">{position_badge}</span>
+                                        <span style="flex: 1; font-weight: 500; color: {team_color};">{driver}</span>
+                                        <span style="font-family: monospace; color: white;">{data['best_time']:.3f}s</span>
+                                    </div>
+                                    """, unsafe_allow_html=True)
+                            else:
+                                st.info("No selected drivers found in sector data.")
+                            
+                            st.markdown("---")
+                    else:
+                        st.info("Sector dominance data not available.")
+                except Exception as e:
+                    st.info("Sector analysis not available for this session.")
+        else:
+            st.info("Please select drivers from the sidebar to access advanced analytics.")
 
 if __name__ == "__main__":
     main()
