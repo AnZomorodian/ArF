@@ -26,7 +26,7 @@ args = "install_dependencies"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "F1 Web Platform"
+args = "F1 Analysis Platform"
 
 [[workflows.workflow]]
 name = "Install Dependencies"
@@ -45,12 +45,12 @@ task = "shell.exec"
 args = "uv add fastf1 plotly scipy matplotlib"
 
 [[workflows.workflow]]
-name = "F1 Web Platform"
+name = "F1 Analysis Platform"
 author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "python web_app.py"
+args = "streamlit run app.py --server.port 5000"
 waitForPort = 5000
 
 [[ports]]

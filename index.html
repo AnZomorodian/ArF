@@ -1,152 +1,0 @@
-<!DOCTYPE html>
-<html lang="fa" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>F1 Analysis Platform</title>
-    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="static/styles.css">
-</head>
-<body>
-    <div class="container">
-        <!-- Header -->
-        <header class="header">
-            <div class="header-content">
-                <h1 class="main-title">
-                    <span class="f1-logo">🏎️</span>
-                    F1 Analysis Platform
-                </h1>
-                <p class="subtitle">تحلیل جامع داده‌های فرمول یک</p>
-            </div>
-        </header>
-
-        <!-- Navigation -->
-        <nav class="navigation">
-            <div class="nav-container">
-                <button class="nav-button active" data-section="session-selection">انتخاب مسابقه</button>
-                <button class="nav-button" data-section="telemetry">تله‌متری</button>
-                <button class="nav-button" data-section="tire-strategy">استراتژی تایر</button>
-                <button class="nav-button" data-section="race-progression">پیشرفت مسابقه</button>
-                <button class="nav-button" data-section="track-dominance">تسلط بر پیست</button>
-            </div>
-        </nav>
-
-        <!-- Main Content -->
-        <main class="main-content">
-            <!-- Session Selection Section -->
-            <section id="session-selection" class="content-section active">
-                <div class="section-header">
-                    <h2>انتخاب مسابقه و جلسه</h2>
-                    <p>برای شروع تحلیل، مسابقه و جلسه مورد نظر خود را انتخاب کنید</p>
-                </div>
-                
-                <div class="session-controls">
-                    <div class="control-group">
-                        <label for="year-select">سال:</label>
-                        <select id="year-select" class="select-input">
-                            <option value="2024">2024</option>
-                            <option value="2023">2023</option>
-                        </select>
-                    </div>
-                    
-                    <div class="control-group">
-                        <label for="gp-select">گرندپری:</label>
-                        <select id="gp-select" class="select-input">
-                            <option value="">انتخاب کنید...</option>
-                        </select>
-                    </div>
-                    
-                    <div class="control-group">
-                        <label for="session-select">جلسه:</label>
-                        <select id="session-select" class="select-input">
-                            <option value="Race">مسابقه</option>
-                            <option value="Qualifying">تعیین خط</option>
-                            <option value="Sprint">اسپرینت</option>
-                            <option value="Practice 3">تمرین ۳</option>
-                            <option value="Practice 2">تمرین ۲</option>
-                            <option value="Practice 1">تمرین ۱</option>
-                        </select>
-                    </div>
-                    
-                    <button id="load-session" class="primary-button">بارگذاری داده‌ها</button>
-                </div>
-                
-                <div id="loading-indicator" class="loading hidden">
-                    <div class="spinner"></div>
-                    <p>در حال بارگذاری داده‌های F1...</p>
-                </div>
-                
-                <div id="session-info" class="session-info hidden">
-                    <h3>اطلاعات جلسه</h3>
-                    <div id="session-details"></div>
-                </div>
-            </section>
-
-            <!-- Driver Selection -->
-            <div id="driver-selection" class="driver-selection hidden">
-                <h3>انتخاب راننده‌ها</h3>
-                <div id="driver-list" class="driver-grid"></div>
-            </div>
-
-            <!-- Telemetry Section -->
-            <section id="telemetry" class="content-section">
-                <div class="section-header">
-                    <h2>تحلیل تله‌متری</h2>
-                    <p>مقایسه داده‌های تله‌متری راننده‌ها در سریع‌ترین دورها</p>
-                </div>
-                
-                <div class="telemetry-controls">
-                    <div class="control-group">
-                        <label for="telemetry-type">نوع داده:</label>
-                        <select id="telemetry-type" class="select-input">
-                            <option value="speed">سرعت</option>
-                            <option value="throttle">گاز</option>
-                            <option value="brake">ترمز</option>
-                            <option value="rpm">دور موتور</option>
-                            <option value="gear">دنده</option>
-                        </select>
-                    </div>
-                    <button id="generate-telemetry" class="primary-button">تولید نمودار</button>
-                </div>
-                
-                <div id="telemetry-plot" class="plot-container"></div>
-            </section>
-
-            <!-- Tire Strategy Section -->
-            <section id="tire-strategy" class="content-section">
-                <div class="section-header">
-                    <h2>تحلیل استراتژی تایر</h2>
-                    <p>بررسی انتخاب تایر و تعویض‌های هر راننده در طول مسابقه</p>
-                </div>
-                
-                <div id="tire-plot" class="plot-container"></div>
-                <div id="tire-details" class="tire-details"></div>
-            </section>
-
-            <!-- Race Progression Section -->
-            <section id="race-progression" class="content-section">
-                <div class="section-header">
-                    <h2>پیشرفت مسابقه</h2>
-                    <p>تغییرات موقعیت راننده‌ها در طول مسابقه</p>
-                </div>
-                
-                <div id="race-plot" class="plot-container"></div>
-                <div id="race-stats" class="race-stats"></div>
-            </section>
-
-            <!-- Track Dominance Section -->
-            <section id="track-dominance" class="content-section">
-                <div class="section-header">
-                    <h2>تسلط بر پیست</h2>
-                    <p>نمایش سریع‌ترین راننده در هر بخش از پیست</p>
-                </div>
-                
-                <div id="track-plot" class="plot-container"></div>
-            </section>
-        </main>
-    </div>
-
-    <script src="static/app.js"></script>
-</body>
-</html>
