@@ -146,6 +146,155 @@ st.markdown("""
         background: linear-gradient(135deg, rgba(0, 210, 190, 0.2), rgba(220, 0, 0, 0.1));
         border: 1px solid rgba(0, 210, 190, 0.5);
     }
+    
+    /* Enhanced Table Styling */
+    .stDataFrame {
+        background: linear-gradient(135deg, rgba(35, 39, 47, 0.9), rgba(24, 25, 26, 0.95));
+        border-radius: 12px;
+        border: 1px solid rgba(0, 210, 190, 0.3);
+        overflow: hidden;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    }
+    
+    .stDataFrame thead tr th {
+        background: linear-gradient(135deg, #DC0000, #FF4444);
+        color: white !important;
+        font-weight: 700;
+        text-align: center !important;
+        vertical-align: middle !important;
+        padding: 1rem 0.5rem !important;
+        border: none !important;
+        font-size: 0.95rem;
+        letter-spacing: 0.5px;
+    }
+    
+    .stDataFrame tbody tr td {
+        text-align: center !important;
+        vertical-align: middle !important;
+        padding: 0.8rem 0.5rem !important;
+        border-bottom: 1px solid rgba(0, 210, 190, 0.1) !important;
+        border-left: none !important;
+        border-right: none !important;
+        background: rgba(35, 39, 47, 0.7);
+        color: #E8E8E8 !important;
+        font-size: 0.9rem;
+    }
+    
+    .stDataFrame tbody tr:nth-child(even) td {
+        background: rgba(24, 25, 26, 0.8);
+    }
+    
+    .stDataFrame tbody tr:hover td {
+        background: rgba(0, 210, 190, 0.1) !important;
+        transform: scale(1.01);
+        transition: all 0.2s ease;
+    }
+    
+    /* Enhanced Metric Cards */
+    .driver-comparison-card {
+        background: linear-gradient(135deg, rgba(35, 39, 47, 0.95), rgba(24, 25, 26, 0.98));
+        padding: 1.8rem;
+        border-radius: 16px;
+        border: 1px solid rgba(0, 210, 190, 0.3);
+        margin: 1rem 0;
+        backdrop-filter: blur(15px);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+    
+    .driver-comparison-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+        border-color: rgba(0, 210, 190, 0.5);
+    }
+    
+    .sector-comparison-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr 1fr 2fr;
+        gap: 1rem;
+        align-items: center;
+        padding: 1rem;
+        background: linear-gradient(135deg, rgba(35, 39, 47, 0.8), rgba(24, 25, 26, 0.9));
+        border-radius: 12px;
+        border: 1px solid rgba(0, 210, 190, 0.2);
+        margin: 0.5rem 0;
+        text-align: center;
+    }
+    
+    .sector-comparison-grid:hover {
+        background: linear-gradient(135deg, rgba(0, 210, 190, 0.1), rgba(220, 0, 0, 0.05));
+        border-color: rgba(0, 210, 190, 0.4);
+        transform: translateX(5px);
+        transition: all 0.3s ease;
+    }
+    
+    /* Enhanced Typography */
+    .lap-time-large {
+        font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+        font-weight: 700;
+        font-size: 1.8rem;
+        background: linear-gradient(135deg, #FFD700, #FFA500);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        text-align: center;
+        margin: 0.5rem 0;
+    }
+    
+    .sector-time-enhanced {
+        font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+        font-weight: 600;
+        font-size: 1.1rem;
+        color: #00D2BE;
+        background: rgba(0, 210, 190, 0.1);
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        border: 1px solid rgba(0, 210, 190, 0.3);
+        text-align: center;
+        display: inline-block;
+        min-width: 80px;
+    }
+    
+    .team-badge-enhanced {
+        display: inline-block;
+        padding: 0.6rem 1.2rem;
+        border-radius: 25px;
+        font-weight: 700;
+        font-size: 0.9rem;
+        margin: 0.5rem;
+        color: white;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+        backdrop-filter: blur(10px);
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+        text-align: center;
+    }
+    
+    /* Enhanced Buttons */
+    .stButton > button {
+        background: linear-gradient(135deg, #DC0000, #FF4444);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 16px rgba(220, 0, 0, 0.3);
+    }
+    
+    .stButton > button:hover {
+        background: linear-gradient(135deg, #FF4444, #DC0000);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(220, 0, 0, 0.4);
+    }
+    
+    /* Loading Spinner Enhancement */
+    .stSpinner {
+        border-color: rgba(0, 210, 190, 0.3);
+        border-top-color: #00D2BE;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -356,44 +505,45 @@ def main():
                                 
                                 if i == 0:
                                     st.markdown(f"""
-                                    <div class="metric-card">
+                                    <div class="driver-comparison-card">
                                         <div class="position-badge fastest-lap">1</div>
-                                        <strong>{driver}</strong><br>
-                                        <div class="lap-time">{formatted_time}</div>
-                                        <small style="color: {color};">🏎️ {team}</small>
+                                        <div class="team-badge-enhanced" style="background-color: {color};">{driver}</div>
+                                        <div class="lap-time-large">{formatted_time}</div>
+                                        <div style="color: #FFD700; font-weight: 600; font-size: 0.9rem; margin-top: 0.5rem;">FASTEST LAP</div>
+                                        <div style="color: {color}; font-size: 0.8rem; margin-top: 0.2rem;">{team}</div>
                                     </div>
                                     """, unsafe_allow_html=True)
                                 elif i == 1:
                                     gap = lap_time_seconds - fastest_laps.iloc[0]
                                     st.markdown(f"""
-                                    <div class="metric-card">
+                                    <div class="driver-comparison-card">
                                         <div class="position-badge second-lap">2</div>
-                                        <strong>{driver}</strong><br>
-                                        <div class="lap-time">{formatted_time}</div>
-                                        <small style="color: #C0C0C0;">+{gap:.3f}s</small><br>
-                                        <small style="color: {color};">🏎️ {team}</small>
+                                        <div class="team-badge-enhanced" style="background-color: {color};">{driver}</div>
+                                        <div class="lap-time-large">{formatted_time}</div>
+                                        <div style="color: #C0C0C0; font-weight: 600; font-size: 0.9rem; margin-top: 0.5rem;">+{gap:.3f}s</div>
+                                        <div style="color: {color}; font-size: 0.8rem; margin-top: 0.2rem;">{team}</div>
                                     </div>
                                     """, unsafe_allow_html=True)
                                 elif i == 2:
                                     gap = lap_time_seconds - fastest_laps.iloc[0]
                                     st.markdown(f"""
-                                    <div class="metric-card">
+                                    <div class="driver-comparison-card">
                                         <div class="position-badge third-lap">3</div>
-                                        <strong>{driver}</strong><br>
-                                        <div class="lap-time">{formatted_time}</div>
-                                        <small style="color: #CD7F32;">+{gap:.3f}s</small><br>
-                                        <small style="color: {color};">🏎️ {team}</small>
+                                        <div class="team-badge-enhanced" style="background-color: {color};">{driver}</div>
+                                        <div class="lap-time-large">{formatted_time}</div>
+                                        <div style="color: #CD7F32; font-weight: 600; font-size: 0.9rem; margin-top: 0.5rem;">+{gap:.3f}s</div>
+                                        <div style="color: {color}; font-size: 0.8rem; margin-top: 0.2rem;">{team}</div>
                                     </div>
                                     """, unsafe_allow_html=True)
                                 else:
                                     gap = lap_time_seconds - fastest_laps.iloc[0]
                                     st.markdown(f"""
-                                    <div class="metric-card">
+                                    <div class="driver-comparison-card">
                                         <div class="position-badge" style="background: #404040; color: white;">{i+1}</div>
-                                        <strong>{driver}</strong><br>
-                                        <div class="lap-time">{formatted_time}</div>
-                                        <small style="color: #999;">+{gap:.3f}s</small><br>
-                                        <small style="color: {color};">🏎️ {team}</small>
+                                        <div class="team-badge-enhanced" style="background-color: {color};">{driver}</div>
+                                        <div class="lap-time-large">{formatted_time}</div>
+                                        <div style="color: #999; font-weight: 600; font-size: 0.9rem; margin-top: 0.5rem;">+{gap:.3f}s</div>
+                                        <div style="color: {color}; font-size: 0.8rem; margin-top: 0.2rem;">{team}</div>
                                     </div>
                                     """, unsafe_allow_html=True)
                         
@@ -417,37 +567,50 @@ def main():
                                 })
                         
                         if sector_data:
+                            # Create enhanced sector comparison table
                             for i, data in enumerate(sector_data):
                                 driver = data['Driver']
                                 team = data['Team']
                                 color = TEAM_COLORS.get(team, '#FFFFFF')
                                 
-                                col1, col2, col3, col4, col5 = st.columns([1, 1, 1, 1, 2])
+                                s1_time = format_sector_time(data['S1']) if data['S1'] else "N/A"
+                                s2_time = format_sector_time(data['S2']) if data['S2'] else "N/A"
+                                s3_time = format_sector_time(data['S3']) if data['S3'] else "N/A"
+                                formatted_lap = format_lap_time(data['LapTime'])
                                 
-                                with col1:
-                                    st.markdown(f"""
-                                    <div style="text-align: center;">
-                                        <div class="driver-tag" style="background-color: {color};">
+                                st.markdown(f"""
+                                <div class="sector-comparison-grid">
+                                    <div>
+                                        <div class="team-badge-enhanced" style="background-color: {color};">
                                             {driver}
                                         </div>
                                     </div>
-                                    """, unsafe_allow_html=True)
-                                
-                                with col2:
-                                    s1_time = format_sector_time(data['S1']) if data['S1'] else "N/A"
-                                    st.markdown(f'<div class="sector-time">S1: {s1_time}</div>', unsafe_allow_html=True)
-                                
-                                with col3:
-                                    s2_time = format_sector_time(data['S2']) if data['S2'] else "N/A"
-                                    st.markdown(f'<div class="sector-time">S2: {s2_time}</div>', unsafe_allow_html=True)
-                                
-                                with col4:
-                                    s3_time = format_sector_time(data['S3']) if data['S3'] else "N/A"
-                                    st.markdown(f'<div class="sector-time">S3: {s3_time}</div>', unsafe_allow_html=True)
-                                
-                                with col5:
-                                    formatted_lap = format_lap_time(data['LapTime'])
-                                    st.markdown(f'<div class="lap-time">{formatted_lap}</div>', unsafe_allow_html=True)
+                                    <div>
+                                        <div class="sector-time-enhanced">
+                                            {s1_time}
+                                        </div>
+                                        <div style="font-size: 0.7rem; color: #888; margin-top: 0.2rem;">Sector 1</div>
+                                    </div>
+                                    <div>
+                                        <div class="sector-time-enhanced">
+                                            {s2_time}
+                                        </div>
+                                        <div style="font-size: 0.7rem; color: #888; margin-top: 0.2rem;">Sector 2</div>
+                                    </div>
+                                    <div>
+                                        <div class="sector-time-enhanced">
+                                            {s3_time}
+                                        </div>
+                                        <div style="font-size: 0.7rem; color: #888; margin-top: 0.2rem;">Sector 3</div>
+                                    </div>
+                                    <div>
+                                        <div class="lap-time-large">
+                                            {formatted_lap}
+                                        </div>
+                                        <div style="font-size: 0.7rem; color: #888; margin-top: 0.2rem;">Total Time</div>
+                                    </div>
+                                </div>
+                                """, unsafe_allow_html=True)
                         
                         # Enhanced Lap Time Distribution
                         st.subheader("📊 Lap Time Distribution")
@@ -571,24 +734,21 @@ def main():
                                             arrow = "➡️"
                                         
                                         st.markdown(f"""
-                                        <div class="metric-card">
-                                            <div style="text-align: center;">
-                                                <div class="driver-tag" style="background-color: {color};">
-                                                    {driver}
-                                                </div>
-                                                <br>
-                                                <div style="font-size: 2rem; margin: 0.5rem 0;">
-                                                    {arrow}
-                                                </div>
-                                                <div style="font-size: 1.2rem; font-weight: 600;">
-                                                    P{start_pos} → P{end_pos}
-                                                </div>
-                                                <div style="color: {change_color}; font-weight: 600; margin-top: 0.5rem;">
-                                                    {change_text[2:]}
-                                                </div>
-                                                <small style="color: {color}; margin-top: 0.5rem; display: block;">
-                                                    🏎️ {team}
-                                                </small>
+                                        <div class="driver-comparison-card">
+                                            <div class="team-badge-enhanced" style="background-color: {color};">
+                                                {driver}
+                                            </div>
+                                            <div style="font-size: 2.5rem; margin: 1rem 0;">
+                                                {arrow}
+                                            </div>
+                                            <div style="font-size: 1.4rem; font-weight: 700; margin: 0.5rem 0;">
+                                                P{start_pos} → P{end_pos}
+                                            </div>
+                                            <div style="color: {change_color}; font-weight: 700; font-size: 1.1rem; margin: 0.5rem 0;">
+                                                {change_text[2:]}
+                                            </div>
+                                            <div style="color: {color}; font-size: 0.8rem; margin-top: 0.5rem;">
+                                                {team}
                                             </div>
                                         </div>
                                         """, unsafe_allow_html=True)
@@ -604,17 +764,19 @@ def main():
                                 if best_climber:
                                     team = DRIVER_TEAMS.get(best_climber, 'Unknown')
                                     st.markdown(f"""
-                                    <div class="metric-card">
-                                        <h4 style="color: #00FF88; margin: 0;">🚀 Biggest Climber</h4>
-                                        <div style="font-size: 1.5rem; font-weight: 600; margin: 0.5rem 0;">
+                                    <div class="driver-comparison-card">
+                                        <div style="color: #00FF88; font-size: 1.2rem; font-weight: 700; margin-bottom: 1rem;">
+                                            🚀 BIGGEST CLIMBER
+                                        </div>
+                                        <div class="team-badge-enhanced" style="background-color: {TEAM_COLORS.get(team, '#FFFFFF')};">
                                             {best_climber}
                                         </div>
-                                        <div style="color: #00FF88;">
+                                        <div style="color: #00FF88; font-size: 1.8rem; font-weight: 700; margin: 1rem 0;">
                                             +{biggest_gain} positions
                                         </div>
-                                        <small style="color: {TEAM_COLORS.get(team, '#FFFFFF')};">
-                                            🏎️ {team}
-                                        </small>
+                                        <div style="color: {TEAM_COLORS.get(team, '#FFFFFF')}; font-size: 0.8rem;">
+                                            {team}
+                                        </div>
                                     </div>
                                     """, unsafe_allow_html=True)
                             
@@ -624,17 +786,19 @@ def main():
                                 if worst_drop:
                                     team = DRIVER_TEAMS.get(worst_drop, 'Unknown')
                                     st.markdown(f"""
-                                    <div class="metric-card">
-                                        <h4 style="color: #FF4444; margin: 0;">📉 Biggest Drop</h4>
-                                        <div style="font-size: 1.5rem; font-weight: 600; margin: 0.5rem 0;">
+                                    <div class="driver-comparison-card">
+                                        <div style="color: #FF4444; font-size: 1.2rem; font-weight: 700; margin-bottom: 1rem;">
+                                            📉 BIGGEST DROP
+                                        </div>
+                                        <div class="team-badge-enhanced" style="background-color: {TEAM_COLORS.get(team, '#FFFFFF')};">
                                             {worst_drop}
                                         </div>
-                                        <div style="color: #FF4444;">
+                                        <div style="color: #FF4444; font-size: 1.8rem; font-weight: 700; margin: 1rem 0;">
                                             {biggest_loss} positions
                                         </div>
-                                        <small style="color: {TEAM_COLORS.get(team, '#FFFFFF')};">
-                                            🏎️ {team}
-                                        </small>
+                                        <div style="color: {TEAM_COLORS.get(team, '#FFFFFF')}; font-size: 0.8rem;">
+                                            {team}
+                                        </div>
                                     </div>
                                     """, unsafe_allow_html=True)
                             
@@ -642,12 +806,20 @@ def main():
                                 total_laps = position_data['LapNumber'].max()
                                 avg_changes = abs(position_changes).mean()
                                 st.markdown(f"""
-                                <div class="metric-card">
-                                    <h4 style="color: #00D2BE; margin: 0;">📊 Race Stats</h4>
-                                    <div style="margin: 0.5rem 0;">
-                                        <strong>Total Laps:</strong> {total_laps}<br>
-                                        <strong>Avg Position Change:</strong> {avg_changes:.1f}<br>
-                                        <strong>Drivers Tracked:</strong> {len(selected_drivers)}
+                                <div class="driver-comparison-card">
+                                    <div style="color: #00D2BE; font-size: 1.2rem; font-weight: 700; margin-bottom: 1rem;">
+                                        📊 RACE STATISTICS
+                                    </div>
+                                    <div style="font-size: 1.1rem; line-height: 1.8; margin: 1rem 0;">
+                                        <div style="color: #00D2BE; font-weight: 600;">
+                                            <strong>Total Laps:</strong> <span style="color: white;">{total_laps}</span>
+                                        </div>
+                                        <div style="color: #00D2BE; font-weight: 600;">
+                                            <strong>Avg Change:</strong> <span style="color: white;">{avg_changes:.1f} positions</span>
+                                        </div>
+                                        <div style="color: #00D2BE; font-weight: 600;">
+                                            <strong>Drivers:</strong> <span style="color: white;">{len(selected_drivers)} tracked</span>
+                                        </div>
                                     </div>
                                 </div>
                                 """, unsafe_allow_html=True)
