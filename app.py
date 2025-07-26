@@ -18,6 +18,9 @@ from utils.formatters import format_lap_time, format_sector_time, get_lap_time_c
 from utils.advanced_analytics import AdvancedF1Analytics
 from utils.weather_analytics import WeatherAnalytics
 from utils.race_strategy import RaceStrategyAnalyzer
+from utils.predictive_analytics import PredictiveF1Analytics
+from utils.realtime_insights import RealTimeF1Insights
+from utils.comparative_analytics import ComparativeF1Analytics
 
 # Configure page
 st.set_page_config(
@@ -593,14 +596,16 @@ def main():
         st.warning("⚠️ Please select at least one driver from the sidebar to view analysis.")
         return
     
-    # Analysis tabs
-    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+    # Analysis tabs with enhanced analytics
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8 = st.tabs([
         "📈 Telemetry Analysis", 
         "🗺️ Track Dominance", 
         "⏱️ Lap Comparison", 
         "🔧 Tire Strategy", 
         "📊 Race Progression",
-        "🧠 Advanced Analytics"
+        "🧠 Advanced Analytics",
+        "🔮 Predictive Insights",
+        "⚡ Real-Time Analysis"
     ])
     
     with tab1:
@@ -1396,6 +1401,358 @@ def main():
                     st.info("Sector analysis not available for this session.")
         else:
             st.info("Please select drivers from the sidebar to access advanced analytics.")
+
+    with tab7:
+        st.header("🔮 Predictive Insights")
+        st.markdown("Advanced machine learning insights for performance prediction")
+        
+        if selected_drivers and len(selected_drivers) >= 2:
+            try:
+                # Get laps data for prediction
+                laps_data = st.session_state.data_loader.get_laps_data()
+                
+                if laps_data is not None and not laps_data.empty:
+                    # Initialize predictive analytics
+                    predictive_analytics = PredictiveF1Analytics(st.session_state.data_loader.session, laps_data)
+                    
+                    # Qualifying Performance Prediction
+                    st.subheader("🏁 Qualifying Performance Prediction")
+                    prediction_data = predictive_analytics.predict_qualifying_performance()
+                    
+                    if prediction_data is not None:
+                        # Display prediction results
+                        st.markdown("### Predicted Qualifying Order")
+                        for i, row in prediction_data.head(8).iterrows():
+                            driver = row['Driver']
+                            team = DRIVER_TEAMS.get(driver, 'Unknown')
+                            color = TEAM_COLORS.get(team, '#FFFFFF')
+                            
+                            st.markdown(f"""
+                            <div class="metric-card" style="margin: 0.5rem 0;">
+                                <div style="display: flex; align-items: center; justify-content: space-between;">
+                                    <div style="display: flex; align-items: center;">
+                                        <div class="position-badge" style="background: {color}; color: black; margin-right: 1rem;">P{row['Predicted_Position']}</div>
+                                        <div>
+                                            <div style="font-weight: 700; font-size: 1.1rem; color: white;">{driver}</div>
+                                            <div style="color: {color}; font-size: 0.9rem;">{team}</div>
+                                        </div>
+                                    </div>
+                                    <div style="text-align: right;">
+                                        <div style="font-family: monospace; font-size: 1.1rem; color: white;">
+                                            {format_lap_time(row['Best_Time'])}
+                                        </div>
+                                        <div style="font-size: 0.8rem; color: #888;">
+                                            Consistency: ±{row['Consistency']:.3f}s
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            """, unsafe_allow_html=True)
+                        
+                        # Create prediction visualization
+                        pred_viz = predictive_analytics.create_prediction_visualization(prediction_data)
+                        if pred_viz:
+                            st.plotly_chart(pred_viz, use_container_width=True)
+                    
+                    # Tire Degradation Prediction
+                    st.subheader("🛞 Advanced Tire Degradation Analysis")
+                    degradation_data = predictive_analytics.analyze_tire_degradation_patterns()
+                    
+                    if degradation_data is not None and not degradation_data.empty:
+                        # Show degradation summary
+                        compound_summary = degradation_data.groupby('Compound').agg({
+                            'Degradation_Rate': ['mean', 'std'],
+                            'Stint_Length': 'mean',
+                            'Total_Degradation': 'mean'
+                        }).round(3)
+                        
+                        st.markdown("### Compound Performance Summary")
+                        for compound in degradation_data['Compound'].unique():
+                            compound_data = degradation_data[degradation_data['Compound'] == compound]
+                            tire_color = TIRE_COLORS.get(compound, '#808080')
+                            
+                            avg_degradation = compound_data['Degradation_Rate'].mean()
+                            avg_stint = compound_data['Stint_Length'].mean()
+                            
+                            st.markdown(f"""
+                            <div style="background: linear-gradient(135deg, rgba(35, 39, 47, 0.8), rgba(24, 25, 26, 0.9)); 
+                                        border-left: 4px solid {tire_color}; padding: 1rem; border-radius: 8px; margin: 0.5rem 0;">
+                                <div style="display: flex; align-items: center; margin-bottom: 0.5rem;">
+                                    <div style="width: 24px; height: 24px; background-color: {tire_color}; border-radius: 50%; margin-right: 0.75rem;"></div>
+                                    <h4 style="color: white; margin: 0;">{compound} Compound Analysis</h4>
+                                </div>
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem;">
+                                    <div style="text-align: center;">
+                                        <div style="font-size: 1.3rem; font-weight: 700; color: white;">{avg_degradation:.4f}s</div>
+                                        <div style="color: #888; font-size: 0.9rem;">Avg Degradation/Lap</div>
+                                    </div>
+                                    <div style="text-align: center;">
+                                        <div style="font-size: 1.3rem; font-weight: 700; color: white;">{avg_stint:.1f}</div>
+                                        <div style="color: #888; font-size: 0.9rem;">Avg Stint Length</div>
+                                    </div>
+                                    <div style="text-align: center;">
+                                        <div style="font-size: 1.3rem; font-weight: 700; color: white;">{len(compound_data)}</div>
+                                        <div style="color: #888; font-size: 0.9rem;">Sample Size</div>
+                                    </div>
+                                </div>
+                            </div>
+                            """, unsafe_allow_html=True)
+                        
+                        # Create degradation visualization
+                        deg_viz = predictive_analytics.create_degradation_visualization(degradation_data)
+                        if deg_viz:
+                            st.plotly_chart(deg_viz, use_container_width=True)
+                    
+                else:
+                    st.info("Loading session data for predictive analysis...")
+            
+            except Exception as e:
+                st.error(f"Error in predictive analysis: {str(e)}")
+        else:
+            st.info("Select at least 2 drivers to enable predictive insights.")
+    
+    with tab8:
+        st.header("⚡ Real-Time Analysis")
+        st.markdown("Live performance insights and dynamic analytics")
+        
+        if selected_drivers:
+            try:
+                # Get laps data for real-time analysis
+                laps_data = st.session_state.data_loader.get_laps_data()
+                
+                if laps_data is not None and not laps_data.empty:
+                    # Initialize real-time analytics
+                    realtime_analytics = RealTimeF1Insights(st.session_state.data_loader.session, laps_data)
+                    
+                    # Live Performance Dashboard
+                    st.subheader("📊 Live Performance Dashboard")
+                    dashboard_data = realtime_analytics.live_performance_dashboard()
+                    
+                    if dashboard_data:
+                        session_stats = dashboard_data.get('session_stats', {})
+                        performance_leaders = dashboard_data.get('performance_leaders', {})
+                        
+                        # Session statistics
+                        col1, col2, col3, col4 = st.columns(4)
+                        
+                        with col1:
+                            st.metric("📊 Total Laps", session_stats.get('total_laps', 0))
+                        with col2:
+                            st.metric("🏎️ Active Drivers", session_stats.get('active_drivers', 0))
+                        with col3:
+                            duration = session_stats.get('session_duration', 'Unknown')
+                            st.metric("⏱️ Duration", str(duration))
+                        with col4:
+                            avg_lap = session_stats.get('avg_lap_time')
+                            if avg_lap:
+                                st.metric("📈 Avg Lap Time", format_lap_time(avg_lap.total_seconds()))
+                        
+                        # Performance leaders
+                        st.subheader("🥇 Current Leaders")
+                        
+                        leader_cols = st.columns(3)
+                        
+                        # Fastest lap leader
+                        with leader_cols[0]:
+                            fastest_lap = performance_leaders.get('fastest_lap')
+                            if fastest_lap:
+                                driver = fastest_lap['driver']
+                                team = DRIVER_TEAMS.get(driver, 'Unknown')
+                                color = TEAM_COLORS.get(team, '#FFFFFF')
+                                
+                                st.markdown(f"""
+                                <div class="metric-card">
+                                    <h4 style="color: #FFD700;">🏆 Fastest Lap</h4>
+                                    <div style="text-align: center;">
+                                        <div class="team-badge-enhanced" style="background-color: {color};">{driver}</div>
+                                        <div style="font-family: monospace; font-size: 1.2rem; margin: 0.5rem 0; color: white;">
+                                            {format_lap_time(fastest_lap['time'].total_seconds())}
+                                        </div>
+                                        <div style="color: #888; font-size: 0.9rem;">Lap {fastest_lap.get('lap_number', 'N/A')}</div>
+                                    </div>
+                                </div>
+                                """, unsafe_allow_html=True)
+                        
+                        # Most consistent driver
+                        with leader_cols[1]:
+                            most_consistent = performance_leaders.get('most_consistent')
+                            if most_consistent:
+                                driver = most_consistent['driver']
+                                team = DRIVER_TEAMS.get(driver, 'Unknown')
+                                color = TEAM_COLORS.get(team, '#FFFFFF')
+                                
+                                st.markdown(f"""
+                                <div class="metric-card">
+                                    <h4 style="color: #00D2BE;">📊 Most Consistent</h4>
+                                    <div style="text-align: center;">
+                                        <div class="team-badge-enhanced" style="background-color: {color};">{driver}</div>
+                                        <div style="font-size: 1.2rem; margin: 0.5rem 0; color: white;">
+                                            ±{most_consistent['consistency']:.3f}s
+                                        </div>
+                                        <div style="color: #888; font-size: 0.9rem;">{most_consistent['laps']} laps</div>
+                                    </div>
+                                </div>
+                                """, unsafe_allow_html=True)
+                        
+                        # Current pace leader
+                        with leader_cols[2]:
+                            pace_setter = performance_leaders.get('pace_setter')
+                            if pace_setter:
+                                driver = pace_setter['driver']
+                                team = DRIVER_TEAMS.get(driver, 'Unknown')
+                                color = TEAM_COLORS.get(team, '#FFFFFF')
+                                
+                                st.markdown(f"""
+                                <div class="metric-card">
+                                    <h4 style="color: #DC0000;">⚡ Current Pace</h4>
+                                    <div style="text-align: center;">
+                                        <div class="team-badge-enhanced" style="background-color: {color};">{driver}</div>
+                                        <div style="font-family: monospace; font-size: 1.2rem; margin: 0.5rem 0; color: white;">
+                                            {format_lap_time(pace_setter['recent_pace'])}
+                                        </div>
+                                        <div style="color: #888; font-size: 0.9rem;">Last {pace_setter['recent_laps']} laps</div>
+                                    </div>
+                                </div>
+                                """, unsafe_allow_html=True)
+                    
+                    # Driver Momentum Analysis
+                    st.subheader("📈 Driver Momentum Analysis")
+                    momentum_data = realtime_analytics.momentum_analysis()
+                    
+                    if momentum_data is not None and not momentum_data.empty:
+                        # Filter for selected drivers
+                        filtered_momentum = momentum_data[momentum_data['Driver'].isin(selected_drivers)]
+                        
+                        for _, row in filtered_momentum.iterrows():
+                            driver = row['Driver']
+                            team = DRIVER_TEAMS.get(driver, 'Unknown')
+                            color = TEAM_COLORS.get(team, '#FFFFFF')
+                            
+                            # Determine momentum color
+                            momentum_score = row['Momentum_Score']
+                            if momentum_score < -0.1:
+                                momentum_color = '#00FF00'  # Improving - Green
+                                momentum_text = 'IMPROVING'
+                                momentum_icon = '📈'
+                            elif momentum_score > 0.1:
+                                momentum_color = '#FF0000'  # Declining - Red
+                                momentum_text = 'DECLINING'
+                                momentum_icon = '📉'
+                            else:
+                                momentum_color = '#FFD700'  # Stable - Yellow
+                                momentum_text = 'STABLE'
+                                momentum_icon = '➡️'
+                            
+                            st.markdown(f"""
+                            <div class="metric-card" style="border-left: 4px solid {momentum_color};">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <div>
+                                        <div style="display: flex; align-items: center; margin-bottom: 0.5rem;">
+                                            <div class="team-badge-enhanced" style="background-color: {color}; margin-right: 1rem;">{driver}</div>
+                                            <div style="color: {momentum_color}; font-weight: 700; font-size: 1rem;">
+                                                {momentum_icon} {momentum_text}
+                                            </div>
+                                        </div>
+                                        <div style="color: {color}; font-size: 0.9rem; margin-bottom: 0.5rem;">{team}</div>
+                                    </div>
+                                    <div style="text-align: right;">
+                                        <div style="font-size: 0.9rem; color: #888;">Momentum Score</div>
+                                        <div style="font-size: 1.2rem; font-weight: 700; color: {momentum_color};">
+                                            {momentum_score:+.3f}s
+                                        </div>
+                                    </div>
+                                </div>
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 0.5rem; margin-top: 1rem; font-size: 0.85rem;">
+                                    <div><strong>Recent Pace:</strong> {format_lap_time(row['Recent_Pace'])}</div>
+                                    <div><strong>Early Pace:</strong> {format_lap_time(row['Early_Pace'])}</div>
+                                    <div><strong>Volatility:</strong> ±{row['Volatility']:.3f}s</div>
+                                    <div><strong>Trend Strength:</strong> {row['Trend_Strength']:.2f}</div>
+                                </div>
+                            </div>
+                            """, unsafe_allow_html=True)
+                    
+                    # Comparative Analysis for selected drivers
+                    if len(selected_drivers) >= 2:
+                        st.subheader("🔄 Head-to-Head Comparison")
+                        
+                        # Initialize comparative analytics
+                        comparative_analytics = ComparativeF1Analytics(st.session_state.data_loader.session, laps_data)
+                        
+                        # Driver selection for comparison
+                        comp_col1, comp_col2 = st.columns(2)
+                        with comp_col1:
+                            driver1 = st.selectbox("Driver 1:", selected_drivers, key="comp_driver1")
+                        with comp_col2:
+                            driver2 = st.selectbox("Driver 2:", [d for d in selected_drivers if d != driver1], key="comp_driver2")
+                        
+                        if driver1 and driver2:
+                            comparison_data = comparative_analytics.head_to_head_analysis(driver1, driver2)
+                            
+                            if comparison_data:
+                                d1_stats = comparison_data['driver1_stats']
+                                d2_stats = comparison_data['driver2_stats']
+                                
+                                # Comparison visualization
+                                comp_cols = st.columns(2)
+                                
+                                with comp_cols[0]:
+                                    team1 = DRIVER_TEAMS.get(driver1, 'Unknown')
+                                    color1 = TEAM_COLORS.get(team1, '#FFFFFF')
+                                    
+                                    st.markdown(f"""
+                                    <div class="metric-card" style="border-left: 4px solid {color1};">
+                                        <div class="team-badge-enhanced" style="background-color: {color1}; margin-bottom: 1rem;">{driver1}</div>
+                                        <div style="display: grid; gap: 0.5rem;">
+                                            <div><strong>Best Lap:</strong> {format_lap_time(d1_stats['best_lap'])}</div>
+                                            <div><strong>Average:</strong> {format_lap_time(d1_stats['average_lap'])}</div>
+                                            <div><strong>Consistency:</strong> ±{d1_stats['consistency']:.3f}s</div>
+                                            <div><strong>Total Laps:</strong> {d1_stats['total_laps']}</div>
+                                        </div>
+                                    </div>
+                                    """, unsafe_allow_html=True)
+                                
+                                with comp_cols[1]:
+                                    team2 = DRIVER_TEAMS.get(driver2, 'Unknown')
+                                    color2 = TEAM_COLORS.get(team2, '#FFFFFF')
+                                    
+                                    st.markdown(f"""
+                                    <div class="metric-card" style="border-left: 4px solid {color2};">
+                                        <div class="team-badge-enhanced" style="background-color: {color2}; margin-bottom: 1rem;">{driver2}</div>
+                                        <div style="display: grid; gap: 0.5rem;">
+                                            <div><strong>Best Lap:</strong> {format_lap_time(d2_stats['best_lap'])}</div>
+                                            <div><strong>Average:</strong> {format_lap_time(d2_stats['average_lap'])}</div>
+                                            <div><strong>Consistency:</strong> ±{d2_stats['consistency']:.3f}s</div>
+                                            <div><strong>Total Laps:</strong> {d2_stats['total_laps']}</div>
+                                        </div>
+                                    </div>
+                                    """, unsafe_allow_html=True)
+                                
+                                # Statistical significance
+                                if 'statistical_test' in comparison_data:
+                                    test_result = comparison_data['statistical_test']
+                                    significance = "Statistically Significant" if test_result['significant'] else "Not Statistically Significant"
+                                    significance_color = "#00FF00" if test_result['significant'] else "#FF8800"
+                                    
+                                    st.markdown(f"""
+                                    <div style="text-align: center; margin: 1rem 0; padding: 1rem; 
+                                                background: rgba(35, 39, 47, 0.8); border-radius: 8px; 
+                                                border: 1px solid {significance_color};">
+                                        <div style="color: {significance_color}; font-weight: 700; font-size: 1.1rem;">
+                                            {significance}
+                                        </div>
+                                        <div style="color: #888; font-size: 0.9rem; margin-top: 0.3rem;">
+                                            p-value: {test_result['p_value']:.4f}
+                                        </div>
+                                    </div>
+                                    """, unsafe_allow_html=True)
+                
+                else:
+                    st.info("Loading session data for real-time analysis...")
+            
+            except Exception as e:
+                st.error(f"Error in real-time analysis: {str(e)}")
+        else:
+            st.info("Select drivers to enable real-time analysis.")
 
 if __name__ == "__main__":
     main()

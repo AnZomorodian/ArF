@@ -68,6 +68,34 @@ GRANDS_PRIX = [
     'Abu Dhabi Grand Prix'
 ]
 
+# Circuit aliases for better display names
+CIRCUIT_ALIASES = {
+    'Austrian Grand Prix': 'Red Bull Ring',
+    'Abu Dhabi Grand Prix': 'Yas Marina Circuit',
+    'Australian Grand Prix': 'Albert Park Circuit',
+    'Azerbaijan Grand Prix': 'Baku City Circuit',
+    'Bahrain Grand Prix': 'Bahrain International Circuit',
+    'Belgian Grand Prix': 'Circuit de Spa-Francorchamps',
+    'British Grand Prix': 'Silverstone Circuit',
+    'Canadian Grand Prix': 'Circuit Gilles Villeneuve',
+    'Chinese Grand Prix': 'Shanghai International Circuit',
+    'Dutch Grand Prix': 'Circuit Zandvoort',
+    'Emilia Romagna Grand Prix': 'Autodromo Enzo e Dino Ferrari',
+    'Hungarian Grand Prix': 'Hungaroring',
+    'Italian Grand Prix': 'Autodromo Nazionale di Monza',
+    'Japanese Grand Prix': 'Suzuka International Racing Course',
+    'Las Vegas Grand Prix': 'Las Vegas Strip Circuit',
+    'Miami Grand Prix': 'Miami International Autodrome',
+    'Mexico City Grand Prix': 'Autodromo Hermanos Rodriguez',
+    'Monaco Grand Prix': 'Circuit de Monaco',
+    'Qatar Grand Prix': 'Lusail International Circuit',
+    'São Paulo Grand Prix': 'Autodromo Jose Carlos Pace',
+    'Saudi Arabian Grand Prix': 'Jeddah Corniche Circuit',
+    'Singapore Grand Prix': 'Marina Bay Street Circuit',
+    'Spanish Grand Prix': 'Circuit de Barcelona-Catalunya',
+    'United States Grand Prix': 'Circuit of The Americas'
+}
+
 # Session types
 SESSIONS = {
     'Practice 1': 'FP1',
