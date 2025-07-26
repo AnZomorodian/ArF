@@ -23,6 +23,8 @@ from utils.stress_index import DriverStressAnalyzer
 from utils.downforce_analysis import DownforceAnalyzer
 from utils.driver_manager import DynamicDriverManager
 from utils.enhanced_analytics import EnhancedF1Analytics
+from utils.brake_analysis import BrakeAnalyzer
+from utils.composite_performance import CompositePerformanceAnalyzer
 
 # Configure page
 st.set_page_config(
@@ -45,23 +47,25 @@ st.markdown("""
         padding: 0;
     }
     
-    /* Root Variables for Consistent Theming */
+    /* Root Variables for High-Contrast Professional Theming */
     :root {
-        --f1-red: #DC0000;
-        --f1-red-light: #FF4444;
-        --f1-teal: #00D2BE;
-        --f1-teal-light: #4ECDC4;
-        --dark-bg: #0A0B0D;
-        --darker-bg: #06070A;
-        --card-bg: rgba(15, 17, 23, 0.95);
-        --card-border: rgba(0, 210, 190, 0.15);
+        --f1-red: #FF0033;
+        --f1-red-light: #FF4466;
+        --f1-teal: #00FFE6;
+        --f1-teal-light: #66FFF0;
+        --dark-bg: #000000;
+        --darker-bg: #111111;
+        --card-bg: rgba(25, 25, 25, 0.98);
+        --card-border: rgba(0, 255, 230, 0.3);
         --text-primary: #FFFFFF;
-        --text-secondary: #B0B8C3;
-        --text-muted: #6B7280;
-        --glass-bg: rgba(255, 255, 255, 0.02);
-        --glass-border: rgba(255, 255, 255, 0.05);
-        --shadow-lg: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
-        --shadow-xl: 0 35px 60px -12px rgba(0, 0, 0, 0.8);
+        --text-secondary: #E0E0E0;
+        --text-muted: #AAAAAA;
+        --glass-bg: rgba(255, 255, 255, 0.05);
+        --glass-border: rgba(255, 255, 255, 0.1);
+        --shadow-lg: 0 25px 50px -12px rgba(0, 0, 0, 0.9);
+        --shadow-xl: 0 35px 60px -12px rgba(0, 0, 0, 0.95);
+        --neon-glow: 0 0 20px rgba(0, 255, 230, 0.5);
+        --red-glow: 0 0 20px rgba(255, 0, 51, 0.5);
     }
     
     /* Enhanced Main Header */
@@ -490,15 +494,15 @@ st.markdown("""
         border-right: 1px solid var(--glass-border) !important;
     }
     
-    /* Advanced Glass Morphism Cards */
+    /* High-Contrast Professional Cards */
     .metric-card {
-        background: linear-gradient(135deg, var(--glass-bg), rgba(255, 255, 255, 0.01));
-        border: 1px solid var(--glass-border);
-        border-radius: 20px;
+        background: linear-gradient(135deg, var(--card-bg), rgba(50, 50, 50, 0.95));
+        border: 2px solid var(--card-border);
+        border-radius: 16px;
         padding: 2rem;
         margin: 1rem 0;
         backdrop-filter: blur(25px);
-        box-shadow: var(--shadow-lg);
+        box-shadow: var(--shadow-lg), var(--neon-glow);
         transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         position: relative;
         overflow: hidden;
@@ -510,15 +514,21 @@ st.markdown("""
         top: 0;
         left: 0;
         right: 0;
-        height: 1px;
-        background: linear-gradient(90deg, transparent, var(--f1-teal), transparent);
-        opacity: 0.5;
+        height: 2px;
+        background: linear-gradient(90deg, var(--f1-red), var(--f1-teal), var(--f1-red));
+        opacity: 0.8;
     }
     
     .metric-card:hover {
-        transform: translateY(-8px) scale(1.01);
+        transform: translateY(-12px) scale(1.02);
         border-color: var(--f1-teal);
-        box-shadow: var(--shadow-xl), 0 0 40px rgba(0, 210, 190, 0.2);
+        box-shadow: var(--shadow-xl), var(--neon-glow), 0 0 50px rgba(0, 255, 230, 0.4);
+        background: linear-gradient(135deg, rgba(0, 255, 230, 0.1), var(--card-bg));
+    }
+    
+    .metric-card h1, .metric-card h2, .metric-card h3, .metric-card h4, .metric-card h5 {
+        color: var(--text-primary) !important;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
     }
     
     /* Enhanced Data Tables */
@@ -1437,9 +1447,10 @@ def main():
             strategy_analyzer = RaceStrategyAnalyzer(session)
             
             # Enhanced analytics sub-tabs
-            adv_tab1, adv_tab2, adv_tab3, adv_tab4, adv_tab5, adv_tab6 = st.tabs([
+            adv_tab1, adv_tab2, adv_tab3, adv_tab4, adv_tab5, adv_tab6, adv_tab7, adv_tab8 = st.tabs([
                 "🎯 Performance Index", "🧪 ML Clustering", "📈 Radar Analysis", 
-                "🏁 Race Evolution", "🌤️ Weather Impact", "📊 Strategy Analysis"
+                "🏁 Race Evolution", "🌤️ Weather Impact", "📊 Strategy Analysis",
+                "🚨 Brake Analysis", "⚡ Composite Performance"
             ])
             
             with adv_tab1:
@@ -2184,6 +2195,177 @@ def main():
                 st.error(f"Error in downforce analysis: {str(e)}")
         else:
             st.info("Please load session data to access downforce configuration analysis.")
+            
+            with adv_tab7:
+                st.subheader("🚨 Brake Analysis - Performance & Efficiency")
+                
+                try:
+                    if hasattr(st.session_state.data_loader, 'session') and st.session_state.data_loader.session is not None:
+                        # Initialize brake analyzer
+                        brake_analyzer = BrakeAnalyzer(st.session_state.data_loader.session)
+                        
+                        # Calculate brake analysis data
+                        brake_data = brake_analyzer.analyze_brake_efficiency(selected_drivers)
+                        
+                        if not brake_data.empty:
+                            # Session info for charts
+                            session_info_str = f"{st.session_state.data_loader.session.event.year} {st.session_state.data_loader.session.event['EventName']} - {st.session_state.data_loader.session.name}"
+                            
+                            st.subheader("📊 Comprehensive Brake Efficiency Analysis")
+                            
+                            # Create main brake visualization
+                            brake_chart = brake_analyzer.create_brake_efficiency_visualization(brake_data, session_info_str)
+                            if brake_chart:
+                                st.plotly_chart(brake_chart, use_container_width=True)
+                            
+                            # Brake performance heatmap
+                            st.subheader("🔥 Brake Performance Heatmap")
+                            brake_heatmap = brake_analyzer.create_brake_heatmap(brake_data)
+                            if brake_heatmap:
+                                st.plotly_chart(brake_heatmap, use_container_width=True)
+                            
+                            # Performance metrics table
+                            st.subheader("📋 Detailed Brake Metrics")
+                            
+                            # Format the data for display
+                            display_brake = brake_data.copy()
+                            display_brake['Brake_Efficiency'] = display_brake['Brake_Efficiency'].round(2).astype(str) + '%'
+                            display_brake['Max_Brake_Force'] = display_brake['Max_Brake_Force'].round(1).astype(str) + '%'
+                            display_brake['Avg_Brake_Force'] = display_brake['Avg_Brake_Force'].round(1).astype(str) + '%'
+                            display_brake['Braking_Duration'] = display_brake['Braking_Duration'].round(2).astype(str) + 's'
+                            display_brake['Lap_Time'] = display_brake['Lap_Time'].round(3).astype(str) + 's'
+                            
+                            # Display table
+                            brake_display_df = display_brake[['Driver', 'Team', 'Brake_Efficiency', 'Max_Brake_Force', 
+                                                           'Avg_Brake_Force', 'Brake_Zones', 'Braking_Duration', 'Lap_Time']].copy()
+                            if isinstance(brake_display_df, pd.DataFrame):
+                                brake_display_df.columns = ['Driver', 'Team', 'Efficiency', 'Max Force', 'Avg Force', 'Brake Zones', 'Duration', 'Lap Time']
+                            st.dataframe(brake_display_df, use_container_width=True)
+                            
+                        else:
+                            st.info("No brake analysis data available for selected drivers.")
+                    else:
+                        st.info("Please load session data to access brake analysis.")
+                except Exception as e:
+                    st.error(f"Error in brake analysis: {str(e)}")
+            
+            with adv_tab8:
+                st.subheader("⚡ Composite Performance Index - Advanced Metrics")
+                
+                try:
+                    if hasattr(st.session_state.data_loader, 'session') and st.session_state.data_loader.session is not None:
+                        # Initialize composite performance analyzer
+                        composite_analyzer = CompositePerformanceAnalyzer(st.session_state.data_loader.session)
+                        
+                        # Calculate composite performance data
+                        performance_data = composite_analyzer.calculate_composite_performance(selected_drivers)
+                        
+                        if not performance_data.empty:
+                            # Session info for charts
+                            session_info_str = f"{st.session_state.data_loader.session.event.year} {st.session_state.data_loader.session.event['EventName']} - {st.session_state.data_loader.session.name}"
+                            
+                            st.subheader("📊 Comprehensive Performance Analysis")
+                            
+                            # Create main composite performance visualization
+                            composite_chart = composite_analyzer.create_composite_performance_visualization(performance_data, session_info_str)
+                            if composite_chart:
+                                st.plotly_chart(composite_chart, use_container_width=True)
+                            
+                            # Performance radar chart
+                            st.subheader("🎯 Performance Radar Comparison")
+                            radar_chart = composite_analyzer.create_performance_radar(performance_data)
+                            if radar_chart:
+                                st.plotly_chart(radar_chart, use_container_width=True)
+                            
+                            # Performance metrics table
+                            st.subheader("📋 Detailed Performance Metrics")
+                            
+                            # Format the data for display
+                            display_perf = performance_data.copy()
+                            display_perf['Composite_Performance_Index'] = display_perf['Composite_Performance_Index'].round(2)
+                            display_perf['Speed_Factor'] = display_perf['Speed_Factor'].round(1).astype(str) + ' km/h'
+                            display_perf['Acceleration_Factor'] = display_perf['Acceleration_Factor'].round(3)
+                            display_perf['Speed_Consistency'] = (display_perf['Speed_Consistency'] * 100).round(1).astype(str) + '%'
+                            display_perf['Throttle_Efficiency'] = display_perf['Throttle_Efficiency'].round(1).astype(str) + '%'
+                            display_perf['Lap_Time'] = display_perf['Lap_Time'].round(3).astype(str) + 's'
+                            
+                            # Display table
+                            perf_display_df = display_perf[['Driver', 'Team', 'Composite_Performance_Index', 'Speed_Factor', 
+                                                         'Acceleration_Factor', 'Speed_Consistency', 'Throttle_Efficiency', 'Lap_Time']].copy()
+                            if isinstance(perf_display_df, pd.DataFrame):
+                                perf_display_df.columns = ['Driver', 'Team', 'CPI', 'Speed Factor', 'Acceleration', 'Consistency', 'Throttle Eff.', 'Lap Time']
+                            st.dataframe(perf_display_df, use_container_width=True)
+                            
+                            # Performance insights
+                            st.subheader("💡 Performance Insights")
+                            
+                            if isinstance(performance_data, pd.DataFrame) and not performance_data.empty:
+                                best_overall_idx = performance_data['Composite_Performance_Index'].idxmax()
+                                best_speed_idx = performance_data['Speed_Factor'].idxmax()
+                                best_consistency_idx = performance_data['Speed_Consistency'].idxmax()
+                                
+                                best_overall = performance_data.loc[best_overall_idx]
+                                best_speed = performance_data.loc[best_speed_idx]
+                                best_consistency = performance_data.loc[best_consistency_idx]
+                                
+                                col1, col2, col3 = st.columns(3)
+                                
+                                with col1:
+                                    st.markdown(f"""
+                                    <div class="metric-card">
+                                        <h4>🏆 Best Overall Performance</h4>
+                                        <div style="font-size: 1.4rem; font-weight: 700; color: #00D2BE;">
+                                            {best_overall['Driver']}
+                                        </div>
+                                        <div style="color: #888; font-size: 0.9rem;">
+                                            CPI: {best_overall['Composite_Performance_Index']:.2f}
+                                        </div>
+                                    </div>
+                                    """, unsafe_allow_html=True)
+                                
+                                with col2:
+                                    st.markdown(f"""
+                                    <div class="metric-card">
+                                        <h4>⚡ Speed Master</h4>
+                                        <div style="font-size: 1.4rem; font-weight: 700; color: #4ECDC4;">
+                                            {best_speed['Driver']}
+                                        </div>
+                                        <div style="color: #888; font-size: 0.9rem;">
+                                            Speed: {best_speed['Speed_Factor']:.1f} km/h
+                                        </div>
+                                    </div>
+                                    """, unsafe_allow_html=True)
+                                
+                                with col3:
+                                    st.markdown(f"""
+                                    <div class="metric-card">
+                                        <h4>🎯 Most Consistent</h4>
+                                        <div style="font-size: 1.4rem; font-weight: 700; color: #FFD700;">
+                                            {best_consistency['Driver']}
+                                        </div>
+                                        <div style="color: #888; font-size: 0.9rem;">
+                                            Consistency: {best_consistency['Speed_Consistency']:.1%}
+                                        </div>
+                                    </div>
+                                    """, unsafe_allow_html=True)
+                            
+                            # Technical explanation
+                            st.subheader("📝 Technical Notes")
+                            st.markdown("""
+                            **Composite Performance Index (CPI)**: Calculated as (Speed Factor × Acceleration Factor) / (Brake Efficiency + Handling Time). 
+                            Higher values indicate better overall performance combining speed, acceleration, and efficiency.
+                            
+                            **Speed Consistency**: Measures how consistent the driver's speed is throughout the lap. Higher values indicate smoother driving.
+                            
+                            **Throttle Efficiency**: Average throttle application percentage, indicating how effectively the driver uses the accelerator.
+                            """)
+                            
+                        else:
+                            st.info("No composite performance data available for selected drivers.")
+                    else:
+                        st.info("Please load session data to access composite performance analysis.")
+                except Exception as e:
+                    st.error(f"Error in composite performance analysis: {str(e)}")
 
 if __name__ == "__main__":
     main()

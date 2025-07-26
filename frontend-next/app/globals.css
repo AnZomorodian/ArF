@@ -1,0 +1,157 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  @apply w-2 h-2;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-f1-darker rounded;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-gradient-to-b from-f1-red to-f1-teal rounded;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-gradient-to-b from-f1-teal to-f1-red;
+}
+
+/* Professional Typography */
+@layer base {
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold tracking-tight;
+  }
+  
+  h1 {
+    @apply text-4xl lg:text-5xl;
+  }
+  
+  h2 {
+    @apply text-3xl lg:text-4xl;
+  }
+  
+  h3 {
+    @apply text-2xl lg:text-3xl;
+  }
+  
+  h4 {
+    @apply text-xl lg:text-2xl;
+  }
+}
+
+/* Professional Components */
+@layer components {
+  .glass-card {
+    @apply bg-f1-card-bg/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-glow-lg;
+  }
+  
+  .glass-card-hover {
+    @apply glass-card transition-all duration-300 hover:scale-105 hover:shadow-neon-teal hover:border-f1-teal/50;
+  }
+  
+  .metric-card {
+    @apply glass-card p-6 relative overflow-hidden;
+  }
+  
+  .metric-card::before {
+    @apply absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-f1-red via-f1-teal to-f1-red opacity-80;
+    content: '';
+  }
+  
+  .data-table {
+    @apply glass-card overflow-hidden;
+  }
+  
+  .data-table th {
+    @apply bg-gradient-to-r from-f1-red to-f1-red-light text-white font-bold text-center p-4 uppercase tracking-wider text-sm;
+  }
+  
+  .data-table td {
+    @apply text-center p-3 border-b border-white/5 bg-f1-glass-bg text-white font-medium;
+  }
+  
+  .data-table tbody tr:nth-child(even) td {
+    @apply bg-white/[0.01];
+  }
+  
+  .data-table tbody tr:hover td {
+    @apply bg-f1-teal/5 scale-[1.01] transition-all duration-200;
+  }
+  
+  .btn-primary {
+    @apply bg-gradient-to-r from-f1-red to-f1-red-light text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-neon-red border-none uppercase tracking-wide;
+  }
+  
+  .btn-secondary {
+    @apply bg-gradient-to-r from-f1-teal to-f1-teal-light text-black font-semibold py-3 px-6 rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-neon-teal border-none uppercase tracking-wide;
+  }
+  
+  .form-control {
+    @apply bg-f1-card-bg/90 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:border-f1-teal focus:ring-2 focus:ring-f1-teal/20 transition-all duration-200;
+  }
+  
+  .position-badge {
+    @apply inline-flex items-center justify-center w-12 h-12 rounded-full font-bold text-lg shadow-glow-lg transition-all duration-300;
+  }
+  
+  .position-badge.fastest {
+    @apply bg-gradient-to-br from-yellow-400 to-yellow-600 text-black animate-championship-pulse border-2 border-yellow-400/50;
+  }
+  
+  .position-badge.second {
+    @apply bg-gradient-to-br from-gray-300 to-gray-500 text-black border-2 border-gray-400/50;
+  }
+  
+  .position-badge.third {
+    @apply bg-gradient-to-br from-amber-600 to-amber-800 text-white border-2 border-amber-600/50;
+  }
+  
+  .lap-time {
+    @apply font-mono font-semibold text-lg bg-f1-card-bg text-f1-teal px-4 py-2 rounded-lg border border-white/20 inline-block transition-all duration-200 hover:scale-105 hover:shadow-neon-teal hover:border-f1-teal;
+  }
+  
+  .team-badge {
+    @apply inline-block px-4 py-2 rounded-full font-bold text-sm text-white text-shadow backdrop-blur-sm border-2 border-white/20 shadow-lg text-center transition-all duration-200 hover:scale-105;
+  }
+  
+  .loading-spinner {
+    @apply border-2 border-white/20 border-t-f1-teal rounded-full w-8 h-8 animate-spin;
+  }
+  
+  .section-header {
+    @apply text-3xl font-bold bg-gradient-to-r from-f1-red via-f1-red-light to-f1-teal bg-clip-text text-transparent mb-6 text-center;
+  }
+  
+  .nav-link {
+    @apply glass-card px-4 py-2 text-white/80 hover:text-white hover:bg-f1-teal/10 hover:border-f1-teal/50 transition-all duration-200 cursor-pointer;
+  }
+  
+  .nav-link.active {
+    @apply bg-gradient-to-r from-f1-teal to-f1-teal-light text-black border-f1-teal/50 shadow-neon-teal;
+  }
+}
+
+/* Animations */
+@layer utilities {
+  .text-shadow {
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  }
+  
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+  
+  .animate-glow {
+    animation: glow 2s ease-in-out infinite alternate;
+  }
+}
+
+/* Professional Focus States */
+@layer utilities {
+  .focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-f1-teal focus:ring-offset-2 focus:ring-offset-f1-dark;
+  }
+}
