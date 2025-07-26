@@ -18,6 +18,8 @@ from utils.formatters import format_lap_time, format_sector_time, get_lap_time_c
 from utils.advanced_analytics import AdvancedF1Analytics
 from utils.weather_analytics import WeatherAnalytics
 from utils.race_strategy import RaceStrategyAnalyzer
+from utils.tire_performance import TirePerformanceAnalyzer
+from utils.stress_index import DriverStressAnalyzer
 
 # Configure page
 st.set_page_config(
@@ -594,13 +596,15 @@ def main():
         return
     
     # Analysis tabs
-    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8 = st.tabs([
         "📈 Telemetry Analysis", 
         "🗺️ Track Dominance", 
         "⏱️ Lap Comparison", 
         "🔧 Tire Strategy", 
         "📊 Race Progression",
-        "🧠 Advanced Analytics"
+        "🧠 Advanced Analytics",
+        "🛞 Tire Performance",
+        "⚡ Stress Analysis"
     ])
     
     with tab1:
@@ -1396,6 +1400,243 @@ def main():
                     st.info("Sector analysis not available for this session.")
         else:
             st.info("Please select drivers from the sidebar to access advanced analytics.")
+    
+    # Tire Performance Analysis Tab
+    with tab7:
+        st.header("🛞 Tire Performance Analysis")
+        
+        if hasattr(st.session_state.data_loader, 'session') and st.session_state.data_loader.session is not None:
+            try:
+                tire_analyzer = TirePerformanceAnalyzer(st.session_state.data_loader.session)
+                tire_data = tire_analyzer.calculate_tire_performance()
+                
+                if not tire_data.empty:
+                    # Session info for visualization titles
+                    session_info_str = f"{session_info['event_name']} {session_info['date']}" if session_info else "Current Session"
+                    
+                    # Filter data for selected drivers
+                    filtered_tire_data = tire_data[tire_data['Driver'].isin(selected_drivers)]
+                    
+                    if not filtered_tire_data.empty:
+                        st.subheader("📊 Comprehensive Tire Performance Metrics")
+                        
+                        # Create main visualization
+                        tire_performance_chart = tire_analyzer.create_tire_performance_visualizations(
+                            filtered_tire_data, session_info_str
+                        )
+                        st.plotly_chart(tire_performance_chart, use_container_width=True)
+                        
+                        # Tire comparison heatmap
+                        st.subheader("🔥 Tire Performance Heatmap")
+                        tire_heatmap = tire_analyzer.create_tire_comparison_heatmap(filtered_tire_data)
+                        st.plotly_chart(tire_heatmap, use_container_width=True)
+                        
+                        # Performance metrics table
+                        st.subheader("📋 Detailed Tire Metrics")
+                        
+                        # Format the data for display
+                        display_data = filtered_tire_data.copy()
+                        display_data['Tire_Stress_Index'] = display_data['Tire_Stress_Index'].round(2)
+                        display_data['Tire_Temperature'] = display_data['Tire_Temperature'].round(1).astype(str) + '°C'
+                        display_data['Tire_Efficiency'] = display_data['Tire_Efficiency'].round(3)
+                        display_data['Tire_Wear_Index'] = display_data['Tire_Wear_Index'].round(2)
+                        display_data['Grip_Level'] = display_data['Grip_Level'].round(1).astype(str) + '%'
+                        
+                        # Display table with custom styling
+                        st.dataframe(
+                            display_data[['Driver', 'Team', 'Tire_Stress_Index', 'Tire_Temperature', 
+                                        'Tire_Efficiency', 'Tire_Wear_Index', 'Grip_Level']].rename(columns={
+                                'Tire_Stress_Index': 'Stress Index',
+                                'Tire_Temperature': 'Temperature',
+                                'Tire_Efficiency': 'Efficiency',
+                                'Tire_Wear_Index': 'Wear Index',
+                                'Grip_Level': 'Grip Level'
+                            }),
+                            use_container_width=True
+                        )
+                        
+                        # Performance insights
+                        st.subheader("💡 Performance Insights")
+                        
+                        # Find best performers
+                        best_efficiency = filtered_tire_data.loc[filtered_tire_data['Tire_Efficiency'].idxmax()]
+                        lowest_stress = filtered_tire_data.loc[filtered_tire_data['Tire_Stress_Index'].idxmin()]
+                        highest_grip = filtered_tire_data.loc[filtered_tire_data['Grip_Level'].idxmax()]
+                        
+                        col1, col2, col3 = st.columns(3)
+                        
+                        with col1:
+                            st.markdown(f"""
+                            <div class="metric-card">
+                                <h4>🎯 Most Efficient</h4>
+                                <div style="font-size: 1.4rem; font-weight: 700; color: #00D2BE;">
+                                    {best_efficiency['Driver']}
+                                </div>
+                                <div style="color: #888; font-size: 0.9rem;">
+                                    Efficiency: {best_efficiency['Tire_Efficiency']:.3f}
+                                </div>
+                            </div>
+                            """, unsafe_allow_html=True)
+                        
+                        with col2:
+                            st.markdown(f"""
+                            <div class="metric-card">
+                                <h4>😌 Smoothest Style</h4>
+                                <div style="font-size: 1.4rem; font-weight: 700; color: #4ECDC4;">
+                                    {lowest_stress['Driver']}
+                                </div>
+                                <div style="color: #888; font-size: 0.9rem;">
+                                    Stress: {lowest_stress['Tire_Stress_Index']:.2f}
+                                </div>
+                            </div>
+                            """, unsafe_allow_html=True)
+                        
+                        with col3:
+                            st.markdown(f"""
+                            <div class="metric-card">
+                                <h4>🏎️ Best Grip</h4>
+                                <div style="font-size: 1.4rem; font-weight: 700; color: #FFD700;">
+                                    {highest_grip['Driver']}
+                                </div>
+                                <div style="color: #888; font-size: 0.9rem;">
+                                    Grip: {highest_grip['Grip_Level']:.1f}%
+                                </div>
+                            </div>
+                            """, unsafe_allow_html=True)
+                    else:
+                        st.info("No tire performance data available for selected drivers.")
+                else:
+                    st.info("Unable to calculate tire performance data for this session.")
+            except Exception as e:
+                st.error(f"Error in tire performance analysis: {str(e)}")
+        else:
+            st.info("Please load session data to access tire performance analysis.")
+    
+    # Driver Stress Analysis Tab
+    with tab8:
+        st.header("⚡ Driver Stress Analysis")
+        
+        if hasattr(st.session_state.data_loader, 'session') and st.session_state.data_loader.session is not None:
+            try:
+                stress_analyzer = DriverStressAnalyzer(st.session_state.data_loader.session)
+                stress_data = stress_analyzer.calculate_driver_stress_index()
+                
+                if not stress_data.empty:
+                    # Session info for visualization titles
+                    session_info_str = f"{session_info['event_name']} {session_info['date']}" if session_info else "Current Session"
+                    
+                    # Filter data for selected drivers
+                    filtered_stress_data = stress_data[stress_data['Driver'].isin(selected_drivers)]
+                    
+                    if not filtered_stress_data.empty:
+                        st.subheader("📈 Comprehensive Stress Analysis")
+                        
+                        # Create main stress analysis visualization
+                        stress_analysis_chart = stress_analyzer.create_stress_analysis_visualizations(
+                            filtered_stress_data, session_info_str
+                        )
+                        st.plotly_chart(stress_analysis_chart, use_container_width=True)
+                        
+                        # Stress ranking chart
+                        st.subheader("🏆 Driver Stress Index Ranking")
+                        stress_ranking = stress_analyzer.create_stress_ranking_chart(filtered_stress_data)
+                        st.plotly_chart(stress_ranking, use_container_width=True)
+                        
+                        # Detailed stress metrics table
+                        st.subheader("📋 Detailed Stress Metrics")
+                        
+                        # Format the data for display
+                        display_stress = filtered_stress_data.copy()
+                        display_stress['Driver_Stress_Index'] = display_stress['Driver_Stress_Index'].round(3)
+                        display_stress['Braking_Percentage'] = display_stress['Braking_Percentage'].round(1).astype(str) + '%'
+                        display_stress['High_Throttle_Percentage'] = display_stress['High_Throttle_Percentage'].round(1).astype(str) + '%'
+                        display_stress['Critical_Speed_Median'] = display_stress['Critical_Speed_Median'].round(1).astype(str) + ' km/h'
+                        display_stress['Consistency_Index'] = display_stress['Consistency_Index'].round(1).astype(str) + '%'
+                        display_stress['Aggression_Index'] = display_stress['Aggression_Index'].round(2)
+                        
+                        # Display table
+                        st.dataframe(
+                            display_stress[['Driver', 'Team', 'Driver_Stress_Index', 'Braking_Percentage', 
+                                          'High_Throttle_Percentage', 'Critical_Speed_Median', 'Consistency_Index', 
+                                          'Aggression_Index']].rename(columns={
+                                'Driver_Stress_Index': 'Stress Index',
+                                'Braking_Percentage': 'Braking %',
+                                'High_Throttle_Percentage': 'High Throttle %',
+                                'Critical_Speed_Median': 'Critical Speed',
+                                'Consistency_Index': 'Consistency',
+                                'Aggression_Index': 'Aggression'
+                            }),
+                            use_container_width=True
+                        )
+                        
+                        # Stress analysis insights
+                        st.subheader("🧠 Driving Style Insights")
+                        
+                        # Find performance characteristics
+                        most_stressed = filtered_stress_data.loc[filtered_stress_data['Driver_Stress_Index'].idxmax()]
+                        most_consistent = filtered_stress_data.loc[filtered_stress_data['Consistency_Index'].idxmax()]
+                        most_aggressive = filtered_stress_data.loc[filtered_stress_data['Aggression_Index'].idxmax()]
+                        smoothest = filtered_stress_data.loc[filtered_stress_data['Smoothness_Index'].idxmax()]
+                        
+                        col1, col2 = st.columns(2)
+                        
+                        with col1:
+                            st.markdown(f"""
+                            <div class="metric-card">
+                                <h4>🔥 Highest Stress</h4>
+                                <div style="font-size: 1.4rem; font-weight: 700; color: #FF6B6B;">
+                                    {most_stressed['Driver']}
+                                </div>
+                                <div style="color: #888; font-size: 0.9rem;">
+                                    Stress Index: {most_stressed['Driver_Stress_Index']:.3f}
+                                </div>
+                            </div>
+                            """, unsafe_allow_html=True)
+                            
+                            st.markdown(f"""
+                            <div class="metric-card">
+                                <h4>🎯 Most Consistent</h4>
+                                <div style="font-size: 1.4rem; font-weight: 700; color: #4ECDC4;">
+                                    {most_consistent['Driver']}
+                                </div>
+                                <div style="color: #888; font-size: 0.9rem;">
+                                    Consistency: {most_consistent['Consistency_Index']:.1f}%
+                                </div>
+                            </div>
+                            """, unsafe_allow_html=True)
+                        
+                        with col2:
+                            st.markdown(f"""
+                            <div class="metric-card">
+                                <h4>⚡ Most Aggressive</h4>
+                                <div style="font-size: 1.4rem; font-weight: 700; color: #FFD700;">
+                                    {most_aggressive['Driver']}
+                                </div>
+                                <div style="color: #888; font-size: 0.9rem;">
+                                    Aggression: {most_aggressive['Aggression_Index']:.2f}
+                                </div>
+                            </div>
+                            """, unsafe_allow_html=True)
+                            
+                            st.markdown(f"""
+                            <div class="metric-card">
+                                <h4>🌊 Smoothest Style</h4>
+                                <div style="font-size: 1.4rem; font-weight: 700; color: #00D2BE;">
+                                    {smoothest['Driver']}
+                                </div>
+                                <div style="color: #888; font-size: 0.9rem;">
+                                    Smoothness: {smoothest['Smoothness_Index']:.1f}%
+                                </div>
+                            </div>
+                            """, unsafe_allow_html=True)
+                    else:
+                        st.info("No stress analysis data available for selected drivers.")
+                else:
+                    st.info("Unable to calculate driver stress data for this session.")
+            except Exception as e:
+                st.error(f"Error in stress analysis: {str(e)}")
+        else:
+            st.info("Please load session data to access driver stress analysis.")
 
 if __name__ == "__main__":
     main()
