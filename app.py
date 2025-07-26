@@ -1175,39 +1175,272 @@ def main():
         transform: translateY(-3px);
         box-shadow: 0 8px 25px rgba(255, 255, 255, 0.2);
     }
+    
+    /* Revolutionary Sidebar Styling */
+    .f1-sidebar-header {
+        background: linear-gradient(135deg, rgba(255, 0, 51, 0.15), rgba(0, 255, 230, 0.15));
+        padding: 2rem 1.5rem;
+        margin: -1rem -1rem 2rem -1rem;
+        border-radius: 0 0 25px 25px;
+        text-align: center;
+        border-bottom: 3px solid rgba(0, 255, 230, 0.4);
+    }
+    
+    .sidebar-title {
+        font-family: 'Orbitron', monospace !important;
+        font-size: 1.4rem !important;
+        font-weight: 800 !important;
+        color: white !important;
+        margin: 0 !important;
+        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8) !important;
+        animation: sidebarGlow 3s ease-in-out infinite alternate !important;
+    }
+    
+    @keyframes sidebarGlow {
+        0% { text-shadow: 0 2px 8px rgba(255, 0, 51, 0.8); }
+        100% { text-shadow: 0 2px 8px rgba(0, 255, 230, 0.8); }
+    }
+    
+    .sidebar-subtitle {
+        font-size: 0.9rem !important;
+        color: rgba(255, 255, 255, 0.8) !important;
+        margin: 0.5rem 0 0 0 !important;
+        font-weight: 500 !important;
+    }
+    
+    /* Enhanced Selection Cards */
+    .selection-card {
+        background: linear-gradient(145deg, rgba(20, 20, 20, 0.95), rgba(35, 35, 35, 0.9));
+        border: 2px solid rgba(0, 255, 230, 0.3);
+        border-radius: 20px;
+        padding: 1.5rem;
+        margin: 1.5rem 0;
+        backdrop-filter: blur(20px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .selection-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: linear-gradient(90deg, #FF0033, #FFD700, #00FFE6);
+        opacity: 0.8;
+    }
+    
+    .selection-card:hover {
+        border-color: rgba(0, 255, 230, 0.6);
+        transform: translateY(-5px);
+        box-shadow: 0 15px 35px rgba(0, 255, 230, 0.2);
+    }
+    
+    .selection-card h3 {
+        color: rgba(0, 255, 230, 0.9) !important;
+        font-family: 'Orbitron', monospace !important;
+        font-size: 1.1rem !important;
+        margin-bottom: 1rem !important;
+        text-align: center !important;
+        font-weight: 700 !important;
+    }
+    
+    /* Enhanced Load Button */
+    .load-button-container {
+        margin: 2rem 0;
+        text-align: center;
+    }
+    
+    .stButton > button {
+        background: linear-gradient(45deg, #FF0033, #FF8C00, #FFD700, #00FFE6) !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 25px !important;
+        padding: 1.2rem 2rem !important;
+        font-weight: 800 !important;
+        font-size: 1.1rem !important;
+        font-family: 'Orbitron', monospace !important;
+        text-transform: uppercase !important;
+        letter-spacing: 2px !important;
+        box-shadow: 0 8px 25px rgba(0, 255, 230, 0.4) !important;
+        transition: all 0.3s ease !important;
+        position: relative !important;
+        overflow: hidden !important;
+        animation: buttonPulse 2s infinite ease-in-out !important;
+    }
+    
+    @keyframes buttonPulse {
+        0%, 100% { box-shadow: 0 8px 25px rgba(0, 255, 230, 0.4); }
+        50% { box-shadow: 0 12px 35px rgba(255, 0, 51, 0.5); }
+    }
+    
+    .stButton > button:hover {
+        transform: translateY(-5px) scale(1.05) !important;
+        box-shadow: 0 15px 40px rgba(0, 255, 230, 0.7) !important;
+        animation: none !important;
+    }
+    
+    /* Enhanced Progress Bar */
+    .stProgress > div > div > div {
+        background: linear-gradient(90deg, #FF0033, #FFD700, #00FFE6) !important;
+        border-radius: 10px !important;
+        box-shadow: 0 0 15px rgba(0, 255, 230, 0.5) !important;
+        animation: progressGlow 1s ease-in-out infinite alternate !important;
+    }
+    
+    @keyframes progressGlow {
+        0% { box-shadow: 0 0 15px rgba(0, 255, 230, 0.5); }
+        100% { box-shadow: 0 0 25px rgba(255, 0, 51, 0.6); }
+    }
+    
+    /* Enhanced Selectbox Styling */
+    .stSelectbox > div > div {
+        background: linear-gradient(145deg, rgba(25, 25, 25, 0.95), rgba(40, 40, 40, 0.9)) !important;
+        border: 2px solid rgba(0, 255, 230, 0.4) !important;
+        border-radius: 15px !important;
+        color: white !important;
+        backdrop-filter: blur(15px) !important;
+        transition: all 0.3s ease !important;
+        font-weight: 600 !important;
+    }
+    
+    .stSelectbox > div > div:hover {
+        border-color: rgba(0, 255, 230, 0.8) !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 8px 20px rgba(0, 255, 230, 0.3) !important;
+    }
+    
+    .stSelectbox > div > div > div {
+        color: white !important;
+        font-weight: 600 !important;
+    }
     </style>
     """, unsafe_allow_html=True)
     
-    # Sidebar for session selection
+    # Revolutionary F1 Session Selection Sidebar
     with st.sidebar:
-        st.header("📊 Session Selection")
+        # Enhanced Sidebar Header with F1 Styling
+        st.markdown("""
+        <div class="f1-sidebar-header">
+            <h2 class="sidebar-title">🏁 Session Control Center</h2>
+            <p class="sidebar-subtitle">Configure your F1 data analysis session</p>
+        </div>
+        """, unsafe_allow_html=True)
         
-        # Year selection
+        # Modern Season Selection Card
+        st.markdown('<div class="selection-card">', unsafe_allow_html=True)
+        st.markdown("### 🏆 Season Selection")
         current_year = datetime.now().year
         years = list(range(2018, current_year + 1))
-        selected_year = st.selectbox("Season", years, index=len(years)-1)
         
-        # Grand Prix selection
-        selected_gp = st.selectbox("Grand Prix", GRANDS_PRIX)
+        # Create year columns for better visualization
+        year_cols = st.columns(3)
+        with year_cols[1]:
+            selected_year = st.selectbox(
+                "Choose Season", 
+                years, 
+                index=len(years)-1,
+                help="Select the F1 championship season for analysis"
+            )
+        st.markdown('</div>', unsafe_allow_html=True)
         
-        # Session type selection
+        # Enhanced Grand Prix Selection with Flag Emojis
+        gp_flags = {
+            "Bahrain Grand Prix": "🇧🇭",
+            "Saudi Arabian Grand Prix": "🇸🇦", 
+            "Australian Grand Prix": "🇦🇺",
+            "Japanese Grand Prix": "🇯🇵",
+            "Chinese Grand Prix": "🇨🇳",
+            "Miami Grand Prix": "🇺🇸",
+            "Emilia Romagna Grand Prix": "🇮🇹",
+            "Monaco Grand Prix": "🇲🇨",
+            "Canadian Grand Prix": "🇨🇦",
+            "Spanish Grand Prix": "🇪🇸",
+            "Austrian Grand Prix": "🇦🇹",
+            "British Grand Prix": "🇬🇧",
+            "Hungarian Grand Prix": "🇭🇺",
+            "Belgian Grand Prix": "🇧🇪",
+            "Dutch Grand Prix": "🇳🇱",
+            "Italian Grand Prix": "🇮🇹",
+            "Singapore Grand Prix": "🇸🇬",
+            "United States Grand Prix": "🇺🇸",
+            "Mexican Grand Prix": "🇲🇽",
+            "Brazilian Grand Prix": "🇧🇷",
+            "Las Vegas Grand Prix": "🇺🇸",
+            "Qatar Grand Prix": "🇶🇦",
+            "Abu Dhabi Grand Prix": "🇦🇪"
+        }
+        
+        st.markdown('<div class="selection-card">', unsafe_allow_html=True)
+        st.markdown("### 🌍 Grand Prix Selection")
+        selected_gp = st.selectbox(
+            "Choose Circuit",
+            GRANDS_PRIX,
+            format_func=lambda x: f"{gp_flags.get(x, '🏁')} {x}",
+            help="Select the racing circuit for detailed analysis"
+        )
+        st.markdown('</div>', unsafe_allow_html=True)
+        
+        # Enhanced Session Type Selection with Icons
+        session_icons = {
+            "Practice 1": "🔧",
+            "Practice 2": "⚙️", 
+            "Practice 3": "🏃",
+            "Qualifying": "⚡",
+            "Sprint Qualifying": "💨",
+            "Sprint": "🚀",
+            "Race": "🏆"
+        }
+        
+        st.markdown('<div class="selection-card">', unsafe_allow_html=True)
+        st.markdown("### 🎯 Session Type")
         session_types = list(SESSIONS.keys())
-        selected_session = st.selectbox("Session Type", session_types)
+        selected_session = st.selectbox(
+            "Choose Session",
+            session_types,
+            format_func=lambda x: f"{session_icons.get(x, '📊')} {x}",
+            help="Select the specific F1 session type for analysis"
+        )
+        st.markdown('</div>', unsafe_allow_html=True)
         
-        # Load session button
-        if st.button("🔄 Load Session Data", type="primary"):
-            with st.spinner("Loading F1 session data..."):
-                try:
-                    success = st.session_state.data_loader.load_session(
-                        selected_year, selected_gp, SESSIONS[selected_session]
-                    )
-                    if success:
-                        st.success("✅ Session data loaded successfully!")
-                        st.rerun()
-                    else:
-                        st.error("❌ Failed to load session data")
-                except Exception as e:
-                    st.error(f"❌ Error loading data: {str(e)}")
+        # Revolutionary Load Button with Animation
+        st.markdown('<div class="load-button-container">', unsafe_allow_html=True)
+        if st.button("🚀 Launch Analysis", type="primary", use_container_width=True):
+            # Enhanced loading experience with progress
+            progress_bar = st.progress(0)
+            status_text = st.empty()
+            
+            try:
+                status_text.text("🔄 Connecting to F1 Data API...")
+                progress_bar.progress(25)
+                
+                status_text.text("📡 Loading session telemetry...")
+                progress_bar.progress(50)
+                
+                success = st.session_state.data_loader.load_session(
+                    selected_year, selected_gp, SESSIONS[selected_session]
+                )
+                
+                progress_bar.progress(75)
+                status_text.text("⚡ Processing driver data...")
+                
+                if success:
+                    progress_bar.progress(100)
+                    status_text.text("✅ Analysis ready!")
+                    st.success(f"🏁 Successfully loaded {selected_session} data for {selected_gp} {selected_year}!")
+                    st.balloons()
+                    st.rerun()
+                else:
+                    st.error("❌ Failed to load session data - please try another session")
+            except Exception as e:
+                st.error(f"⚠️ Connection error: {str(e)}")
+            finally:
+                progress_bar.empty()
+                status_text.empty()
+        st.markdown('</div>', unsafe_allow_html=True)
         
         # Enhanced Driver Selection (only show if session is loaded)
         if hasattr(st.session_state.data_loader, 'session') and st.session_state.data_loader.session is not None:
