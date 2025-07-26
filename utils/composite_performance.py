@@ -138,31 +138,6 @@ class CompositePerformanceAnalyzer:
         fig.update_yaxes(showgrid=True, gridwidth=1, gridcolor='rgba(255,255,255,0.1)')
         
         return fig
-                
-                # Get driver info
-                driver_info = self.session.get_driver(driver)
-                driver_name = driver_info['Abbreviation']
-                team_name = driver_info['TeamName']
-                
-                results.append({
-                    'Driver': driver_name,
-                    'Team': team_name,
-                    'Composite_Performance_Index': composite_performance_index,
-                    'Speed_Factor': speed_factor,
-                    'Acceleration_Factor': acceleration_factor,
-                    'Brake_Efficiency': brake_efficiency,
-                    'Handling_Time': handling_time,
-                    'Top_Speed': top_speed,
-                    'Speed_Consistency': speed_consistency,
-                    'Throttle_Efficiency': throttle_efficiency,
-                    'Lap_Time': lap_time_seconds
-                })
-                
-            except Exception as e:
-                print(f"Error calculating composite performance for driver {driver}: {e}")
-                continue
-        
-        return pd.DataFrame(results)
     
     def create_composite_performance_visualization(self, performance_data, session_info):
         """Create comprehensive composite performance visualization"""
