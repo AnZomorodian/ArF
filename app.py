@@ -2302,65 +2302,65 @@ def main():
                     st.subheader("💡 Performance Insights")
                     
                     if isinstance(performance_data, pd.DataFrame) and not performance_data.empty:
-                                best_overall_idx = performance_data['Composite_Performance_Index'].idxmax()
-                                best_speed_idx = performance_data['Speed_Factor'].idxmax()
-                                best_consistency_idx = performance_data['Speed_Consistency'].idxmax()
+                        best_overall_idx = performance_data['Composite_Performance_Index'].idxmax()
+                        best_speed_idx = performance_data['Speed_Factor'].idxmax()
+                        best_consistency_idx = performance_data['Speed_Consistency'].idxmax()
+                        
+                        best_overall = performance_data.loc[best_overall_idx]
+                        best_speed = performance_data.loc[best_speed_idx]
+                        best_consistency = performance_data.loc[best_consistency_idx]
+                        
+                        col1, col2, col3 = st.columns(3)
                                 
-                                best_overall = performance_data.loc[best_overall_idx]
-                                best_speed = performance_data.loc[best_speed_idx]
-                                best_consistency = performance_data.loc[best_consistency_idx]
-                                
-                                col1, col2, col3 = st.columns(3)
-                                
-                                with col1:
-                                    st.markdown(f"""
-                                    <div class="metric-card">
-                                        <h4>🏆 Best Overall Performance</h4>
-                                        <div style="font-size: 1.4rem; font-weight: 700; color: #00D2BE;">
-                                            {best_overall['Driver']}
-                                        </div>
-                                        <div style="color: #888; font-size: 0.9rem;">
-                                            CPI: {best_overall['Composite_Performance_Index']:.2f}
-                                        </div>
-                                    </div>
-                                    """, unsafe_allow_html=True)
-                                
-                                with col2:
-                                    st.markdown(f"""
-                                    <div class="metric-card">
-                                        <h4>⚡ Speed Master</h4>
-                                        <div style="font-size: 1.4rem; font-weight: 700; color: #4ECDC4;">
-                                            {best_speed['Driver']}
-                                        </div>
-                                        <div style="color: #888; font-size: 0.9rem;">
-                                            Speed: {best_speed['Speed_Factor']:.1f} km/h
-                                        </div>
-                                    </div>
-                                    """, unsafe_allow_html=True)
-                                
-                                with col3:
-                                    st.markdown(f"""
-                                    <div class="metric-card">
-                                        <h4>🎯 Most Consistent</h4>
-                                        <div style="font-size: 1.4rem; font-weight: 700; color: #FFD700;">
-                                            {best_consistency['Driver']}
-                                        </div>
-                                        <div style="color: #888; font-size: 0.9rem;">
-                                            Consistency: {best_consistency['Speed_Consistency']:.1%}
-                                        </div>
-                                    </div>
-                                    """, unsafe_allow_html=True)
-                            
-                            # Technical explanation
-                            st.subheader("📝 Technical Notes")
-                            st.markdown("""
-                            **Composite Performance Index (CPI)**: Calculated as (Speed Factor × Acceleration Factor) / (Brake Efficiency + Handling Time). 
-                            Higher values indicate better overall performance combining speed, acceleration, and efficiency.
-                            
-                            **Speed Consistency**: Measures how consistent the driver's speed is throughout the lap. Higher values indicate smoother driving.
-                            
-                            **Throttle Efficiency**: Average throttle application percentage, indicating how effectively the driver uses the accelerator.
-                            """)
+                        with col1:
+                            st.markdown(f"""
+                            <div class="metric-card">
+                                <h4>🏆 Best Overall Performance</h4>
+                                <div style="font-size: 1.4rem; font-weight: 700; color: #00D2BE;">
+                                    {best_overall['Driver']}
+                                </div>
+                                <div style="color: #888; font-size: 0.9rem;">
+                                    CPI: {best_overall['Composite_Performance_Index']:.2f}
+                                </div>
+                            </div>
+                            """, unsafe_allow_html=True)
+                        
+                        with col2:
+                            st.markdown(f"""
+                            <div class="metric-card">
+                                <h4>⚡ Speed Master</h4>
+                                <div style="font-size: 1.4rem; font-weight: 700; color: #4ECDC4;">
+                                    {best_speed['Driver']}
+                                </div>
+                                <div style="color: #888; font-size: 0.9rem;">
+                                    Speed: {best_speed['Speed_Factor']:.1f} km/h
+                                </div>
+                            </div>
+                            """, unsafe_allow_html=True)
+                        
+                        with col3:
+                            st.markdown(f"""
+                            <div class="metric-card">
+                                <h4>🎯 Most Consistent</h4>
+                                <div style="font-size: 1.4rem; font-weight: 700; color: #FFD700;">
+                                    {best_consistency['Driver']}
+                                </div>
+                                <div style="color: #888; font-size: 0.9rem;">
+                                    Consistency: {best_consistency['Speed_Consistency']:.1%}
+                                </div>
+                            </div>
+                            """, unsafe_allow_html=True)
+                    
+                    # Technical explanation
+                    st.subheader("📝 Technical Notes")
+                    st.markdown("""
+                    **Composite Performance Index (CPI)**: Calculated as (Speed Factor × Acceleration Factor) / (Brake Efficiency + Handling Time). 
+                    Higher values indicate better overall performance combining speed, acceleration, and efficiency.
+                    
+                    **Speed Consistency**: Measures how consistent the driver's speed is throughout the lap. Higher values indicate smoother driving.
+                    
+                    **Throttle Efficiency**: Average throttle application percentage, indicating how effectively the driver uses the accelerator.
+                    """)
                             
                 else:
                     st.info("No composite performance data available for selected drivers.")
