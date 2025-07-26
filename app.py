@@ -1176,6 +1176,40 @@ def main():
         box-shadow: 0 8px 25px rgba(255, 255, 255, 0.2);
     }
     
+    /* Centered Session Control Center */
+    .session-control-center {
+        background: linear-gradient(135deg, rgba(255, 0, 51, 0.2), rgba(0, 255, 230, 0.2));
+        padding: 3rem 2rem;
+        margin: 2rem 0 3rem 0;
+        border-radius: 30px;
+        text-align: center;
+        border: 3px solid rgba(0, 255, 230, 0.4);
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(25px);
+    }
+    
+    .control-title {
+        font-family: 'Orbitron', monospace !important;
+        font-size: 2.5rem !important;
+        font-weight: 900 !important;
+        color: white !important;
+        margin: 0 !important;
+        text-shadow: 0 3px 12px rgba(0, 0, 0, 0.8) !important;
+        animation: controlGlow 4s ease-in-out infinite alternate !important;
+    }
+    
+    @keyframes controlGlow {
+        0% { text-shadow: 0 3px 12px rgba(255, 0, 51, 0.8), 0 0 30px rgba(255, 0, 51, 0.5); }
+        100% { text-shadow: 0 3px 12px rgba(0, 255, 230, 0.8), 0 0 30px rgba(0, 255, 230, 0.5); }
+    }
+    
+    .control-subtitle {
+        font-size: 1.2rem !important;
+        color: rgba(255, 255, 255, 0.85) !important;
+        margin: 1rem 0 0 0 !important;
+        font-weight: 600 !important;
+    }
+    
     /* Revolutionary Sidebar Styling */
     .f1-sidebar-header {
         background: linear-gradient(135deg, rgba(255, 0, 51, 0.15), rgba(0, 255, 230, 0.15));
@@ -1248,9 +1282,9 @@ def main():
         font-weight: 700 !important;
     }
     
-    /* Enhanced Load Button */
-    .load-button-container {
-        margin: 2rem 0;
+    /* Enhanced Launch Button Center */
+    .launch-button-center {
+        margin: 3rem 0 2rem 0;
         text-align: center;
     }
     
@@ -1320,31 +1354,32 @@ def main():
     </style>
     """, unsafe_allow_html=True)
     
-    # Revolutionary F1 Session Selection Sidebar
-    with st.sidebar:
-        # Enhanced Sidebar Header with F1 Styling
-        st.markdown("""
-        <div class="f1-sidebar-header">
-            <h2 class="sidebar-title">🏁 Session Control Center</h2>
-            <p class="sidebar-subtitle">Configure your F1 data analysis session</p>
-        </div>
-        """, unsafe_allow_html=True)
+    # Centered F1 Session Selection Interface
+    st.markdown("""
+    <div class="session-control-center">
+        <h2 class="control-title">🏁 F1 Session Control Center</h2>
+        <p class="control-subtitle">Select your F1 session for intelligent analysis</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Create centered columns layout
+    col1, col2, col3 = st.columns([1, 2, 1])
+    
+    with col2:
         
         # Modern Season Selection Card
         st.markdown('<div class="selection-card">', unsafe_allow_html=True)
         st.markdown("### 🏆 Season Selection")
         current_year = datetime.now().year
-        years = list(range(2018, current_year + 1))
+        years = list(range(2018, 2025))
         
-        # Create year columns for better visualization
-        year_cols = st.columns(3)
-        with year_cols[1]:
-            selected_year = st.selectbox(
-                "Choose Season", 
-                years, 
-                index=len(years)-1,
-                help="Select the F1 championship season for analysis"
-            )
+        # Smart Season Selection
+        selected_year = st.selectbox(
+            "🏆 Championship Season", 
+            years, 
+            index=len(years)-1,
+            help="Select F1 season (2018-2025) - Platform will automatically analyze available data"
+        )
         st.markdown('</div>', unsafe_allow_html=True)
         
         # Enhanced Grand Prix Selection with Flag Emojis
@@ -1377,10 +1412,10 @@ def main():
         st.markdown('<div class="selection-card">', unsafe_allow_html=True)
         st.markdown("### 🌍 Grand Prix Selection")
         selected_gp = st.selectbox(
-            "Choose Circuit",
+            "🌍 Grand Prix Circuit",
             GRANDS_PRIX,
             format_func=lambda x: f"{gp_flags.get(x, '🏁')} {x}",
-            help="Select the racing circuit for detailed analysis"
+            help="Platform will automatically analyze telemetry, strategy, and performance data"
         )
         st.markdown('</div>', unsafe_allow_html=True)
         
@@ -1399,16 +1434,16 @@ def main():
         st.markdown("### 🎯 Session Type")
         session_types = list(SESSIONS.keys())
         selected_session = st.selectbox(
-            "Choose Session",
+            "🎯 Session Type",
             session_types,
             format_func=lambda x: f"{session_icons.get(x, '📊')} {x}",
-            help="Select the specific F1 session type for analysis"
+            help="Platform performs comprehensive analysis for all session types automatically"
         )
         st.markdown('</div>', unsafe_allow_html=True)
         
-        # Revolutionary Load Button with Animation
-        st.markdown('<div class="load-button-container">', unsafe_allow_html=True)
-        if st.button("🚀 Launch Analysis", type="primary", use_container_width=True):
+        # Intelligent Launch Button
+        st.markdown('<div class="launch-button-center">', unsafe_allow_html=True)
+        if st.button("🚀 Launch Intelligent Analysis", type="primary", use_container_width=True):
             # Enhanced loading experience with progress
             progress_bar = st.progress(0)
             status_text = st.empty()
@@ -1429,8 +1464,8 @@ def main():
                 
                 if success:
                     progress_bar.progress(100)
-                    status_text.text("✅ Analysis ready!")
-                    st.success(f"🏁 Successfully loaded {selected_session} data for {selected_gp} {selected_year}!")
+                    status_text.text("✅ Intelligent analysis ready!")
+                    st.success(f"🏁 {selected_gp} {selected_year} {selected_session} loaded! Platform will now perform comprehensive analysis.")
                     st.balloons()
                     st.rerun()
                 else:
@@ -1441,54 +1476,57 @@ def main():
                 progress_bar.empty()
                 status_text.empty()
         st.markdown('</div>', unsafe_allow_html=True)
+    
+    # Add spacing for better layout
+    st.markdown("<br><br>", unsafe_allow_html=True)
+    
+    # Enhanced Driver Selection (only show if session is loaded)
+    if hasattr(st.session_state.data_loader, 'session') and st.session_state.data_loader.session is not None:
+        st.markdown('<div class="driver-selection-container">', unsafe_allow_html=True)
+        st.markdown("### 🏁 Driver Selection")
+        st.markdown("Choose drivers to compare in the analysis below")
         
-        # Enhanced Driver Selection (only show if session is loaded)
-        if hasattr(st.session_state.data_loader, 'session') and st.session_state.data_loader.session is not None:
-            st.markdown('<div class="driver-selection-container">', unsafe_allow_html=True)
-            st.markdown("### 🏁 Driver Selection")
-            st.markdown("Choose drivers to compare in the analysis below")
+        # Use dynamic driver manager to get current session driver info
+        driver_manager = DynamicDriverManager(st.session_state.data_loader.session)
+        driver_info = driver_manager.get_driver_info()
+        team_mappings = driver_manager.get_team_mappings()
+        team_colors = driver_manager.get_team_colors()
+        
+        available_drivers = list(driver_info.keys())
+        
+        if available_drivers:
+            # Enhanced driver selection with no default selection
+            selected_drivers = st.multiselect(
+                "Select Drivers for Comparison",
+                available_drivers,
+                default=[],  # Start with no drivers selected
+                format_func=lambda x: f"{driver_info[x]['abbreviation']} - {driver_info[x]['team_name']}",
+                help="Select 2-4 drivers for optimal comparison visualization"
+            )
             
-            # Use dynamic driver manager to get current session driver info
-            driver_manager = DynamicDriverManager(st.session_state.data_loader.session)
-            driver_info = driver_manager.get_driver_info()
-            team_mappings = driver_manager.get_team_mappings()
-            team_colors = driver_manager.get_team_colors()
-            
-            available_drivers = list(driver_info.keys())
-            
-            if available_drivers:
-                # Enhanced driver selection with no default selection
-                selected_drivers = st.multiselect(
-                    "Select Drivers for Comparison",
-                    available_drivers,
-                    default=[],  # Start with no drivers selected
-                    format_func=lambda x: f"{driver_info[x]['abbreviation']} - {driver_info[x]['team_name']}",
-                    help="Select 2-4 drivers for optimal comparison visualization"
-                )
+            # Display selected drivers with enhanced cards showing current team info
+            if selected_drivers:
+                st.markdown("### 🎯 Selected Drivers")
+                driver_cols = st.columns(len(selected_drivers))
                 
-                # Display selected drivers with enhanced cards showing current team info
-                if selected_drivers:
-                    st.markdown("### 🎯 Selected Drivers")
-                    driver_cols = st.columns(len(selected_drivers))
-                    
-                    for idx, driver in enumerate(selected_drivers):
-                        with driver_cols[idx]:
-                            driver_data = driver_info[driver]
-                            team_name = driver_data['team_name']
-                            team_color = team_colors.get(team_name, '#808080')
-                            
-                            st.markdown(f"""
-                            <div class="driver-card" style="border-left: 4px solid {team_color};">
-                                <div class="driver-info">
-                                    <div class="driver-name">{driver_data['abbreviation']}</div>
-                                    <div class="driver-team" style="color: {team_color};">{team_name}</div>
-                                    <div style="font-size: 0.75rem; opacity: 0.7;">#{driver_data.get('driver_number', 'N/A')}</div>
-                                </div>
-                                <div class="driver-number">#{driver_data.get('driver_number', 'N/A')}</div>
+                for idx, driver in enumerate(selected_drivers):
+                    with driver_cols[idx]:
+                        driver_data = driver_info[driver]
+                        team_name = driver_data['team_name']
+                        team_color = team_colors.get(team_name, '#808080')
+                        
+                        st.markdown(f"""
+                        <div class="driver-card" style="border-left: 4px solid {team_color};">
+                            <div class="driver-info">
+                                <div class="driver-name">{driver_data['abbreviation']}</div>
+                                <div class="driver-team" style="color: {team_color};">{team_name}</div>
+                                <div style="font-size: 0.75rem; opacity: 0.7;">#{driver_data.get('driver_number', 'N/A')}</div>
                             </div>
-                            """, unsafe_allow_html=True)
-                else:
-                    st.info("👆 Select drivers above to begin analysis")
+                            <div class="driver-number">#{driver_data.get('driver_number', 'N/A')}</div>
+                        </div>
+                        """, unsafe_allow_html=True)
+            else:
+                st.info("👆 Select drivers above to begin analysis")
             
             st.markdown('</div>', unsafe_allow_html=True)
     
