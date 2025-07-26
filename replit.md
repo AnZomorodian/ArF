@@ -6,6 +6,14 @@ Track.lytix is a comprehensive Formula 1 data analysis platform built with moder
 
 ## Recent Changes (July 26, 2025)
 
+### Major Version 6.1 Update - Command Line Launch & Enhanced Styling
+- **NEW Command Line Interface**: Created standalone main.py for easy command line execution with `python main.py`
+- **ENHANCED Streamlit Styling**: Added animated headers, improved button hover effects, and professional glass morphism design
+- **IMPROVED User Experience**: Enhanced loading indicators, metric cards, and interactive elements with smooth transitions
+- **AUTOMATED Configuration**: Main.py automatically creates Streamlit config files and checks dependencies
+- **FIXED Brake Analysis Integration**: Resolved all indentation errors and properly integrated brake efficiency analysis
+- **ENHANCED Professional Design**: Added glow effects, racing-themed animations, and high-contrast F1 styling
+
 ### Major Version 6.0 Update - Modern Web Platform with TypeScript Frontend
 - **NEW Modern Frontend Architecture**: Created professional Next.js/TypeScript frontend with Tailwind CSS
 - **ENHANCED High-Contrast Styling**: Implemented professional F1-themed design with better visibility at 100% zoom

@@ -71,7 +71,7 @@ st.markdown("""
     /* Enhanced Main Header */
     .main-header {
         text-align: center;
-        padding: 3rem 0 2rem 0;
+        padding: 2rem 0 1.5rem 0;
         background: linear-gradient(135deg, var(--f1-red) 0%, var(--f1-red-light) 30%, var(--f1-teal) 70%, var(--f1-teal-light) 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
@@ -116,6 +116,73 @@ st.markdown("""
         color: white;
         backdrop-filter: blur(8px);
         border: 1px solid rgba(255, 255, 255, 0.1);
+        transition: all 0.3s ease;
+    }
+    
+    .driver-tag:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 255, 230, 0.3);
+    }
+    
+    /* Enhanced button styling */
+    .stButton > button {
+        background: linear-gradient(45deg, var(--f1-red), var(--f1-teal)) !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 12px !important;
+        padding: 0.6rem 1.2rem !important;
+        font-weight: 600 !important;
+        transition: all 0.3s ease !important;
+        box-shadow: 0 4px 15px rgba(0, 255, 230, 0.3) !important;
+    }
+    
+    .stButton > button:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 8px 25px rgba(0, 255, 230, 0.5) !important;
+    }
+    
+    /* Enhanced selectbox styling */
+    .stSelectbox > div > div {
+        background-color: var(--card-bg) !important;
+        border: 1px solid var(--card-border) !important;
+        border-radius: 8px !important;
+    }
+    
+    /* Enhanced sidebar styling */
+    .css-1d391kg {
+        background: linear-gradient(180deg, var(--darker-bg) 0%, var(--dark-bg) 100%) !important;
+    }
+    
+    /* Enhanced metric cards */
+    .metric-card h4 {
+        color: var(--f1-teal) !important;
+        margin-bottom: 0.5rem !important;
+        font-size: 1.1rem !important;
+    }
+    
+    /* Animated loading indicator */
+    @keyframes racing-line {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
+    }
+    
+    .loading-bar {
+        position: relative;
+        overflow: hidden;
+        background: var(--card-bg);
+        border-radius: 4px;
+        height: 4px;
+    }
+    
+    .loading-bar::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 100%;
+        width: 100%;
+        background: linear-gradient(90deg, var(--f1-red), var(--f1-teal));
+        animation: racing-line 2s ease-in-out infinite;
     }
     
     .lap-time {

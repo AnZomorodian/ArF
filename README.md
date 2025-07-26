@@ -92,7 +92,17 @@ base = "dark"
 
 ## 🚀 Running the Application
 
-### Option 1: Streamlit Interface (Recommended for Data Analysis)
+### Option 1: Command Line Launch (Easiest)
+```bash
+# Simply run the main script - handles everything automatically
+python main.py
+```
+This will:
+- Check all dependencies
+- Create Streamlit configuration
+- Launch Track.lytix on `http://localhost:5000`
+
+### Option 2: Direct Streamlit Interface
 ```bash
 # Run the traditional Streamlit interface
 streamlit run app.py --server.port 5000 --server.address 0.0.0.0
