@@ -1,8 +1,8 @@
-# F1 Data Analysis Platform
+# Track.lytix - F1 Data Analysis Platform
 
 ## Overview
 
-This is a comprehensive Formula 1 data analysis platform built with Streamlit that provides advanced race data visualization and analytics capabilities. The platform leverages the FastF1 library to access official F1 timing data and creates interactive visualizations using Plotly. The application features telemetry analysis, race progression tracking, tire strategy visualization, track dominance mapping, advanced driver performance analytics, weather impact analysis, and sophisticated race strategy evaluation.
+Track.lytix is a comprehensive Formula 1 data analysis platform built with modern web technologies that provides advanced race data visualization and analytics capabilities. The platform leverages the FastF1 library to access official F1 timing data and creates interactive visualizations using Plotly. The application features telemetry analysis, race progression tracking, tire strategy visualization, track dominance mapping, advanced driver performance analytics, weather impact analysis, and sophisticated race strategy evaluation.
 
 ## Recent Changes (July 26, 2025)
 

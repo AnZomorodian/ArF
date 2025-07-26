@@ -187,7 +187,7 @@ export default function HomePage() {
               </motion.div>
               
               <h1 className="section-header mb-6">
-                Professional F1 Data Analysis Platform
+                Track.lytix - Professional F1 Analytics
               </h1>
               
               <p className="text-xl text-white/70 mb-8 leading-relaxed">

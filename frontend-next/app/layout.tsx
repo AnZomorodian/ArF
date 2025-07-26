@@ -13,8 +13,8 @@ const jetbrains = JetBrains_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'F1 Data Analysis Platform | Professional Racing Analytics',
-  description: 'Advanced Formula 1 data analysis platform with real-time telemetry, comprehensive performance metrics, and professional-grade visualizations for racing enthusiasts and teams.',
+  title: 'Track.lytix | Professional F1 Racing Analytics',
+  description: 'Track.lytix - Advanced Formula 1 data analysis platform with real-time telemetry, comprehensive performance metrics, and professional-grade visualizations for racing enthusiasts and teams.',
   keywords: ['F1', 'Formula 1', 'Racing', 'Data Analysis', 'Telemetry', 'Performance Analytics'],
   authors: [{ name: 'F1 Data Platform Team' }],
   viewport: 'width=device-width, initial-scale=1',

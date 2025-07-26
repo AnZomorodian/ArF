@@ -28,7 +28,7 @@ from utils.composite_performance import CompositePerformanceAnalyzer
 
 # Configure page
 st.set_page_config(
-    page_title="F1 Data Analysis Platform",
+    page_title="Track.lytix - F1 Data Analysis Platform",
     page_icon="🏎️",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -751,7 +751,7 @@ if 'data_loader' not in st.session_state:
     st.session_state.data_loader = DataLoader()
 
 def main():
-    st.markdown('<h1 class="main-header">🏎️ Formula 1 Data Analysis Platform</h1>', unsafe_allow_html=True)
+    st.markdown('<h1 class="main-header">🏎️ Track.lytix</h1>', unsafe_allow_html=True)
     
     # Sidebar for session selection
     with st.sidebar:
@@ -2195,111 +2195,113 @@ def main():
                 st.error(f"Error in downforce analysis: {str(e)}")
         else:
             st.info("Please load session data to access downforce configuration analysis.")
-            
-            with adv_tab7:
-                st.subheader("🚨 Brake Analysis - Performance & Efficiency")
+    
+    # Brake Analysis Tab
+    with adv_tab7:
+        st.subheader("🚨 Brake Analysis - Performance & Efficiency")
+        
+        try:
+            if hasattr(st.session_state.data_loader, 'session') and st.session_state.data_loader.session is not None:
+                # Initialize brake analyzer
+                brake_analyzer = BrakeAnalyzer(st.session_state.data_loader.session)
                 
-                try:
-                    if hasattr(st.session_state.data_loader, 'session') and st.session_state.data_loader.session is not None:
-                        # Initialize brake analyzer
-                        brake_analyzer = BrakeAnalyzer(st.session_state.data_loader.session)
-                        
-                        # Calculate brake analysis data
-                        brake_data = brake_analyzer.analyze_brake_efficiency(selected_drivers)
-                        
-                        if not brake_data.empty:
-                            # Session info for charts
-                            session_info_str = f"{st.session_state.data_loader.session.event.year} {st.session_state.data_loader.session.event['EventName']} - {st.session_state.data_loader.session.name}"
-                            
-                            st.subheader("📊 Comprehensive Brake Efficiency Analysis")
-                            
-                            # Create main brake visualization
-                            brake_chart = brake_analyzer.create_brake_efficiency_visualization(brake_data, session_info_str)
-                            if brake_chart:
-                                st.plotly_chart(brake_chart, use_container_width=True)
-                            
-                            # Brake performance heatmap
-                            st.subheader("🔥 Brake Performance Heatmap")
-                            brake_heatmap = brake_analyzer.create_brake_heatmap(brake_data)
-                            if brake_heatmap:
-                                st.plotly_chart(brake_heatmap, use_container_width=True)
-                            
-                            # Performance metrics table
-                            st.subheader("📋 Detailed Brake Metrics")
-                            
-                            # Format the data for display
-                            display_brake = brake_data.copy()
-                            display_brake['Brake_Efficiency'] = display_brake['Brake_Efficiency'].round(2).astype(str) + '%'
-                            display_brake['Max_Brake_Force'] = display_brake['Max_Brake_Force'].round(1).astype(str) + '%'
-                            display_brake['Avg_Brake_Force'] = display_brake['Avg_Brake_Force'].round(1).astype(str) + '%'
-                            display_brake['Braking_Duration'] = display_brake['Braking_Duration'].round(2).astype(str) + 's'
-                            display_brake['Lap_Time'] = display_brake['Lap_Time'].round(3).astype(str) + 's'
-                            
-                            # Display table
-                            brake_display_df = display_brake[['Driver', 'Team', 'Brake_Efficiency', 'Max_Brake_Force', 
-                                                           'Avg_Brake_Force', 'Brake_Zones', 'Braking_Duration', 'Lap_Time']].copy()
-                            if isinstance(brake_display_df, pd.DataFrame):
-                                brake_display_df.columns = ['Driver', 'Team', 'Efficiency', 'Max Force', 'Avg Force', 'Brake Zones', 'Duration', 'Lap Time']
-                            st.dataframe(brake_display_df, use_container_width=True)
-                            
-                        else:
-                            st.info("No brake analysis data available for selected drivers.")
-                    else:
-                        st.info("Please load session data to access brake analysis.")
-                except Exception as e:
-                    st.error(f"Error in brake analysis: {str(e)}")
-            
-            with adv_tab8:
-                st.subheader("⚡ Composite Performance Index - Advanced Metrics")
+                # Calculate brake analysis data
+                brake_data = brake_analyzer.analyze_brake_efficiency(selected_drivers)
                 
-                try:
-                    if hasattr(st.session_state.data_loader, 'session') and st.session_state.data_loader.session is not None:
-                        # Initialize composite performance analyzer
-                        composite_analyzer = CompositePerformanceAnalyzer(st.session_state.data_loader.session)
+                if not brake_data.empty:
+                    # Session info for charts
+                    session_info_str = f"{st.session_state.data_loader.session.event.year} {st.session_state.data_loader.session.event['EventName']} - {st.session_state.data_loader.session.name}"
+                    
+                    st.subheader("📊 Comprehensive Brake Efficiency Analysis")
+                    
+                    # Create main brake visualization
+                    brake_chart = brake_analyzer.create_brake_efficiency_visualization(brake_data, session_info_str)
+                    if brake_chart:
+                        st.plotly_chart(brake_chart, use_container_width=True)
+                    
+                    # Brake performance heatmap
+                    st.subheader("🔥 Brake Performance Heatmap")
+                    brake_heatmap = brake_analyzer.create_brake_heatmap(brake_data)
+                    if brake_heatmap:
+                        st.plotly_chart(brake_heatmap, use_container_width=True)
+                    
+                    # Performance metrics table
+                    st.subheader("📋 Detailed Brake Metrics")
+                    
+                    # Format the data for display
+                    display_brake = brake_data.copy()
+                    display_brake['Brake_Efficiency'] = display_brake['Brake_Efficiency'].round(2).astype(str) + '%'
+                    display_brake['Max_Brake_Force'] = display_brake['Max_Brake_Force'].round(1).astype(str) + '%'
+                    display_brake['Avg_Brake_Force'] = display_brake['Avg_Brake_Force'].round(1).astype(str) + '%'
+                    display_brake['Braking_Duration'] = display_brake['Braking_Duration'].round(2).astype(str) + 's'
+                    display_brake['Lap_Time'] = display_brake['Lap_Time'].round(3).astype(str) + 's'
+                    
+                    # Display table
+                    brake_display_df = display_brake[['Driver', 'Team', 'Brake_Efficiency', 'Max_Brake_Force', 
+                                                   'Avg_Brake_Force', 'Brake_Zones', 'Braking_Duration', 'Lap_Time']].copy()
+                    if isinstance(brake_display_df, pd.DataFrame):
+                        brake_display_df.columns = ['Driver', 'Team', 'Efficiency', 'Max Force', 'Avg Force', 'Brake Zones', 'Duration', 'Lap Time']
+                    st.dataframe(brake_display_df, use_container_width=True)
+                            
+                else:
+                    st.info("No brake analysis data available for selected drivers.")
+            else:
+                st.info("Please load session data to access brake analysis.")
+        except Exception as e:
+            st.error(f"Error in brake analysis: {str(e)}")
+    
+    # Composite Performance Tab
+    with adv_tab8:
+        st.subheader("⚡ Composite Performance Index - Advanced Metrics")
+        
+        try:
+            if hasattr(st.session_state.data_loader, 'session') and st.session_state.data_loader.session is not None:
+                # Initialize composite performance analyzer
+                composite_analyzer = CompositePerformanceAnalyzer(st.session_state.data_loader.session)
                         
-                        # Calculate composite performance data
-                        performance_data = composite_analyzer.calculate_composite_performance(selected_drivers)
-                        
-                        if not performance_data.empty:
-                            # Session info for charts
-                            session_info_str = f"{st.session_state.data_loader.session.event.year} {st.session_state.data_loader.session.event['EventName']} - {st.session_state.data_loader.session.name}"
-                            
-                            st.subheader("📊 Comprehensive Performance Analysis")
-                            
-                            # Create main composite performance visualization
-                            composite_chart = composite_analyzer.create_composite_performance_visualization(performance_data, session_info_str)
-                            if composite_chart:
-                                st.plotly_chart(composite_chart, use_container_width=True)
-                            
-                            # Performance radar chart
-                            st.subheader("🎯 Performance Radar Comparison")
-                            radar_chart = composite_analyzer.create_performance_radar(performance_data)
-                            if radar_chart:
-                                st.plotly_chart(radar_chart, use_container_width=True)
-                            
-                            # Performance metrics table
-                            st.subheader("📋 Detailed Performance Metrics")
-                            
-                            # Format the data for display
-                            display_perf = performance_data.copy()
-                            display_perf['Composite_Performance_Index'] = display_perf['Composite_Performance_Index'].round(2)
-                            display_perf['Speed_Factor'] = display_perf['Speed_Factor'].round(1).astype(str) + ' km/h'
-                            display_perf['Acceleration_Factor'] = display_perf['Acceleration_Factor'].round(3)
-                            display_perf['Speed_Consistency'] = (display_perf['Speed_Consistency'] * 100).round(1).astype(str) + '%'
-                            display_perf['Throttle_Efficiency'] = display_perf['Throttle_Efficiency'].round(1).astype(str) + '%'
-                            display_perf['Lap_Time'] = display_perf['Lap_Time'].round(3).astype(str) + 's'
-                            
-                            # Display table
-                            perf_display_df = display_perf[['Driver', 'Team', 'Composite_Performance_Index', 'Speed_Factor', 
-                                                         'Acceleration_Factor', 'Speed_Consistency', 'Throttle_Efficiency', 'Lap_Time']].copy()
-                            if isinstance(perf_display_df, pd.DataFrame):
-                                perf_display_df.columns = ['Driver', 'Team', 'CPI', 'Speed Factor', 'Acceleration', 'Consistency', 'Throttle Eff.', 'Lap Time']
-                            st.dataframe(perf_display_df, use_container_width=True)
-                            
-                            # Performance insights
-                            st.subheader("💡 Performance Insights")
-                            
-                            if isinstance(performance_data, pd.DataFrame) and not performance_data.empty:
+                # Calculate composite performance data
+                performance_data = composite_analyzer.calculate_composite_performance(selected_drivers)
+                
+                if not performance_data.empty:
+                    # Session info for charts
+                    session_info_str = f"{st.session_state.data_loader.session.event.year} {st.session_state.data_loader.session.event['EventName']} - {st.session_state.data_loader.session.name}"
+                    
+                    st.subheader("📊 Comprehensive Performance Analysis")
+                    
+                    # Create main composite performance visualization
+                    composite_chart = composite_analyzer.create_composite_performance_visualization(performance_data, session_info_str)
+                    if composite_chart:
+                        st.plotly_chart(composite_chart, use_container_width=True)
+                    
+                    # Performance radar chart
+                    st.subheader("🎯 Performance Radar Comparison")
+                    radar_chart = composite_analyzer.create_performance_radar(performance_data)
+                    if radar_chart:
+                        st.plotly_chart(radar_chart, use_container_width=True)
+                    
+                    # Performance metrics table
+                    st.subheader("📋 Detailed Performance Metrics")
+                    
+                    # Format the data for display
+                    display_perf = performance_data.copy()
+                    display_perf['Composite_Performance_Index'] = display_perf['Composite_Performance_Index'].round(2)
+                    display_perf['Speed_Factor'] = display_perf['Speed_Factor'].round(1).astype(str) + ' km/h'
+                    display_perf['Acceleration_Factor'] = display_perf['Acceleration_Factor'].round(3)
+                    display_perf['Speed_Consistency'] = (display_perf['Speed_Consistency'] * 100).round(1).astype(str) + '%'
+                    display_perf['Throttle_Efficiency'] = display_perf['Throttle_Efficiency'].round(1).astype(str) + '%'
+                    display_perf['Lap_Time'] = display_perf['Lap_Time'].round(3).astype(str) + 's'
+                    
+                    # Display table
+                    perf_display_df = display_perf[['Driver', 'Team', 'Composite_Performance_Index', 'Speed_Factor', 
+                                                 'Acceleration_Factor', 'Speed_Consistency', 'Throttle_Efficiency', 'Lap_Time']].copy()
+                    if isinstance(perf_display_df, pd.DataFrame):
+                        perf_display_df.columns = ['Driver', 'Team', 'CPI', 'Speed Factor', 'Acceleration', 'Consistency', 'Throttle Eff.', 'Lap Time']
+                    st.dataframe(perf_display_df, use_container_width=True)
+                    
+                    # Performance insights
+                    st.subheader("💡 Performance Insights")
+                    
+                    if isinstance(performance_data, pd.DataFrame) and not performance_data.empty:
                                 best_overall_idx = performance_data['Composite_Performance_Index'].idxmax()
                                 best_speed_idx = performance_data['Speed_Factor'].idxmax()
                                 best_consistency_idx = performance_data['Speed_Consistency'].idxmax()
@@ -2360,12 +2362,12 @@ def main():
                             **Throttle Efficiency**: Average throttle application percentage, indicating how effectively the driver uses the accelerator.
                             """)
                             
-                        else:
-                            st.info("No composite performance data available for selected drivers.")
-                    else:
-                        st.info("Please load session data to access composite performance analysis.")
-                except Exception as e:
-                    st.error(f"Error in composite performance analysis: {str(e)}")
+                else:
+                    st.info("No composite performance data available for selected drivers.")
+            else:
+                st.info("Please load session data to access composite performance analysis.")
+        except Exception as e:
+            st.error(f"Error in composite performance analysis: {str(e)}")
 
 if __name__ == "__main__":
     main()
