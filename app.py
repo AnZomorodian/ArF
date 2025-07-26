@@ -22,6 +22,7 @@ from utils.tire_performance import TirePerformanceAnalyzer
 from utils.stress_index import DriverStressAnalyzer
 from utils.downforce_analysis import DownforceAnalyzer
 from utils.driver_manager import DynamicDriverManager
+from utils.enhanced_analytics import EnhancedF1Analytics
 
 # Configure page
 st.set_page_config(
@@ -1155,22 +1156,151 @@ def main():
                 st.info("Select drivers to view race progression analysis.")
     
     with tab6:
-        st.header("🧠 Advanced Analytics")
+        st.header("🧠 Advanced Analytics - Enhanced Performance Intelligence")
         
         if selected_drivers:
-            # Initialize analytics modules
+            # Initialize enhanced analytics modules
             session = st.session_state.data_loader.session
             analytics = AdvancedF1Analytics(session)
+            enhanced_analytics = EnhancedF1Analytics(session)
             weather_analytics = WeatherAnalytics(session)
             strategy_analyzer = RaceStrategyAnalyzer(session)
             
-            # Advanced analytics sub-tabs
-            adv_tab1, adv_tab2, adv_tab3, adv_tab4 = st.tabs([
-                "👤 Driver Performance", "🌤️ Weather Impact", "🏁 Strategy Analysis", "📊 Advanced Metrics"
+            # Enhanced analytics sub-tabs
+            adv_tab1, adv_tab2, adv_tab3, adv_tab4, adv_tab5, adv_tab6 = st.tabs([
+                "🎯 Performance Index", "🧪 ML Clustering", "📈 Radar Analysis", 
+                "🏁 Race Evolution", "🌤️ Weather Impact", "📊 Strategy Analysis"
             ])
             
             with adv_tab1:
-                st.subheader("Driver Consistency Analysis")
+                st.subheader("🎯 Driver Performance Index Analysis")
+                
+                # Calculate enhanced performance index
+                performance_data = enhanced_analytics.calculate_driver_performance_index(selected_drivers)
+                
+                if not performance_data.empty:
+                    # Display performance index cards
+                    for _, driver_perf in performance_data.iterrows():
+                        team_color = TEAM_COLORS.get(driver_perf['Team'], '#808080')
+                        
+                        st.markdown(f"""
+                        <div class="metric-card">
+                            <div style="background: linear-gradient(135deg, {team_color}20, {team_color}40); 
+                                        border-left: 4px solid {team_color}; padding: 1.5rem; border-radius: 12px;">
+                                <h3 style="color: {team_color}; margin: 0 0 0.5rem 0;">{driver_perf['Driver']} - {driver_perf['Team']}</h3>
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1rem; margin-top: 1rem;">
+                                    <div style="text-align: center;">
+                                        <div style="font-size: 1.8rem; font-weight: 700; color: {team_color};">{driver_perf['Performance_Index']:.3f}</div>
+                                        <div style="color: #888; font-size: 0.8rem;">Performance Index</div>
+                                    </div>
+                                    <div style="text-align: center;">
+                                        <div style="font-size: 1.2rem; font-weight: 700; color: white;">{driver_perf['Consistency_Score']:.3f}</div>
+                                        <div style="color: #888; font-size: 0.8rem;">Consistency</div>
+                                    </div>
+                                    <div style="text-align: center;">
+                                        <div style="font-size: 1.2rem; font-weight: 700; color: white;">{driver_perf['Pace_Quality']:.3f}</div>
+                                        <div style="color: #888; font-size: 0.8rem;">Pace Quality</div>
+                                    </div>
+                                    <div style="text-align: center;">
+                                        <div style="font-size: 1.2rem; font-weight: 700; color: white;">{driver_perf['Overtake_Score']:.3f}</div>
+                                        <div style="color: #888; font-size: 0.8rem;">Racecraft</div>
+                                    </div>
+                                    <div style="text-align: center;">
+                                        <div style="font-size: 1.2rem; font-weight: 700; color: white;">{driver_perf['Tire_Efficiency']:.3f}</div>
+                                        <div style="color: #888; font-size: 0.8rem;">Tire Management</div>
+                                    </div>
+                                    <div style="text-align: center;">
+                                        <div style="font-size: 1.2rem; font-weight: 700; color: white;">{format_average_lap_time(driver_perf['Best_Lap'])}</div>
+                                        <div style="color: #888; font-size: 0.8rem;">Best Lap</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        """, unsafe_allow_html=True)
+                else:
+                    st.info("Unable to calculate performance index for selected drivers.")
+            
+            with adv_tab2:
+                st.subheader("🧪 Machine Learning Driver Clustering")
+                
+                performance_data = enhanced_analytics.calculate_driver_performance_index(selected_drivers)
+                
+                if not performance_data.empty and len(performance_data) >= 3:
+                    clustering_chart = enhanced_analytics.create_performance_clustering(performance_data)
+                    if clustering_chart:
+                        st.plotly_chart(clustering_chart, use_container_width=True)
+                        
+                        st.markdown("""
+                        **Clustering Analysis**: Using machine learning to group drivers based on their performance characteristics:
+                        - **Elite Performers**: High consistency and pace quality
+                        - **Consistent Drivers**: Reliable lap times with steady performance
+                        - **Aggressive Racers**: High overtaking scores and sector dominance
+                        - **Developing Talent**: Emerging performance patterns
+                        """)
+                else:
+                    st.info("Need at least 3 drivers for meaningful clustering analysis.")
+            
+            with adv_tab3:
+                st.subheader("📈 Driver Performance Radar Analysis")
+                
+                performance_data = enhanced_analytics.calculate_driver_performance_index(selected_drivers)
+                
+                if not performance_data.empty:
+                    radar_chart = enhanced_analytics.create_performance_radar(performance_data)
+                    if radar_chart:
+                        st.plotly_chart(radar_chart, use_container_width=True)
+                        
+                        st.markdown("""
+                        **Radar Analysis**: Multi-dimensional performance comparison across key metrics:
+                        - **Consistency**: Lap time variation and reliability
+                        - **Speed Consistency**: Maintaining pace across different track sections
+                        - **Pace Quality**: Overall speed relative to session best
+                        - **Overtaking**: Racecraft and position-gaining ability
+                        - **Sector Dominance**: Performance in different track segments
+                        - **Tire Management**: Efficiency in tire usage and degradation
+                        """)
+                else:
+                    st.info("Performance data not available for radar analysis.")
+            
+            with adv_tab4:
+                st.subheader("🏁 Race Pace Evolution Analysis")
+                
+                pace_data = enhanced_analytics.analyze_race_pace_evolution(selected_drivers)
+                
+                if not pace_data.empty:
+                    fig = go.Figure()
+                    
+                    for driver in selected_drivers:
+                        driver_pace = pace_data[pace_data['Driver'] == driver]
+                        if not driver_pace.empty:
+                            team = DRIVER_TEAMS.get(driver, 'Unknown')
+                            color = TEAM_COLORS.get(team, '#FFFFFF')
+                            
+                            fig.add_trace(go.Scatter(
+                                x=driver_pace['Lap'],
+                                y=driver_pace['Pace'],
+                                mode='lines+markers',
+                                name=f"{driver} ({team})",
+                                line=dict(color=color, width=3),
+                                marker=dict(size=6, color=color),
+                                hovertemplate=f'<b>{driver}</b><br>Lap: %{{x}}<br>Pace: %{{y:.3f}}s<extra></extra>'
+                            ))
+                    
+                    fig.update_layout(
+                        title='Race Pace Evolution Throughout Session',
+                        xaxis_title='Lap Number',
+                        yaxis_title='Lap Time (seconds)',
+                        plot_bgcolor='rgba(0,0,0,0)',
+                        paper_bgcolor='rgba(0,0,0,0)',
+                        font=dict(color='white'),
+                        height=500
+                    )
+                    
+                    st.plotly_chart(fig, use_container_width=True)
+                else:
+                    st.info("Pace evolution data not available for analysis.")
+            
+            with adv_tab5:
                 
                 consistency_data = []
                 for driver in selected_drivers:
@@ -1433,7 +1563,7 @@ def main():
                         st.subheader("📊 Comprehensive Tire Performance Metrics")
                         
                         # Create main visualization
-                        tire_performance_chart = tire_analyzer.create_tire_performance_visualizations(
+                        tire_performance_chart = tire_analyzer.create_enhanced_tire_performance_visualizations(
                             filtered_tire_data, session_info_str
                         )
                         st.plotly_chart(tire_performance_chart, use_container_width=True)

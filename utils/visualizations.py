@@ -226,8 +226,8 @@ def create_race_progression_plot(data_loader, drivers):
         fig = go.Figure()
         
         # Add background grid for better readability
-        max_laps = position_data['LapNumber'].max()
-        max_pos = position_data['Position'].max()
+        max_laps = int(position_data['LapNumber'].max())
+        max_pos = int(position_data['Position'].max())
         
         # Create enhanced traces for each driver
         for driver in drivers:
@@ -239,8 +239,8 @@ def create_race_progression_plot(data_loader, drivers):
             color = TEAM_COLORS.get(team, '#FFFFFF')
             
             # Get position changes for annotations
-            start_pos = driver_data['Position'].iloc[0]
-            end_pos = driver_data['Position'].iloc[-1]
+            start_pos = int(driver_data['Position'].iloc[0])
+            end_pos = int(driver_data['Position'].iloc[-1])
             position_change = start_pos - end_pos
             
             # Create smooth line with markers

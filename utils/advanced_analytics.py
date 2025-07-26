@@ -83,7 +83,7 @@ class AdvancedF1Analytics:
             if pd.isna(driver):
                 continue
                 
-            driver_laps = self.laps.pick_driver(driver)
+            driver_laps = self.laps.pick_drivers(driver)
             
             for sector in ['Sector1Time', 'Sector2Time', 'Sector3Time']:
                 valid_times = driver_laps[sector].dropna()
@@ -159,11 +159,11 @@ class AdvancedF1Analytics:
         
         if lap_number is None:
             # Use fastest laps
-            lap1 = self.laps.pick_driver(driver1).pick_fastest()
-            lap2 = self.laps.pick_driver(driver2).pick_fastest()
+            lap1 = self.laps.pick_drivers(driver1).pick_fastest()
+            lap2 = self.laps.pick_drivers(driver2).pick_fastest()
         else:
-            lap1 = self.laps.pick_driver(driver1).pick_lap(lap_number)
-            lap2 = self.laps.pick_driver(driver2).pick_lap(lap_number)
+            lap1 = self.laps.pick_drivers(driver1).pick_lap(lap_number)
+            lap2 = self.laps.pick_drivers(driver2).pick_lap(lap_number)
         
         try:
             telemetry1 = lap1.get_telemetry()

@@ -83,7 +83,7 @@ class TirePerformanceAnalyzer:
 
         return pd.DataFrame(results)
 
-    def create_tire_performance_visualizations(self, df_tires, session_info):
+    def create_enhanced_tire_performance_visualizations(self, df_tires, session_info):
         """Create comprehensive tire performance visualizations"""
         
         # Create subplot layout
