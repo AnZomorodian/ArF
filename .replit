@@ -1,4 +1,4 @@
-modules = ["python-3.11", "nodejs-20", "web", "python3"]
+modules = ["python-3.11", "nodejs-20", "web"]
 run = "node index.js"
 
 [nix]
@@ -19,14 +19,6 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "Install Dependencies"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "install_dependencies"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
 args = "F1 Streamlit Platform"
 
 [[workflows.workflow.tasks]]
@@ -36,22 +28,6 @@ args = "Next.js Frontend"
 [[workflows.workflow.tasks]]
 task = "workflow.run"
 args = "FastAPI Backend"
-
-[[workflows.workflow]]
-name = "Install Dependencies"
-author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "uv add fastf1 plotly scipy matplotlib"
-
-[[workflows.workflow]]
-name = "install_dependencies"
-author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "uv add fastf1 plotly scipy matplotlib"
 
 [[workflows.workflow]]
 name = "F1 Streamlit Platform"
