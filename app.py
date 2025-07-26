@@ -34,45 +34,94 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Professional F1 Web Application Styling
+# Modern F1 Web App Styling with Animations
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
     
-    /* Global Reset and Base Styles */
+    /* Global Reset and Enhanced Base Styles */
     * {
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
         box-sizing: border-box;
         margin: 0;
         padding: 0;
+        scroll-behavior: smooth;
     }
     
-    /* Root Variables for High-Contrast Professional Theming */
+    /* Enhanced Root Variables for Modern F1 App Theming */
     :root {
         --f1-red: #FF0033;
         --f1-red-light: #FF4466;
+        --f1-red-dark: #CC0028;
         --f1-teal: #00FFE6;
         --f1-teal-light: #66FFF0;
+        --f1-teal-dark: #00CCB7;
+        --f1-gold: #FFD700;
+        --f1-orange: #FF8C00;
+        --f1-purple: #9D4EDD;
         --dark-bg: #000000;
-        --darker-bg: #111111;
-        --card-bg: rgba(25, 25, 25, 0.98);
-        --card-border: rgba(0, 255, 230, 0.3);
+        --darker-bg: #0A0A0A;
+        --darkest-bg: #050505;
+        --card-bg: linear-gradient(145deg, rgba(15, 15, 15, 0.98), rgba(25, 25, 25, 0.95));
+        --card-border: rgba(0, 255, 230, 0.4);
         --text-primary: #FFFFFF;
-        --text-secondary: #E0E0E0;
-        --text-muted: #AAAAAA;
-        --glass-bg: rgba(255, 255, 255, 0.05);
-        --glass-border: rgba(255, 255, 255, 0.1);
+        --text-secondary: #E8E8E8;
+        --text-muted: #B8B8B8;
+        --glass-bg: rgba(255, 255, 255, 0.08);
+        --glass-border: rgba(255, 255, 255, 0.15);
         --shadow-lg: 0 25px 50px -12px rgba(0, 0, 0, 0.9);
         --shadow-xl: 0 35px 60px -12px rgba(0, 0, 0, 0.95);
-        --neon-glow: 0 0 20px rgba(0, 255, 230, 0.5);
-        --red-glow: 0 0 20px rgba(255, 0, 51, 0.5);
+        --shadow-massive: 0 50px 100px -20px rgba(0, 0, 0, 0.8);
+        --neon-glow: 0 0 30px rgba(0, 255, 230, 0.6);
+        --red-glow: 0 0 30px rgba(255, 0, 51, 0.6);
+        --gold-glow: 0 0 25px rgba(255, 215, 0, 0.5);
+        --racing-gradient: linear-gradient(135deg, var(--f1-red) 0%, var(--f1-orange) 30%, var(--f1-gold) 60%, var(--f1-teal) 100%);
+        --speed-gradient: linear-gradient(90deg, var(--f1-red), var(--f1-teal));
     }
     
-    /* Enhanced Main Header */
+    /* Animated Background for Racing Feel */
+    .main .block-container {
+        background: 
+            radial-gradient(circle at 20% 50%, rgba(255, 0, 51, 0.15) 0%, transparent 50%),
+            radial-gradient(circle at 80% 20%, rgba(0, 255, 230, 0.15) 0%, transparent 50%),
+            radial-gradient(circle at 40% 80%, rgba(255, 215, 0, 0.1) 0%, transparent 50%),
+            linear-gradient(135deg, var(--darkest-bg) 0%, var(--darker-bg) 50%, var(--dark-bg) 100%);
+        background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%;
+        animation: raceBackground 20s ease-in-out infinite alternate;
+    }
+    
+    @keyframes raceBackground {
+        0% { background-position: 0% 0%, 100% 0%, 0% 100%, 0% 0%; }
+        100% { background-position: 100% 100%, 0% 100%, 100% 0%, 100% 100%; }
+    }
+    
+    /* Revolutionary F1 App Header */
     .main-header {
         text-align: center;
-        padding: 2rem 0 1.5rem 0;
-        background: linear-gradient(135deg, var(--f1-red) 0%, var(--f1-red-light) 30%, var(--f1-teal) 70%, var(--f1-teal-light) 100%);
+        padding: 3rem 0 2rem 0;
+        background: var(--racing-gradient);
+        position: relative;
+        overflow: hidden;
+        border-radius: 0 0 30px 30px;
+        margin: -1rem -2rem 2rem -2rem;
+        box-shadow: var(--shadow-massive);
+    }
+    
+    .main-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        animation: headerShine 3s ease-in-out infinite;
+    }
+    
+    @keyframes headerShine {
+        0% { left: -100%; }
+        100% { left: 100%; }
+    }
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
@@ -153,7 +202,212 @@ st.markdown("""
         background: linear-gradient(180deg, var(--darker-bg) 0%, var(--dark-bg) 100%) !important;
     }
     
-    /* Enhanced metric cards */
+    /* Revolutionary Enhanced Metric Cards */
+    .metric-card {
+        background: var(--card-bg);
+        border: 2px solid var(--card-border);
+        border-radius: 20px;
+        padding: 2.5rem;
+        margin: 1.5rem 0;
+        backdrop-filter: blur(30px);
+        box-shadow: var(--shadow-lg), var(--neon-glow);
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+        transform: translateY(0);
+    }
+    
+    .metric-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: var(--racing-gradient);
+        opacity: 0.9;
+    }
+    
+    .metric-card::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+        transition: left 0.5s ease;
+    }
+    
+    .metric-card:hover {
+        transform: translateY(-15px) scale(1.03);
+        border-color: var(--f1-teal);
+        box-shadow: var(--shadow-xl), var(--neon-glow), 0 0 60px rgba(0, 255, 230, 0.4);
+        background: linear-gradient(135deg, rgba(0, 255, 230, 0.1), var(--card-bg));
+    }
+    
+    .metric-card:hover::after {
+        left: 100%;
+    }
+    
+    /* Revolutionary Tab System */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 8px;
+        background: rgba(0, 0, 0, 0.3);
+        padding: 1rem;
+        border-radius: 25px;
+        backdrop-filter: blur(20px);
+        border: 1px solid var(--glass-border);
+        margin-bottom: 2rem;
+    }
+    
+    .stTabs [data-baseweb="tab"] {
+        height: 60px;
+        padding: 0 1.5rem;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 15px;
+        border: 1px solid transparent;
+        color: var(--text-secondary);
+        font-weight: 600;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .stTabs [data-baseweb="tab"]:hover {
+        background: rgba(0, 255, 230, 0.1);
+        border-color: var(--f1-teal);
+        color: var(--text-primary);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 255, 230, 0.3);
+    }
+    
+    .stTabs [aria-selected="true"] {
+        background: var(--racing-gradient) !important;
+        color: white !important;
+        border-color: var(--f1-teal) !important;
+        box-shadow: var(--gold-glow) !important;
+        transform: translateY(-3px) !important;
+    }
+    
+    /* Enhanced Data Tables with Racing Theme */
+    .stDataFrame {
+        background: var(--card-bg) !important;
+        border: 2px solid var(--card-border) !important;
+        border-radius: 20px !important;
+        overflow: hidden !important;
+        box-shadow: var(--shadow-lg) !important;
+        backdrop-filter: blur(25px) !important;
+    }
+    
+    .stDataFrame thead tr th {
+        background: var(--racing-gradient) !important;
+        color: white !important;
+        font-weight: 800 !important;
+        text-align: center !important;
+        padding: 1.8rem 1rem !important;
+        border: none !important;
+        font-size: 1rem !important;
+        letter-spacing: 1px !important;
+        text-transform: uppercase !important;
+        font-family: 'Orbitron', monospace !important;
+    }
+    
+    .stDataFrame tbody tr td {
+        text-align: center !important;
+        padding: 1.2rem !important;
+        border-bottom: 1px solid var(--glass-border) !important;
+        background: rgba(255, 255, 255, 0.02) !important;
+        color: var(--text-primary) !important;
+        font-size: 0.95rem !important;
+        font-weight: 500 !important;
+        transition: all 0.3s ease !important;
+    }
+    
+    .stDataFrame tbody tr:nth-child(even) td {
+        background: rgba(0, 255, 230, 0.03) !important;
+    }
+    
+    .stDataFrame tbody tr:hover td {
+        background: rgba(0, 255, 230, 0.1) !important;
+        transform: scale(1.01) !important;
+        color: white !important;
+        font-weight: 600 !important;
+    }
+    
+    /* Revolutionary Button System */
+    .stButton > button {
+        background: var(--racing-gradient) !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 15px !important;
+        padding: 1rem 2rem !important;
+        font-weight: 700 !important;
+        font-size: 1rem !important;
+        transition: all 0.3s ease !important;
+        box-shadow: 0 5px 20px rgba(0, 255, 230, 0.4) !important;
+        text-transform: uppercase !important;
+        letter-spacing: 1px !important;
+        font-family: 'Orbitron', monospace !important;
+        position: relative !important;
+        overflow: hidden !important;
+    }
+    
+    .stButton > button::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: left 0.5s ease;
+    }
+    
+    .stButton > button:hover {
+        transform: translateY(-3px) scale(1.05) !important;
+        box-shadow: 0 10px 30px rgba(0, 255, 230, 0.6) !important;
+    }
+    
+    .stButton > button:hover::before {
+        left: 100%;
+    }
+    
+    /* Mobile Responsive Design */
+    @media (max-width: 768px) {
+        .main-header h1 {
+            font-size: 3rem;
+        }
+        
+        .metric-card {
+            padding: 1.5rem;
+            margin: 1rem 0;
+        }
+        
+        .stTabs [data-baseweb="tab"] {
+            height: 50px;
+            padding: 0 1rem;
+            font-size: 0.85rem;
+        }
+    }
+    
+    /* Loading Animations */
+    @keyframes dataLoad {
+        0% { opacity: 0; transform: translateY(20px); }
+        100% { opacity: 1; transform: translateY(0); }
+    }
+    
+    .main .block-container > div {
+        animation: dataLoad 0.8s ease-out;
+    }
+    
+    /* Racing-inspired Progress Indicators */
+    .stProgress > div > div > div {
+        background: var(--racing-gradient) !important;
+        border-radius: 10px !important;
+        box-shadow: var(--neon-glow) !important;
+    }
     .metric-card h4 {
         color: var(--f1-teal) !important;
         margin-bottom: 0.5rem !important;
@@ -818,7 +1072,111 @@ if 'data_loader' not in st.session_state:
     st.session_state.data_loader = DataLoader()
 
 def main():
-    st.markdown('<h1 class="main-header">🏎️ Track.lytix</h1>', unsafe_allow_html=True)
+    """Revolutionary F1 Web Application"""
+    
+    # Modern F1 Application Header with Professional Styling
+    st.markdown("""
+    <div class="f1-hero-section">
+        <h1 class="f1-title">🏎️ Track.lytix</h1>
+        <p class="f1-subtitle">Professional F1 Data Analysis Platform</p>
+        <p class="f1-description">🚀 Advanced Telemetry • 📊 Race Strategy • ⚡ Performance Analytics</p>
+        <div class="f1-badges">
+            <span class="badge-red">Live F1 Data</span>
+            <span class="badge-teal">Real-time Analytics</span>
+            <span class="badge-gold">Professional Insights</span>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Add F1 Hero Section Styling
+    st.markdown("""
+    <style>
+    .f1-hero-section {
+        background: linear-gradient(135deg, #FF0033 0%, #FF8C00 30%, #FFD700 60%, #00FFE6 100%);
+        padding: 4rem 2rem;
+        margin: -2rem -2rem 3rem -2rem;
+        text-align: center;
+        border-radius: 0 0 40px 40px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+        animation: heroGlow 4s ease-in-out infinite alternate;
+    }
+    
+    @keyframes heroGlow {
+        0% { box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 0 0 30px rgba(255, 0, 51, 0.3); }
+        100% { box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 0 0 50px rgba(0, 255, 230, 0.4); }
+    }
+    
+    .f1-title {
+        font-family: 'Orbitron', monospace !important;
+        font-size: clamp(3rem, 8vw, 5rem) !important;
+        font-weight: 900 !important;
+        margin: 0 !important;
+        color: white !important;
+        text-shadow: 0 5px 15px rgba(0,0,0,0.8) !important;
+        animation: titlePulse 2s infinite ease-in-out !important;
+    }
+    
+    @keyframes titlePulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+    }
+    
+    .f1-subtitle {
+        font-size: clamp(1.2rem, 3vw, 1.8rem) !important;
+        color: rgba(255,255,255,0.95) !important;
+        font-weight: 600 !important;
+        margin: 1rem 0 !important;
+        font-family: 'Inter', sans-serif !important;
+    }
+    
+    .f1-description {
+        font-size: clamp(1rem, 2.5vw, 1.3rem) !important;
+        color: rgba(255,255,255,0.85) !important;
+        margin: 1.5rem 0 !important;
+        font-weight: 500 !important;
+    }
+    
+    .f1-badges {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-top: 2rem;
+    }
+    
+    .badge-red, .badge-teal, .badge-gold {
+        padding: 0.8rem 1.5rem;
+        border-radius: 30px;
+        color: white;
+        font-weight: 700;
+        backdrop-filter: blur(10px);
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: all 0.3s ease;
+    }
+    
+    .badge-red {
+        background: rgba(255,0,51,0.3);
+        border: 2px solid rgba(255,0,51,0.6);
+    }
+    
+    .badge-teal {
+        background: rgba(0,255,230,0.3);
+        border: 2px solid rgba(0,255,230,0.6);
+    }
+    
+    .badge-gold {
+        background: rgba(255,215,0,0.3);
+        border: 2px solid rgba(255,215,0,0.6);
+    }
+    
+    .badge-red:hover, .badge-teal:hover, .badge-gold:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(255, 255, 255, 0.2);
+    }
+    </style>
+    """, unsafe_allow_html=True)
     
     # Sidebar for session selection
     with st.sidebar:
