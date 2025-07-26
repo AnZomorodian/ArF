@@ -316,7 +316,7 @@ def create_race_progression_plot(data_loader, drivers):
                 gridcolor='rgba(255,255,255,0.1)',
                 range=[0, max_laps + 2],
                 dtick=5,
-                titlefont=dict(size=14, color='white'),
+                title_font=dict(size=14, color='white'),
                 tickfont=dict(size=12, color='white')
             ),
             yaxis=dict(
@@ -327,7 +327,7 @@ def create_race_progression_plot(data_loader, drivers):
                 autorange='reversed',  # Reverse so P1 is at top
                 dtick=1,
                 range=[max_pos + 0.5, 0.5],
-                titlefont=dict(size=14, color='white'),
+                title_font=dict(size=14, color='white'),
                 tickfont=dict(size=12, color='white')
             ),
             plot_bgcolor='rgba(0,0,0,0)',

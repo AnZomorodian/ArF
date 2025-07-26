@@ -6,13 +6,16 @@ This is a comprehensive Formula 1 data analysis platform built with Streamlit th
 
 ## Recent Changes (July 26, 2025)
 
-### Major Version 4.0 Update - Enhanced Professional Platform
-- **Fixed Critical Errors**: Resolved NoneType object errors in stress analysis and tire performance modules
-- **Updated FastF1 Integration**: Migrated from deprecated pick_driver to pick_drivers method across all modules
-- **Enhanced Lap Time Formatting**: Added proper M:SS.mmm format for average lap times in Advanced Analytics
-- **New Downforce Configuration Analysis**: Added comprehensive aerodynamic analysis with efficiency metrics
-- **Professional Style Improvements**: Enhanced UI styling, better error handling, and improved data visualization
-- **Major Code Refactoring**: Fixed DataFrame operations and LSP diagnostic issues for cleaner code
+### Major Version 5.0 Update - Professional Platform with Enhanced Analytics
+- **FIXED All Critical Issues**: Resolved NoneType object errors in stress analysis and tire performance modules
+- **FIXED Race Progression Plot**: Updated deprecated 'titlefont' to 'title_font' in Plotly configuration
+- **NEW Dynamic Driver Management**: Added intelligent driver-team mapping from FastF1 session data
+- **ENHANCED Driver Selection**: Professional UI with no default drivers, real-time team information display
+- **COMPLETED FastF1 Migration**: All deprecated pick_driver calls updated to pick_drivers across platform
+- **NEW Downforce Configuration Analysis**: Added comprehensive aerodynamic analysis with efficiency metrics
+- **ENHANCED Lap Time Formatting**: Proper M:SS.mmm format for average lap times in Advanced Analytics
+- **IMPROVED Pit Stop Strategy**: Enhanced visualization and analysis capabilities
+- **PROFESSIONAL Styling**: Major UI/UX improvements with F1-themed design and better error handling
 
 ### Major Version 3.0 Update - Advanced Analytics Platform
 - **Advanced Analytics Module**: Added comprehensive driver performance analysis with consistency metrics
@@ -139,6 +142,14 @@ Analysis requirements: Comprehensive sector analysis, detailed driver comparison
   - Driver-to-team mappings
   - Grand Prix event listings
   - Session type definitions
+
+### Dynamic Driver Manager (utils/driver_manager.py)
+- **Purpose**: Real-time driver information management from session data
+- **Features**:
+  - Dynamic driver-team mapping from FastF1 session data
+  - Current season team colors and branding
+  - Professional driver information display
+  - Team-based driver grouping
 
 ## Data Flow
 

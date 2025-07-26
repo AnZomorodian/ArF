@@ -21,6 +21,7 @@ from utils.race_strategy import RaceStrategyAnalyzer
 from utils.tire_performance import TirePerformanceAnalyzer
 from utils.stress_index import DriverStressAnalyzer
 from utils.downforce_analysis import DownforceAnalyzer
+from utils.driver_manager import DynamicDriverManager
 
 # Configure page
 st.set_page_config(
@@ -506,36 +507,45 @@ def main():
         if hasattr(st.session_state.data_loader, 'session') and st.session_state.data_loader.session is not None:
             st.markdown('<div class="driver-selection-container">', unsafe_allow_html=True)
             st.markdown("### 🏁 Driver Selection")
-            st.markdown("Choose drivers to compare in the analysis below", unsafe_allow_html=True)
+            st.markdown("Choose drivers to compare in the analysis below")
             
-            available_drivers = st.session_state.data_loader.get_available_drivers()
+            # Use dynamic driver manager to get current session driver info
+            driver_manager = DynamicDriverManager(st.session_state.data_loader.session)
+            driver_info = driver_manager.get_driver_info()
+            team_mappings = driver_manager.get_team_mappings()
+            team_colors = driver_manager.get_team_colors()
+            
+            available_drivers = list(driver_info.keys())
             
             if available_drivers:
+                # Enhanced driver selection with no default selection
                 selected_drivers = st.multiselect(
                     "Select Drivers for Comparison",
                     available_drivers,
-                    default=available_drivers[:2] if len(available_drivers) >= 2 else available_drivers,
+                    default=[],  # Start with no drivers selected
+                    format_func=lambda x: f"{driver_info[x]['abbreviation']} - {driver_info[x]['team_name']}",
                     help="Select 2-4 drivers for optimal comparison visualization"
                 )
                 
-                # Display selected drivers with enhanced cards
+                # Display selected drivers with enhanced cards showing current team info
                 if selected_drivers:
                     st.markdown("### 🎯 Selected Drivers")
                     driver_cols = st.columns(len(selected_drivers))
                     
-                    for i, driver in enumerate(selected_drivers):
-                        with driver_cols[i]:
-                            team = DRIVER_TEAMS.get(driver, 'Unknown')
-                            color = TEAM_COLORS.get(team, '#FFFFFF')
+                    for idx, driver in enumerate(selected_drivers):
+                        with driver_cols[idx]:
+                            driver_data = driver_info[driver]
+                            team_name = driver_data['team_name']
+                            team_color = team_colors.get(team_name, '#808080')
                             
                             st.markdown(f"""
-                            <div class="driver-comparison-card" style="margin: 0.5rem 0;">
-                                <div class="team-badge-enhanced" style="background-color: {color};">
-                                    {driver}
+                            <div class="driver-card" style="border-left: 4px solid {team_color};">
+                                <div class="driver-info">
+                                    <div class="driver-name">{driver_data['abbreviation']}</div>
+                                    <div class="driver-team" style="color: {team_color};">{team_name}</div>
+                                    <div style="font-size: 0.75rem; opacity: 0.7;">#{driver_data.get('driver_number', 'N/A')}</div>
                                 </div>
-                                <div style="color: {color}; font-size: 0.9rem; margin-top: 0.5rem; font-weight: 600;">
-                                    {team}
-                                </div>
+                                <div class="driver-number">#{driver_data.get('driver_number', 'N/A')}</div>
                             </div>
                             """, unsafe_allow_html=True)
                 else:

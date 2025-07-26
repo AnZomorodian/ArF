@@ -26,7 +26,7 @@ class DriverStressAnalyzer:
             driver_laps = self.session.laps.pick_drivers(driver)
             fastest_lap = driver_laps.pick_fastest()
 
-            if fastest_lap.empty or pd.isna(fastest_lap['DriverNumber']):
+            if fastest_lap is None or fastest_lap.empty or pd.isna(fastest_lap['DriverNumber']):
                 continue
 
             try:
