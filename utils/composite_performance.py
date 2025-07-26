@@ -1,6 +1,6 @@
 """
-Composite Performance Index Module for F1 Data Platform
-Calculates comprehensive performance metrics combining multiple factors
+Composite Performance Index Module for F1 Data Platform  
+Enhanced performance calculation based on your latest specifications
 """
 
 import pandas as pd
@@ -16,7 +16,7 @@ class CompositePerformanceAnalyzer:
         self.session = session
         
     def calculate_composite_performance(self, drivers):
-        """Calculate composite performance index for selected drivers"""
+        """Calculate enhanced composite performance index for selected drivers"""
         results = []
         
         for driver in drivers:
@@ -34,44 +34,110 @@ class CompositePerformanceAnalyzer:
                     continue
                 
                 # Speed, acceleration and brake data
-                brake_data = telemetry['Brake']
+                brake_data = telemetry['Brake']  # 1 when braking, 0 when not
                 speed_data = telemetry['Speed']
+                acceleration_data = speed_data.diff() / telemetry['Distance'].diff()  # Basic acceleration calculation
                 
-                # Calculate acceleration (change in speed over distance)
-                speed_diff = speed_data.diff()
-                distance_diff = telemetry['Distance'].diff()
-                acceleration_data = speed_diff / distance_diff
-                acceleration_data = acceleration_data.replace([np.inf, -np.inf], 0).fillna(0)
-                
-                # Calculate time spent braking
-                time_diff = telemetry['Time'].diff().dt.total_seconds()
-                braking_duration = (brake_data * time_diff).sum()
+                # Enhanced brake calculation based on your requirements
+                braking_duration = brake_data.sum() * (telemetry['Distance'].diff().mean() / speed_data.mean())
                 
                 # Total lap time in seconds
                 lap_time_seconds = fastest_lap['LapTime'].total_seconds()
                 
-                # Performance factors
+                # Brake efficiency: percentage of time spent braking
                 brake_efficiency = (braking_duration / lap_time_seconds) * 100
-                speed_factor = speed_data.mean()
-                acceleration_factor = acceleration_data[acceleration_data > 0].mean()
                 
-                # Handle NaN acceleration factor
+                # Speed factor
+                speed_factor = speed_data.mean()
+                
+                # Acceleration factor
+                acceleration_factor = acceleration_data[acceleration_data > 0].mean()  # Acceleration (positive changes in speed)
+                
+                # Handle NaN values
                 if pd.isna(acceleration_factor):
                     acceleration_factor = 0.1
                 
-                # Handling time (time spent at low speeds, indicating cornering)
-                handling_threshold = speed_data.mean() * 0.7
-                low_speed_mask = speed_data < handling_threshold
-                handling_time = (low_speed_mask * time_diff).sum()
+                # Handling time (time spent at speeds lower than threshold, indicating cornering)
+                handling_threshold = speed_data.mean() * 0.7  # Assuming cornering happens at 70% of average speed
+                handling_time = len(speed_data[speed_data < handling_threshold]) * (telemetry['Distance'].diff().mean() / speed_data.mean())
                 
-                # Composite Performance Index with safety checks
+                # Composite Performance Index
                 denominator = max(brake_efficiency + handling_time, 1)  # Avoid division by zero
                 composite_performance_index = (speed_factor * acceleration_factor) / denominator
                 
-                # Additional metrics
-                top_speed = speed_data.max()
-                speed_consistency = 1 - (speed_data.std() / speed_data.mean())
-                throttle_efficiency = telemetry['Throttle'].mean()
+                # Get driver info
+                driver_info = self.session.get_driver(driver)
+                driver_name = driver_info['LastName'][:3].upper()
+                team_name = driver_info['TeamName']
+                
+                results.append({
+                    'Driver': driver_name,
+                    'Team': team_name,
+                    'Composite_Performance_Index': composite_performance_index,
+                    'Speed_Factor': speed_factor,
+                    'Acceleration_Factor': acceleration_factor,
+                    'Brake_Efficiency': brake_efficiency,
+                    'Handling_Time': handling_time,
+                    'Lap_Time': lap_time_seconds
+                })
+                
+            except Exception as e:
+                print(f"Error calculating composite performance for driver {driver}: {e}")
+                continue
+        
+        return pd.DataFrame(results)
+    
+    def create_composite_performance_chart(self, performance_data):
+        """Create enhanced composite performance visualization"""
+        if performance_data.empty:
+            return None
+        
+        # Sort by composite performance index
+        performance_data = performance_data.sort_values('Composite_Performance_Index', ascending=False)
+        
+        # Create bar chart with team colors
+        fig = go.Figure()
+        
+        colors = [TEAM_COLORS.get(team, '#FFFFFF') for team in performance_data['Team']]
+        
+        fig.add_trace(go.Bar(
+            x=performance_data['Driver'],
+            y=performance_data['Composite_Performance_Index'],
+            marker_color=colors,
+            text=[f'{val:.2f}' for val in performance_data['Composite_Performance_Index']],
+            textposition='outside',
+            name='Composite Performance Index'
+        ))
+        
+        # Add mean line
+        mean_performance = performance_data['Composite_Performance_Index'].mean()
+        fig.add_hline(y=mean_performance, line_dash="dash", line_color="red",
+                     annotation_text=f"Mean: {mean_performance:.2f}")
+        
+        fig.update_layout(
+            title=f'Composite Performance Index - {self.session.event.year} {self.session.event["EventName"]}',
+            xaxis_title='Driver',
+            yaxis_title='Composite Performance Index',
+            plot_bgcolor='rgba(0,0,0,0)',
+            paper_bgcolor='rgba(0,0,0,0)',
+            font=dict(color='white'),
+            title_font=dict(size=20, color='white'),
+            showlegend=False,
+            annotations=[
+                dict(
+                    text="Formula: (Speed Factor × Acceleration Factor) ÷ (Brake Efficiency + Handling Time)",
+                    showarrow=False,
+                    xref="paper", yref="paper",
+                    x=0.5, y=-0.1, xanchor='center', yanchor='top',
+                    font=dict(size=12, color='white')
+                )
+            ]
+        )
+        
+        fig.update_xaxes(showgrid=True, gridwidth=1, gridcolor='rgba(255,255,255,0.1)')
+        fig.update_yaxes(showgrid=True, gridwidth=1, gridcolor='rgba(255,255,255,0.1)')
+        
+        return fig
                 
                 # Get driver info
                 driver_info = self.session.get_driver(driver)

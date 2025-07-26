@@ -955,7 +955,7 @@ def main():
         return
     
     # Analysis tabs
-    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9 = st.tabs([
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10, tab11 = st.tabs([
         "📈 Telemetry Analysis", 
         "🗺️ Track Dominance", 
         "⏱️ Lap Comparison", 
@@ -964,7 +964,9 @@ def main():
         "🧠 Advanced Analytics",
         "🛞 Tire Performance",
         "⚡ Stress Analysis",
-        "🏎️ Downforce Config"
+        "🏎️ Downforce Config",
+        "🛑 Brake Configurations",
+        "🏆 Composite Performance"
     ])
     
     with tab1:
@@ -2125,6 +2127,254 @@ def main():
                 st.error(f"Error in stress analysis: {str(e)}")
         else:
             st.info("Please load session data to access driver stress analysis.")
+    
+    # Brake Configurations Analysis Tab
+    with tab10:
+        st.header("🛑 Brake Configurations Analysis")
+        
+        if hasattr(st.session_state.data_loader, 'session') and st.session_state.data_loader.session is not None:
+            try:
+                brake_analyzer = BrakeAnalyzer(st.session_state.data_loader.session)
+                brake_data = brake_analyzer.analyze_brake_efficiency(selected_drivers)
+                
+                if not brake_data.empty:
+                    st.subheader("📊 Brake Efficiency Analysis")
+                    
+                    # Create brake efficiency chart
+                    brake_chart = brake_analyzer.create_brake_efficiency_chart(brake_data)
+                    if brake_chart:
+                        st.plotly_chart(brake_chart, use_container_width=True)
+                    
+                    # Detailed brake metrics table
+                    st.subheader("📋 Detailed Brake Metrics")
+                    
+                    # Format the data for display
+                    display_brake = brake_data.copy()
+                    display_brake['Brake_Efficiency'] = display_brake['Brake_Efficiency'].round(2).astype(str) + '%'
+                    display_brake['Max_Brake_Force'] = display_brake['Max_Brake_Force'].round(1).astype(str) + '%'
+                    display_brake['Avg_Brake_Force'] = display_brake['Avg_Brake_Force'].round(1).astype(str) + '%'
+                    display_brake['Lap_Time'] = display_brake['Lap_Time'].round(3).astype(str) + 's'
+                    display_brake['Braking_Duration'] = display_brake['Braking_Duration'].round(2).astype(str) + 's'
+                    
+                    # Display table
+                    brake_display_df = display_brake[['Driver', 'Team', 'Brake_Efficiency', 'Max_Brake_Force', 
+                                                     'Avg_Brake_Force', 'Brake_Zones', 'Lap_Time', 'Braking_Duration']].copy()
+                    brake_display_df.columns = ['Driver', 'Team', 'Brake Efficiency', 'Max Force', 'Avg Force', 'Brake Zones', 'Lap Time', 'Braking Duration']
+                    st.dataframe(brake_display_df, use_container_width=True)
+                    
+                    # Brake efficiency insights
+                    st.subheader("🧠 Braking Performance Insights")
+                    
+                    if not brake_data.empty:
+                        best_efficiency_idx = brake_data['Brake_Efficiency'].idxmin()  # Lower is better for brake efficiency
+                        most_brake_zones_idx = brake_data['Brake_Zones'].idxmax()
+                        highest_force_idx = brake_data['Max_Brake_Force'].idxmax()
+                        
+                        best_efficiency = brake_data.loc[best_efficiency_idx]
+                        most_brake_zones = brake_data.loc[most_brake_zones_idx]
+                        highest_force = brake_data.loc[highest_force_idx]
+                    
+                    col1, col2, col3 = st.columns(3)
+                    
+                    with col1:
+                        st.markdown(f"""
+                        <div class="metric-card">
+                            <h4>🏆 Most Efficient Braking</h4>
+                            <div style="font-size: 1.4rem; font-weight: 700; color: #00FFE6;">
+                                {best_efficiency['Driver']}
+                            </div>
+                            <div style="color: #888; font-size: 0.9rem;">
+                                Efficiency: {best_efficiency['Brake_Efficiency']:.2f}%
+                            </div>
+                        </div>
+                        """, unsafe_allow_html=True)
+                    
+                    with col2:
+                        st.markdown(f"""
+                        <div class="metric-card">
+                            <h4>🎯 Most Brake Zones</h4>
+                            <div style="font-size: 1.4rem; font-weight: 700; color: #FFD700;">
+                                {most_brake_zones['Driver']}
+                            </div>
+                            <div style="color: #888; font-size: 0.9rem;">
+                                Zones: {most_brake_zones['Brake_Zones']:.0f}
+                            </div>
+                        </div>
+                        """, unsafe_allow_html=True)
+                    
+                    with col3:
+                        st.markdown(f"""
+                        <div class="metric-card">
+                            <h4>💪 Highest Brake Force</h4>
+                            <div style="font-size: 1.4rem; font-weight: 700; color: #FF0033;">
+                                {highest_force['Driver']}
+                            </div>
+                            <div style="color: #888; font-size: 0.9rem;">
+                                Force: {highest_force['Max_Brake_Force']:.1f}%
+                            </div>
+                        </div>
+                        """, unsafe_allow_html=True)
+                    
+                    # Additional brake analysis information
+                    st.info("💡 **Brake Efficiency Analysis**: Lower brake efficiency percentages indicate more efficient braking patterns. This analysis shows the percentage of time each driver spent braking during their fastest lap.")
+                    
+                else:
+                    st.info("No brake configuration data available for selected drivers.")
+            except Exception as e:
+                st.error(f"Error in brake configurations analysis: {str(e)}")
+        else:
+            st.info("Please load session data to access brake configurations analysis.")
+    
+    # Composite Performance Index Tab
+    with tab11:
+        st.header("🏆 Composite Performance Index")
+        
+        if hasattr(st.session_state.data_loader, 'session') and st.session_state.data_loader.session is not None:
+            try:
+                composite_analyzer = CompositePerformanceAnalyzer(st.session_state.data_loader.session)
+                performance_data = composite_analyzer.calculate_composite_performance(selected_drivers)
+                
+                if not performance_data.empty:
+                    st.subheader("📊 Composite Performance Analysis")
+                    
+                    # Create composite performance chart
+                    performance_chart = composite_analyzer.create_composite_performance_chart(performance_data)
+                    if performance_chart:
+                        st.plotly_chart(performance_chart, use_container_width=True)
+                    
+                    # Performance factors breakdown
+                    st.subheader("🔍 Performance Factors Breakdown")
+                    
+                    # Create subplot for detailed breakdown
+                    from plotly.subplots import make_subplots
+                    
+                    fig_breakdown = make_subplots(
+                        rows=2, cols=2,
+                        subplot_titles=('Speed Factor', 'Acceleration Factor', 'Brake Efficiency', 'Handling Time'),
+                        specs=[[{"secondary_y": False}, {"secondary_y": False}],
+                               [{"secondary_y": False}, {"secondary_y": False}]]
+                    )
+                    
+                    colors = [TEAM_COLORS.get(team, '#FFFFFF') for team in performance_data['Team']]
+                    
+                    # Speed Factor
+                    fig_breakdown.add_trace(
+                        go.Bar(x=performance_data['Driver'], y=performance_data['Speed_Factor'], 
+                               marker_color=colors, name='Speed Factor', showlegend=False),
+                        row=1, col=1
+                    )
+                    
+                    # Acceleration Factor  
+                    fig_breakdown.add_trace(
+                        go.Bar(x=performance_data['Driver'], y=performance_data['Acceleration_Factor'], 
+                               marker_color=colors, name='Acceleration Factor', showlegend=False),
+                        row=1, col=2
+                    )
+                    
+                    # Brake Efficiency
+                    fig_breakdown.add_trace(
+                        go.Bar(x=performance_data['Driver'], y=performance_data['Brake_Efficiency'], 
+                               marker_color=colors, name='Brake Efficiency', showlegend=False),
+                        row=2, col=1
+                    )
+                    
+                    # Handling Time
+                    fig_breakdown.add_trace(
+                        go.Bar(x=performance_data['Driver'], y=performance_data['Handling_Time'], 
+                               marker_color=colors, name='Handling Time', showlegend=False),
+                        row=2, col=2
+                    )
+                    
+                    fig_breakdown.update_layout(
+                        title="Performance Factors Breakdown",
+                        plot_bgcolor='rgba(0,0,0,0)',
+                        paper_bgcolor='rgba(0,0,0,0)',
+                        font=dict(color='white'),
+                        title_font=dict(size=18, color='white')
+                    )
+                    
+                    st.plotly_chart(fig_breakdown, use_container_width=True)
+                    
+                    # Detailed performance metrics table
+                    st.subheader("📋 Detailed Performance Metrics")
+                    
+                    # Format the data for display
+                    display_performance = performance_data.copy()
+                    display_performance['Composite_Performance_Index'] = display_performance['Composite_Performance_Index'].round(3)
+                    display_performance['Speed_Factor'] = display_performance['Speed_Factor'].round(1).astype(str) + ' km/h'
+                    display_performance['Acceleration_Factor'] = display_performance['Acceleration_Factor'].round(3)
+                    display_performance['Brake_Efficiency'] = display_performance['Brake_Efficiency'].round(2).astype(str) + '%'
+                    display_performance['Handling_Time'] = display_performance['Handling_Time'].round(2).astype(str) + 's'
+                    display_performance['Lap_Time'] = display_performance['Lap_Time'].round(3).astype(str) + 's'
+                    
+                    # Display table
+                    performance_display_df = display_performance[['Driver', 'Team', 'Composite_Performance_Index', 'Speed_Factor', 
+                                                                'Acceleration_Factor', 'Brake_Efficiency', 'Handling_Time', 'Lap_Time']].copy()
+                    performance_display_df.columns = ['Driver', 'Team', 'Performance Index', 'Speed Factor', 'Acceleration', 'Brake Efficiency', 'Handling Time', 'Lap Time']
+                    st.dataframe(performance_display_df, use_container_width=True)
+                    
+                    # Performance insights
+                    st.subheader("🧠 Performance Insights")
+                    
+                    if not performance_data.empty:
+                        best_performance_idx = performance_data['Composite_Performance_Index'].idxmax()
+                        fastest_speed_idx = performance_data['Speed_Factor'].idxmax()
+                        best_acceleration_idx = performance_data['Acceleration_Factor'].idxmax()
+                        
+                        best_performance = performance_data.loc[best_performance_idx]
+                        fastest_speed = performance_data.loc[fastest_speed_idx]
+                        best_acceleration = performance_data.loc[best_acceleration_idx]
+                    
+                    col1, col2, col3 = st.columns(3)
+                    
+                    with col1:
+                        st.markdown(f"""
+                        <div class="metric-card">
+                            <h4>🏆 Best Overall Performance</h4>
+                            <div style="font-size: 1.4rem; font-weight: 700; color: #FFD700;">
+                                {best_performance['Driver']}
+                            </div>
+                            <div style="color: #888; font-size: 0.9rem;">
+                                Index: {best_performance['Composite_Performance_Index']:.3f}
+                            </div>
+                        </div>
+                        """, unsafe_allow_html=True)
+                    
+                    with col2:
+                        st.markdown(f"""
+                        <div class="metric-card">
+                            <h4>🚀 Highest Speed</h4>
+                            <div style="font-size: 1.4rem; font-weight: 700; color: #00FFE6;">
+                                {fastest_speed['Driver']}
+                            </div>
+                            <div style="color: #888; font-size: 0.9rem;">
+                                Speed: {fastest_speed['Speed_Factor']:.1f} km/h
+                            </div>
+                        </div>
+                        """, unsafe_allow_html=True)
+                    
+                    with col3:
+                        st.markdown(f"""
+                        <div class="metric-card">
+                            <h4>⚡ Best Acceleration</h4>
+                            <div style="font-size: 1.4rem; font-weight: 700; color: #FF0033;">
+                                {best_acceleration['Driver']}
+                            </div>
+                            <div style="color: #888; font-size: 0.9rem;">
+                                Factor: {best_acceleration['Acceleration_Factor']:.3f}
+                            </div>
+                        </div>
+                        """, unsafe_allow_html=True)
+                    
+                    # Formula explanation
+                    st.info("💡 **Composite Performance Formula**: (Speed Factor × Acceleration Factor) ÷ (Brake Efficiency + Handling Time). Higher values indicate better overall performance combining speed, acceleration, and efficiency factors.")
+                    
+                else:
+                    st.info("No composite performance data available for selected drivers.")
+            except Exception as e:
+                st.error(f"Error in composite performance analysis: {str(e)}")
+        else:
+            st.info("Please load session data to access composite performance analysis.")
     
     # Downforce Configuration Analysis Tab
     with tab9:

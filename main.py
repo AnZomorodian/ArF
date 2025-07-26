@@ -73,13 +73,27 @@ gatherUsageStats = false
     
     print("✅ Streamlit configuration created")
 
+def get_local_ip():
+    """Get local IP address for network access"""
+    try:
+        import socket
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))
+        local_ip = s.getsockname()[0]
+        s.close()
+        return local_ip
+    except:
+        return "127.0.0.1"
+
 def main():
     """Main entry point"""
     print("🏎️  Track.lytix - F1 Data Analysis Platform")
-    print("=" * 50)
+    print("=" * 60)
     print("   Professional F1 Analytics & Telemetry Platform")
-    print("   Enhanced with Brake Analysis & Performance Metrics")
-    print("=" * 50)
+    print("   ✓ Enhanced Brake Configurations Analysis")
+    print("   ✓ Composite Performance Index Calculations")
+    print("   ✓ Advanced Telemetry & Race Strategy Analytics")
+    print("=" * 60)
     
     # Check if we're in the right directory
     if not os.path.exists('app.py'):
@@ -97,27 +111,47 @@ def main():
     # Setup Streamlit configuration
     setup_streamlit_config()
     
+    # Get network information
+    local_ip = get_local_ip()
+    
     # Start Streamlit application
-    print("\n🚀 Starting Track.lytix...")
-    print("   Server will start on: http://localhost:5000")
-    print("   Press Ctrl+C to stop the server")
-    print("=" * 50)
+    print("\n🚀 Starting Track.lytix F1 Platform...")
+    print("=" * 60)
+    print("📱 ACCESS URLS:")
+    print(f"   🖥️  Local:    http://localhost:5000")
+    print(f"   🌐 Network:  http://{local_ip}:5000")
+    print(f"   ☁️  Online:   http://0.0.0.0:5000 (if deployed)")
+    print("=" * 60)
+    print("📊 AVAILABLE ANALYSES:")
+    print("   • Telemetry Comparison & Speed Analysis")
+    print("   • Brake Configurations & Efficiency")
+    print("   • Composite Performance Index")
+    print("   • Tire Strategy & Degradation")
+    print("   • Track Dominance Mapping")
+    print("   • Advanced Driver Analytics")
+    print("=" * 60)
+    print("⚠️  Press Ctrl+C to stop the server")
+    print("")
     
     try:
-        # Run Streamlit with proper configuration
+        # Run Streamlit with proper configuration for both local and online testing
         cmd = [
             sys.executable, "-m", "streamlit", "run", "app.py",
             "--server.port", "5000",
             "--server.address", "0.0.0.0",
-            "--server.headless", "true"
+            "--server.headless", "true",
+            "--server.runOnSave", "true",
+            "--server.allowRunOnSave", "true"
         ]
         
         subprocess.run(cmd)
         
     except KeyboardInterrupt:
-        print("\n\n👋 Track.lytix stopped")
+        print("\n\n👋 Track.lytix F1 Platform stopped gracefully")
+        print("   Thank you for using Track.lytix!")
     except Exception as e:
         print(f"\n❌ Error starting Track.lytix: {e}")
+        print("   Please check your Python installation and dependencies")
         sys.exit(1)
 
 if __name__ == "__main__":

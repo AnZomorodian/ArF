@@ -1,12 +1,13 @@
 """
-Brake Configuration Analysis Module for F1 Data Platform
-Analyzes braking efficiency and patterns from F1 telemetry data
+Brake Configurations Analysis Module for F1 Data Platform
+Enhanced brake efficiency analysis based on your latest requirements
 """
 
 import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
 import plotly.express as px
+import matplotlib.pyplot as plt
 from plotly.subplots import make_subplots
 from utils.constants import TEAM_COLORS
 
@@ -16,7 +17,7 @@ class BrakeAnalyzer:
         self.session = session
         
     def analyze_brake_efficiency(self, drivers):
-        """Calculate brake efficiency for selected drivers"""
+        """Calculate enhanced brake efficiency for selected drivers"""
         results = []
         
         for driver in drivers:
@@ -37,9 +38,8 @@ class BrakeAnalyzer:
                 brake_data = telemetry['Brake']  # 1 when braking, 0 when not
                 speed_data = telemetry['Speed']
                 
-                # Calculate time spent braking
-                time_diff = telemetry['Time'].diff().dt.total_seconds()
-                braking_duration = (brake_data * time_diff).sum()
+                # Enhanced brake calculation based on your requirements
+                braking_duration = brake_data.sum() * (telemetry['Distance'].diff().mean() / speed_data.mean())
                 
                 # Total lap time in seconds
                 lap_time_seconds = fastest_lap['LapTime'].total_seconds()
@@ -47,14 +47,14 @@ class BrakeAnalyzer:
                 # Brake efficiency: percentage of time spent braking
                 brake_efficiency = (braking_duration / lap_time_seconds) * 100
                 
-                # Additional brake metrics
-                max_brake_force = brake_data.max() * 100  # Convert to percentage
+                # Additional enhanced metrics
+                max_brake_force = brake_data.max() * 100
                 avg_brake_force = brake_data.mean() * 100
-                brake_zones = len(brake_data[brake_data > 0.1])  # Count significant braking events
+                brake_zones = len(brake_data[brake_data > 0.1])
                 
                 # Get driver info
                 driver_info = self.session.get_driver(driver)
-                driver_name = driver_info['Abbreviation']
+                driver_name = driver_info['LastName'][:3].upper()
                 team_name = driver_info['TeamName']
                 
                 results.append({
@@ -73,6 +73,49 @@ class BrakeAnalyzer:
                 continue
         
         return pd.DataFrame(results)
+    
+    def create_brake_efficiency_chart(self, brake_data):
+        """Create enhanced brake efficiency visualization"""
+        if brake_data.empty:
+            return None
+        
+        # Sort by brake efficiency
+        brake_data = brake_data.sort_values('Brake_Efficiency', ascending=False)
+        
+        # Create bar chart with team colors
+        fig = go.Figure()
+        
+        colors = [TEAM_COLORS.get(team, '#FFFFFF') for team in brake_data['Team']]
+        
+        fig.add_trace(go.Bar(
+            x=brake_data['Driver'],
+            y=brake_data['Brake_Efficiency'],
+            marker_color=colors,
+            text=[f'{val:.2f}%' for val in brake_data['Brake_Efficiency']],
+            textposition='outside',
+            name='Brake Efficiency'
+        ))
+        
+        # Add mean line
+        mean_efficiency = brake_data['Brake_Efficiency'].mean()
+        fig.add_hline(y=mean_efficiency, line_dash="dash", line_color="red",
+                     annotation_text=f"Mean: {mean_efficiency:.2f}%")
+        
+        fig.update_layout(
+            title=f'Brake Efficiency Comparison - {self.session.event.year} {self.session.event["EventName"]}',
+            xaxis_title='Driver',
+            yaxis_title='Brake Efficiency (%)',
+            plot_bgcolor='rgba(0,0,0,0)',
+            paper_bgcolor='rgba(0,0,0,0)',
+            font=dict(color='white'),
+            title_font=dict(size=20, color='white'),
+            showlegend=False
+        )
+        
+        fig.update_xaxes(showgrid=True, gridwidth=1, gridcolor='rgba(255,255,255,0.1)')
+        fig.update_yaxes(showgrid=True, gridwidth=1, gridcolor='rgba(255,255,255,0.1)')
+        
+        return fig
     
     def create_brake_efficiency_visualization(self, brake_data, session_info):
         """Create comprehensive brake efficiency visualization"""
