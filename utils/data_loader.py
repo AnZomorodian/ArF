@@ -219,14 +219,3 @@ class DataLoader:
         except Exception as e:
             st.error(f"Error getting session results: {str(e)}")
             return None
-    
-    def get_laps_data(self):
-        """Get all laps data from current session"""
-        if self.session is None:
-            return None
-            
-        try:
-            return self.session.laps
-        except Exception as e:
-            st.error(f"Error getting laps data: {str(e)}")
-            return None
