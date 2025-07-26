@@ -32,26 +32,64 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS for Professional F1 Styling
+# Professional F1 Web Application Styling
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
     
+    /* Global Reset and Base Styles */
     * {
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
     }
     
+    /* Root Variables for Consistent Theming */
+    :root {
+        --f1-red: #DC0000;
+        --f1-red-light: #FF4444;
+        --f1-teal: #00D2BE;
+        --f1-teal-light: #4ECDC4;
+        --dark-bg: #0A0B0D;
+        --darker-bg: #06070A;
+        --card-bg: rgba(15, 17, 23, 0.95);
+        --card-border: rgba(0, 210, 190, 0.15);
+        --text-primary: #FFFFFF;
+        --text-secondary: #B0B8C3;
+        --text-muted: #6B7280;
+        --glass-bg: rgba(255, 255, 255, 0.02);
+        --glass-border: rgba(255, 255, 255, 0.05);
+        --shadow-lg: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+        --shadow-xl: 0 35px 60px -12px rgba(0, 0, 0, 0.8);
+    }
+    
+    /* Enhanced Main Header */
     .main-header {
         text-align: center;
-        padding: 2rem 0;
-        background: linear-gradient(135deg, #DC0000 0%, #FF4444 50%, #00D2BE 100%);
+        padding: 3rem 0 2rem 0;
+        background: linear-gradient(135deg, var(--f1-red) 0%, var(--f1-red-light) 30%, var(--f1-teal) 70%, var(--f1-teal-light) 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
-        font-size: 2.8rem;
-        font-weight: 700;
-        letter-spacing: -0.02em;
-        margin-bottom: 2rem;
+        font-size: clamp(2.2rem, 5vw, 3.5rem);
+        font-weight: 900;
+        letter-spacing: -0.03em;
+        margin-bottom: 2.5rem;
+        text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        position: relative;
+    }
+    
+    .main-header::after {
+        content: '';
+        position: absolute;
+        bottom: -0.5rem;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 80px;
+        height: 4px;
+        background: linear-gradient(90deg, var(--f1-red), var(--f1-teal));
+        border-radius: 2px;
     }
     
     .metric-card {
@@ -279,40 +317,79 @@ st.markdown("""
         text-align: center;
     }
     
-    /* Enhanced Position Badges */
+    /* Professional Racing Elements */
     .position-badge {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        width: 40px;
-        height: 40px;
+        width: 48px;
+        height: 48px;
         border-radius: 50%;
-        font-weight: 700;
-        font-size: 1.2rem;
+        font-weight: 800;
+        font-size: 1.1rem;
         margin-bottom: 1rem;
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+        box-shadow: var(--shadow-lg);
+        transition: all 0.3s ease;
+        position: relative;
     }
     
     .position-badge.fastest-lap {
         background: linear-gradient(135deg, #FFD700, #FFA500);
         color: #000;
-        animation: pulse 2s infinite;
+        animation: championship-pulse 3s ease-in-out infinite;
+        border: 2px solid rgba(255, 215, 0, 0.5);
     }
     
     .position-badge.second-lap {
-        background: linear-gradient(135deg, #C0C0C0, #A0A0A0);
+        background: linear-gradient(135deg, #E5E5E5, #C0C0C0);
         color: #000;
+        border: 2px solid rgba(192, 192, 192, 0.5);
     }
     
     .position-badge.third-lap {
         background: linear-gradient(135deg, #CD7F32, #B8860B);
-        color: #000;
+        color: #fff;
+        border: 2px solid rgba(205, 127, 50, 0.5);
     }
     
-    @keyframes pulse {
-        0% { transform: scale(1); box-shadow: 0 4px 16px rgba(255, 215, 0, 0.3); }
-        50% { transform: scale(1.05); box-shadow: 0 6px 20px rgba(255, 215, 0, 0.5); }
-        100% { transform: scale(1); box-shadow: 0 4px 16px rgba(255, 215, 0, 0.3); }
+    @keyframes championship-pulse {
+        0%, 100% { 
+            transform: scale(1) rotate(0deg); 
+            box-shadow: 0 8px 25px rgba(255, 215, 0, 0.4);
+        }
+        50% { 
+            transform: scale(1.08) rotate(2deg); 
+            box-shadow: 0 12px 35px rgba(255, 215, 0, 0.6);
+        }
+    }
+    
+    /* Enhanced Typography System */
+    .lap-time {
+        font-family: 'JetBrains Mono', 'SF Mono', 'Monaco', monospace !important;
+        font-weight: 600;
+        font-size: 1.1rem;
+        background: var(--card-bg);
+        color: var(--f1-teal);
+        padding: 0.75rem 1.25rem;
+        border-radius: 10px;
+        border: 1px solid var(--card-border);
+        display: inline-block;
+        margin: 0.25rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+    
+    .lap-time:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0, 210, 190, 0.2);
+        border-color: var(--f1-teal);
+    }
+    
+    .sector-time {
+        font-family: 'JetBrains Mono', 'SF Mono', 'Monaco', monospace !important;
+        font-weight: 500;
+        font-size: 0.9rem;
+        color: var(--text-secondary);
     }
     
     /* Enhanced Driver Selection */
@@ -325,23 +402,66 @@ st.markdown("""
         backdrop-filter: blur(10px);
     }
     
-    /* Enhanced Buttons */
+    /* Enhanced Interactive Elements */
     .stButton > button {
-        background: linear-gradient(135deg, #DC0000, #FF4444);
-        color: white;
-        border: none;
-        border-radius: 12px;
-        padding: 0.75rem 1.5rem;
-        font-weight: 600;
-        font-size: 0.95rem;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 16px rgba(220, 0, 0, 0.3);
+        background: linear-gradient(135deg, var(--f1-red), var(--f1-red-light)) !important;
+        color: var(--text-primary) !important;
+        border: none !important;
+        border-radius: 12px !important;
+        padding: 0.875rem 2rem !important;
+        font-weight: 600 !important;
+        font-size: 0.95rem !important;
+        letter-spacing: 0.5px !important;
+        text-transform: uppercase !important;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        box-shadow: 0 6px 20px rgba(220, 0, 0, 0.3) !important;
+        position: relative !important;
+        overflow: hidden !important;
+    }
+    
+    .stButton > button::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+        transition: left 0.5s;
+    }
+    
+    .stButton > button:hover::before {
+        left: 100%;
     }
     
     .stButton > button:hover {
-        background: linear-gradient(135deg, #FF4444, #DC0000);
-        transform: translateY(-2px);
-        box-shadow: 0 8px 24px rgba(220, 0, 0, 0.4);
+        background: linear-gradient(135deg, var(--f1-red-light), var(--f1-red)) !important;
+        transform: translateY(-3px) scale(1.02) !important;
+        box-shadow: 0 12px 32px rgba(220, 0, 0, 0.5) !important;
+    }
+    
+    /* Enhanced Form Controls */
+    .stSelectbox > div > div,
+    .stMultiSelect > div > div {
+        background: var(--card-bg) !important;
+        border: 1px solid var(--card-border) !important;
+        border-radius: 12px !important;
+        backdrop-filter: blur(10px) !important;
+        transition: all 0.3s ease !important;
+    }
+    
+    .stSelectbox > div > div:hover,
+    .stMultiSelect > div > div:hover {
+        border-color: var(--f1-teal) !important;
+        box-shadow: 0 0 0 3px rgba(0, 210, 190, 0.1) !important;
+    }
+    
+    .stSelectbox > label,
+    .stMultiSelect > label {
+        color: var(--text-primary) !important;
+        font-weight: 600 !important;
+        font-size: 0.95rem !important;
+        margin-bottom: 0.5rem !important;
     }
     
     /* Loading Spinner Enhancement */
@@ -350,24 +470,122 @@ st.markdown("""
         border-top-color: #00D2BE;
     }
     
-    /* Force Dark Background */
-    .main .block-container {
-        background-color: #0E1117 !important;
-    }
-    
+    /* Professional Background System */
     .stApp {
-        background-color: #0E1117 !important;
+        background: linear-gradient(135deg, var(--dark-bg) 0%, var(--darker-bg) 100%) !important;
+        min-height: 100vh;
     }
     
-    /* Enhanced Driver Selection with Minimal Design */
-    .driver-selection-container {
-        background: linear-gradient(135deg, rgba(35, 39, 47, 0.95), rgba(24, 25, 26, 0.98));
-        border-radius: 16px;
-        padding: 1.5rem;
+    .main .block-container {
+        background: transparent !important;
+        padding-top: 1rem !important;
+        padding-bottom: 2rem !important;
+        max-width: 1400px !important;
+    }
+    
+    /* Enhanced Sidebar */
+    .css-1d391kg, .css-1aumxhk {
+        background: linear-gradient(180deg, rgba(10, 11, 13, 0.98) 0%, rgba(6, 7, 10, 0.95) 100%) !important;
+        backdrop-filter: blur(20px) !important;
+        border-right: 1px solid var(--glass-border) !important;
+    }
+    
+    /* Advanced Glass Morphism Cards */
+    .metric-card {
+        background: linear-gradient(135deg, var(--glass-bg), rgba(255, 255, 255, 0.01));
+        border: 1px solid var(--glass-border);
+        border-radius: 20px;
+        padding: 2rem;
         margin: 1rem 0;
-        border: 1px solid rgba(0, 210, 190, 0.2);
-        backdrop-filter: blur(15px);
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        backdrop-filter: blur(25px);
+        box-shadow: var(--shadow-lg);
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .metric-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, var(--f1-teal), transparent);
+        opacity: 0.5;
+    }
+    
+    .metric-card:hover {
+        transform: translateY(-8px) scale(1.01);
+        border-color: var(--f1-teal);
+        box-shadow: var(--shadow-xl), 0 0 40px rgba(0, 210, 190, 0.2);
+    }
+    
+    /* Enhanced Data Tables */
+    .stDataFrame {
+        background: var(--card-bg) !important;
+        border: 1px solid var(--card-border) !important;
+        border-radius: 16px !important;
+        overflow: hidden !important;
+        box-shadow: var(--shadow-lg) !important;
+        backdrop-filter: blur(20px) !important;
+    }
+    
+    .stDataFrame thead tr th {
+        background: linear-gradient(135deg, var(--f1-red), var(--f1-red-light)) !important;
+        color: var(--text-primary) !important;
+        font-weight: 700 !important;
+        text-align: center !important;
+        padding: 1.5rem 1rem !important;
+        border: none !important;
+        font-size: 0.95rem !important;
+        letter-spacing: 0.5px !important;
+        text-transform: uppercase !important;
+    }
+    
+    .stDataFrame tbody tr td {
+        text-align: center !important;
+        padding: 1rem !important;
+        border-bottom: 1px solid var(--glass-border) !important;
+        border-left: none !important;
+        border-right: none !important;
+        background: var(--glass-bg) !important;
+        color: var(--text-primary) !important;
+        font-size: 0.9rem !important;
+        font-weight: 500 !important;
+    }
+    
+    .stDataFrame tbody tr:nth-child(even) td {
+        background: rgba(255, 255, 255, 0.01) !important;
+    }
+    
+    .stDataFrame tbody tr:hover td {
+        background: rgba(0, 210, 190, 0.05) !important;
+        transform: scale(1.01) !important;
+        transition: all 0.3s ease !important;
+    }
+    
+    /* Professional Driver Selection Interface */
+    .driver-selection-container {
+        background: linear-gradient(135deg, var(--card-bg), rgba(255, 255, 255, 0.01));
+        border: 1px solid var(--card-border);
+        border-radius: 24px;
+        padding: 2rem;
+        margin: 1.5rem 0;
+        backdrop-filter: blur(20px);
+        box-shadow: var(--shadow-lg);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .driver-selection-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: linear-gradient(90deg, var(--f1-red), var(--f1-teal));
     }
     
     .driver-selection-grid {
@@ -434,34 +652,86 @@ st.markdown("""
         background: linear-gradient(180deg, rgba(14, 17, 23, 0.98), rgba(24, 25, 26, 0.95)) !important;
     }
     
-    /* Multiselect styling */
-    .stMultiSelect > label {
-        color: white !important;
-        font-weight: 600;
+    /* Advanced Component Styling */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 12px;
+        background: transparent;
+        padding: 0;
     }
     
-    .stMultiSelect [data-baseweb=select] {
-        background: rgba(35, 39, 47, 0.9) !important;
-        border: 1px solid rgba(0, 210, 190, 0.3) !important;
-        border-radius: 8px !important;
+    .stTabs [data-baseweb="tab"] {
+        background: var(--card-bg) !important;
+        border: 1px solid var(--card-border) !important;
+        border-radius: 12px !important;
+        padding: 0.75rem 1.5rem !important;
+        color: var(--text-secondary) !important;
+        font-weight: 600 !important;
+        transition: all 0.3s ease !important;
+        backdrop-filter: blur(10px) !important;
     }
     
-    .stMultiSelect [data-baseweb=tag] {
-        background-color: rgba(0, 210, 190, 0.2) !important;
-        border: 1px solid rgba(0, 210, 190, 0.4) !important;
-        color: #00D2BE !important;
+    .stTabs [data-baseweb="tab"]:hover {
+        border-color: var(--f1-teal) !important;
+        color: var(--text-primary) !important;
+        transform: translateY(-2px) !important;
     }
     
-    /* Selectbox styling */
-    .stSelectbox > label {
-        color: white !important;
-        font-weight: 600;
+    .stTabs [aria-selected="true"] {
+        background: linear-gradient(135deg, var(--f1-teal), var(--f1-teal-light)) !important;
+        border-color: var(--f1-teal) !important;
+        color: var(--text-primary) !important;
+        box-shadow: 0 6px 20px rgba(0, 210, 190, 0.3) !important;
     }
     
-    .stSelectbox [data-baseweb=select] {
-        background: rgba(35, 39, 47, 0.9) !important;
-        border: 1px solid rgba(0, 210, 190, 0.3) !important;
-        border-radius: 8px !important;
+    /* Professional Loading States */
+    .stSpinner {
+        border-color: var(--card-border) !important;
+        border-top-color: var(--f1-teal) !important;
+        border-width: 3px !important;
+    }
+    
+    /* Enhanced Progress Indicators */
+    .stProgress > div > div > div {
+        background: linear-gradient(90deg, var(--f1-red), var(--f1-teal)) !important;
+        border-radius: 10px !important;
+    }
+    
+    /* Responsive Design Enhancements */
+    @media (max-width: 768px) {
+        .main-header {
+            font-size: 2.2rem;
+            padding: 2rem 0 1.5rem 0;
+        }
+        
+        .metric-card {
+            padding: 1.5rem;
+            margin: 0.75rem 0;
+        }
+        
+        .driver-selection-container {
+            padding: 1.5rem;
+            margin: 1rem 0;
+        }
+    }
+    
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+    
+    ::-webkit-scrollbar-track {
+        background: var(--darker-bg);
+        border-radius: 4px;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+        background: linear-gradient(45deg, var(--f1-red), var(--f1-teal));
+        border-radius: 4px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+        background: linear-gradient(45deg, var(--f1-teal), var(--f1-red));
     }
 </style>
 """, unsafe_allow_html=True)
@@ -1181,7 +1451,7 @@ def main():
                 if not performance_data.empty:
                     # Display performance index cards
                     for _, driver_perf in performance_data.iterrows():
-                        team_color = TEAM_COLORS.get(driver_perf['Team'], '#808080')
+                        team_color = TEAM_COLORS.get(str(driver_perf['Team']), '#808080')
                         
                         st.markdown(f"""
                         <div class="metric-card">
@@ -1587,20 +1857,22 @@ def main():
                         # Display table with custom styling
                         tire_display_df = display_data[['Driver', 'Team', 'Tire_Stress_Index', 'Tire_Temperature', 
                                                        'Tire_Efficiency', 'Tire_Wear_Index', 'Grip_Level']].copy()
-                        tire_display_df.columns = ['Driver', 'Team', 'Stress Index', 'Temperature', 'Efficiency', 'Wear Index', 'Grip Level']
+                        if isinstance(tire_display_df, pd.DataFrame):
+                            tire_display_df.columns = ['Driver', 'Team', 'Stress Index', 'Temperature', 'Efficiency', 'Wear Index', 'Grip Level']
                         st.dataframe(tire_display_df, use_container_width=True)
                         
                         # Performance insights
                         st.subheader("💡 Performance Insights")
                         
                         # Find best performers
-                        best_efficiency_idx = filtered_tire_data['Tire_Efficiency'].idxmax()
-                        lowest_stress_idx = filtered_tire_data['Tire_Stress_Index'].idxmin()
-                        highest_grip_idx = filtered_tire_data['Grip_Level'].idxmax()
-                        
-                        best_efficiency = filtered_tire_data.loc[best_efficiency_idx]
-                        lowest_stress = filtered_tire_data.loc[lowest_stress_idx]
-                        highest_grip = filtered_tire_data.loc[highest_grip_idx]
+                        if isinstance(filtered_tire_data, pd.DataFrame) and not filtered_tire_data.empty:
+                            best_efficiency_idx = filtered_tire_data['Tire_Efficiency'].idxmax()
+                            lowest_stress_idx = filtered_tire_data['Tire_Stress_Index'].idxmin()
+                            highest_grip_idx = filtered_tire_data['Grip_Level'].idxmax()
+                            
+                            best_efficiency = filtered_tire_data.loc[best_efficiency_idx]
+                            lowest_stress = filtered_tire_data.loc[lowest_stress_idx]
+                            highest_grip = filtered_tire_data.loc[highest_grip_idx]
                         
                         col1, col2, col3 = st.columns(3)
                         
@@ -1697,22 +1969,24 @@ def main():
                         stress_display_df = display_stress[['Driver', 'Team', 'Driver_Stress_Index', 'Braking_Percentage', 
                                                            'High_Throttle_Percentage', 'Critical_Speed_Median', 'Consistency_Index', 
                                                            'Aggression_Index']].copy()
-                        stress_display_df.columns = ['Driver', 'Team', 'Stress Index', 'Braking %', 'High Throttle %', 'Critical Speed', 'Consistency', 'Aggression']
+                        if isinstance(stress_display_df, pd.DataFrame):
+                            stress_display_df.columns = ['Driver', 'Team', 'Stress Index', 'Braking %', 'High Throttle %', 'Critical Speed', 'Consistency', 'Aggression']
                         st.dataframe(stress_display_df, use_container_width=True)
                         
                         # Stress analysis insights
                         st.subheader("🧠 Driving Style Insights")
                         
                         # Find performance characteristics
-                        most_stressed_idx = filtered_stress_data['Driver_Stress_Index'].idxmax()
-                        most_consistent_idx = filtered_stress_data['Consistency_Index'].idxmax()
-                        most_aggressive_idx = filtered_stress_data['Aggression_Index'].idxmax()
-                        smoothest_idx = filtered_stress_data['Smoothness_Index'].idxmax()
-                        
-                        most_stressed = filtered_stress_data.loc[most_stressed_idx]
-                        most_consistent = filtered_stress_data.loc[most_consistent_idx]
-                        most_aggressive = filtered_stress_data.loc[most_aggressive_idx]
-                        smoothest = filtered_stress_data.loc[smoothest_idx]
+                        if isinstance(filtered_stress_data, pd.DataFrame) and not filtered_stress_data.empty:
+                            most_stressed_idx = filtered_stress_data['Driver_Stress_Index'].idxmax()
+                            most_consistent_idx = filtered_stress_data['Consistency_Index'].idxmax()
+                            most_aggressive_idx = filtered_stress_data['Aggression_Index'].idxmax()
+                            smoothest_idx = filtered_stress_data['Smoothness_Index'].idxmax()
+                            
+                            most_stressed = filtered_stress_data.loc[most_stressed_idx]
+                            most_consistent = filtered_stress_data.loc[most_consistent_idx]
+                            most_aggressive = filtered_stress_data.loc[most_aggressive_idx]
+                            smoothest = filtered_stress_data.loc[smoothest_idx]
                         
                         col1, col2 = st.columns(2)
                         
@@ -1821,22 +2095,24 @@ def main():
                         # Display table
                         downforce_display_df = display_downforce[['Driver', 'Team', 'Downforce_Efficiency', 'Average_Speed', 
                                                                  'Top_Speed', 'Corner_Speed_Avg', 'Straight_Speed_Avg', 'Aero_Balance']].copy()
-                        downforce_display_df.columns = ['Driver', 'Team', 'Efficiency', 'Avg Speed', 'Top Speed', 'Corner Speed', 'Straight Speed', 'Aero Balance']
+                        if isinstance(downforce_display_df, pd.DataFrame):
+                            downforce_display_df.columns = ['Driver', 'Team', 'Efficiency', 'Avg Speed', 'Top Speed', 'Corner Speed', 'Straight Speed', 'Aero Balance']
                         st.dataframe(downforce_display_df, use_container_width=True)
                         
                         # Performance insights
                         st.subheader("🔍 Aerodynamic Insights")
                         
                         # Find best performers
-                        best_efficiency_idx = filtered_downforce_data['Downforce_Efficiency'].idxmax()
-                        best_corners_idx = filtered_downforce_data['Corner_Speed_Avg'].idxmax()
-                        best_straights_idx = filtered_downforce_data['Straight_Speed_Avg'].idxmax()
-                        best_balance_idx = filtered_downforce_data['Aero_Balance'].idxmax()
-                        
-                        best_efficiency = filtered_downforce_data.loc[best_efficiency_idx]
-                        best_corners = filtered_downforce_data.loc[best_corners_idx]
-                        best_straights = filtered_downforce_data.loc[best_straights_idx]
-                        best_balance = filtered_downforce_data.loc[best_balance_idx]
+                        if isinstance(filtered_downforce_data, pd.DataFrame) and not filtered_downforce_data.empty:
+                            best_efficiency_idx = filtered_downforce_data['Downforce_Efficiency'].idxmax()
+                            best_corners_idx = filtered_downforce_data['Corner_Speed_Avg'].idxmax()
+                            best_straights_idx = filtered_downforce_data['Straight_Speed_Avg'].idxmax()
+                            best_balance_idx = filtered_downforce_data['Aero_Balance'].idxmax()
+                            
+                            best_efficiency = filtered_downforce_data.loc[best_efficiency_idx]
+                            best_corners = filtered_downforce_data.loc[best_corners_idx]
+                            best_straights = filtered_downforce_data.loc[best_straights_idx]
+                            best_balance = filtered_downforce_data.loc[best_balance_idx]
                         
                         col1, col2 = st.columns(2)
                         
