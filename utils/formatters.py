@@ -81,3 +81,30 @@ def format_tire_age(tire_life):
         return "New"
     else:
         return f"{int(tire_life)} laps"
+
+def format_average_lap_time(total_seconds):
+    """Format average lap time in M:SS.mmm format for Advanced Analytics"""
+    if pd.isna(total_seconds) or total_seconds <= 0:
+        return "N/A"
+    
+    # Convert to float if it's not already
+    try:
+        seconds = float(total_seconds)
+    except (ValueError, TypeError):
+        return "N/A"
+    
+    minutes = int(seconds // 60)
+    remaining_seconds = seconds % 60
+    
+    return f"{minutes}:{remaining_seconds:06.3f}"
+
+def format_delta_time(time_diff):
+    """Format time difference for comparisons"""
+    if pd.isna(time_diff):
+        return "N/A"
+    
+    if abs(time_diff) < 0.001:
+        return "0.000"
+    
+    sign = "+" if time_diff > 0 else ""
+    return f"{sign}{time_diff:.3f}s"

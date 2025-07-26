@@ -4,7 +4,15 @@
 
 This is a comprehensive Formula 1 data analysis platform built with Streamlit that provides advanced race data visualization and analytics capabilities. The platform leverages the FastF1 library to access official F1 timing data and creates interactive visualizations using Plotly. The application features telemetry analysis, race progression tracking, tire strategy visualization, track dominance mapping, advanced driver performance analytics, weather impact analysis, and sophisticated race strategy evaluation.
 
-## Recent Changes (July 25, 2025)
+## Recent Changes (July 26, 2025)
+
+### Major Version 4.0 Update - Enhanced Professional Platform
+- **Fixed Critical Errors**: Resolved NoneType object errors in stress analysis and tire performance modules
+- **Updated FastF1 Integration**: Migrated from deprecated pick_driver to pick_drivers method across all modules
+- **Enhanced Lap Time Formatting**: Added proper M:SS.mmm format for average lap times in Advanced Analytics
+- **New Downforce Configuration Analysis**: Added comprehensive aerodynamic analysis with efficiency metrics
+- **Professional Style Improvements**: Enhanced UI styling, better error handling, and improved data visualization
+- **Major Code Refactoring**: Fixed DataFrame operations and LSP diagnostic issues for cleaner code
 
 ### Major Version 3.0 Update - Advanced Analytics Platform
 - **Advanced Analytics Module**: Added comprehensive driver performance analysis with consistency metrics

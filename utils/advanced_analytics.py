@@ -21,7 +21,7 @@ class AdvancedF1Analytics:
         
     def calculate_driver_consistency(self, driver_code):
         """Calculate driver consistency metrics across all laps"""
-        driver_laps = self.laps.pick_driver(driver_code)
+        driver_laps = self.laps.pick_drivers(driver_code)
         valid_laps = driver_laps[driver_laps['LapTime'].notna()]
         
         if len(valid_laps) < 3:
@@ -41,7 +41,7 @@ class AdvancedF1Analytics:
     
     def analyze_tire_degradation(self, driver_code):
         """Analyze tire degradation patterns for a driver"""
-        driver_laps = self.laps.pick_driver(driver_code)
+        driver_laps = self.laps.pick_drivers(driver_code)
         
         degradation_data = []
         

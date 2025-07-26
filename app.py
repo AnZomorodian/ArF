@@ -14,12 +14,13 @@ from utils.data_loader import DataLoader
 from utils.visualizations import create_telemetry_plot, create_tire_strategy_plot, create_race_progression_plot
 from utils.track_dominance import create_track_dominance_map
 from utils.constants import TEAM_COLORS, DRIVER_TEAMS, GRANDS_PRIX, SESSIONS, TIRE_COLORS
-from utils.formatters import format_lap_time, format_sector_time, get_lap_time_color_class, get_position_change_text
+from utils.formatters import format_lap_time, format_sector_time, get_lap_time_color_class, get_position_change_text, format_average_lap_time
 from utils.advanced_analytics import AdvancedF1Analytics
 from utils.weather_analytics import WeatherAnalytics
 from utils.race_strategy import RaceStrategyAnalyzer
 from utils.tire_performance import TirePerformanceAnalyzer
 from utils.stress_index import DriverStressAnalyzer
+from utils.downforce_analysis import DownforceAnalyzer
 
 # Configure page
 st.set_page_config(
@@ -596,7 +597,7 @@ def main():
         return
     
     # Analysis tabs
-    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8 = st.tabs([
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9 = st.tabs([
         "📈 Telemetry Analysis", 
         "🗺️ Track Dominance", 
         "⏱️ Lap Comparison", 
@@ -604,7 +605,8 @@ def main():
         "📊 Race Progression",
         "🧠 Advanced Analytics",
         "🛞 Tire Performance",
-        "⚡ Stress Analysis"
+        "⚡ Stress Analysis",
+        "🏎️ Downforce Config"
     ])
     
     with tab1:
@@ -1190,7 +1192,7 @@ def main():
                                     <div style="color: #888; font-size: 0.9rem;">Consistency Score</div>
                                 </div>
                                 <div style="text-align: center;">
-                                    <div style="font-size: 1.5rem; font-weight: 700; color: white;">{data['mean_lap_time']:.3f}s</div>
+                                    <div style="font-size: 1.5rem; font-weight: 700; color: white;">{format_average_lap_time(data['mean_lap_time'])}</div>
                                     <div style="color: #888; font-size: 0.9rem;">Average Lap Time</div>
                                 </div>
                                 <div style="text-align: center;">
@@ -1443,25 +1445,22 @@ def main():
                         display_data['Grip_Level'] = display_data['Grip_Level'].round(1).astype(str) + '%'
                         
                         # Display table with custom styling
-                        st.dataframe(
-                            display_data[['Driver', 'Team', 'Tire_Stress_Index', 'Tire_Temperature', 
-                                        'Tire_Efficiency', 'Tire_Wear_Index', 'Grip_Level']].rename(columns={
-                                'Tire_Stress_Index': 'Stress Index',
-                                'Tire_Temperature': 'Temperature',
-                                'Tire_Efficiency': 'Efficiency',
-                                'Tire_Wear_Index': 'Wear Index',
-                                'Grip_Level': 'Grip Level'
-                            }),
-                            use_container_width=True
-                        )
+                        tire_display_df = display_data[['Driver', 'Team', 'Tire_Stress_Index', 'Tire_Temperature', 
+                                                       'Tire_Efficiency', 'Tire_Wear_Index', 'Grip_Level']].copy()
+                        tire_display_df.columns = ['Driver', 'Team', 'Stress Index', 'Temperature', 'Efficiency', 'Wear Index', 'Grip Level']
+                        st.dataframe(tire_display_df, use_container_width=True)
                         
                         # Performance insights
                         st.subheader("💡 Performance Insights")
                         
                         # Find best performers
-                        best_efficiency = filtered_tire_data.loc[filtered_tire_data['Tire_Efficiency'].idxmax()]
-                        lowest_stress = filtered_tire_data.loc[filtered_tire_data['Tire_Stress_Index'].idxmin()]
-                        highest_grip = filtered_tire_data.loc[filtered_tire_data['Grip_Level'].idxmax()]
+                        best_efficiency_idx = filtered_tire_data['Tire_Efficiency'].idxmax()
+                        lowest_stress_idx = filtered_tire_data['Tire_Stress_Index'].idxmin()
+                        highest_grip_idx = filtered_tire_data['Grip_Level'].idxmax()
+                        
+                        best_efficiency = filtered_tire_data.loc[best_efficiency_idx]
+                        lowest_stress = filtered_tire_data.loc[lowest_stress_idx]
+                        highest_grip = filtered_tire_data.loc[highest_grip_idx]
                         
                         col1, col2, col3 = st.columns(3)
                         
@@ -1555,28 +1554,25 @@ def main():
                         display_stress['Aggression_Index'] = display_stress['Aggression_Index'].round(2)
                         
                         # Display table
-                        st.dataframe(
-                            display_stress[['Driver', 'Team', 'Driver_Stress_Index', 'Braking_Percentage', 
-                                          'High_Throttle_Percentage', 'Critical_Speed_Median', 'Consistency_Index', 
-                                          'Aggression_Index']].rename(columns={
-                                'Driver_Stress_Index': 'Stress Index',
-                                'Braking_Percentage': 'Braking %',
-                                'High_Throttle_Percentage': 'High Throttle %',
-                                'Critical_Speed_Median': 'Critical Speed',
-                                'Consistency_Index': 'Consistency',
-                                'Aggression_Index': 'Aggression'
-                            }),
-                            use_container_width=True
-                        )
+                        stress_display_df = display_stress[['Driver', 'Team', 'Driver_Stress_Index', 'Braking_Percentage', 
+                                                           'High_Throttle_Percentage', 'Critical_Speed_Median', 'Consistency_Index', 
+                                                           'Aggression_Index']].copy()
+                        stress_display_df.columns = ['Driver', 'Team', 'Stress Index', 'Braking %', 'High Throttle %', 'Critical Speed', 'Consistency', 'Aggression']
+                        st.dataframe(stress_display_df, use_container_width=True)
                         
                         # Stress analysis insights
                         st.subheader("🧠 Driving Style Insights")
                         
                         # Find performance characteristics
-                        most_stressed = filtered_stress_data.loc[filtered_stress_data['Driver_Stress_Index'].idxmax()]
-                        most_consistent = filtered_stress_data.loc[filtered_stress_data['Consistency_Index'].idxmax()]
-                        most_aggressive = filtered_stress_data.loc[filtered_stress_data['Aggression_Index'].idxmax()]
-                        smoothest = filtered_stress_data.loc[filtered_stress_data['Smoothness_Index'].idxmax()]
+                        most_stressed_idx = filtered_stress_data['Driver_Stress_Index'].idxmax()
+                        most_consistent_idx = filtered_stress_data['Consistency_Index'].idxmax()
+                        most_aggressive_idx = filtered_stress_data['Aggression_Index'].idxmax()
+                        smoothest_idx = filtered_stress_data['Smoothness_Index'].idxmax()
+                        
+                        most_stressed = filtered_stress_data.loc[most_stressed_idx]
+                        most_consistent = filtered_stress_data.loc[most_consistent_idx]
+                        most_aggressive = filtered_stress_data.loc[most_aggressive_idx]
+                        smoothest = filtered_stress_data.loc[smoothest_idx]
                         
                         col1, col2 = st.columns(2)
                         
@@ -1637,6 +1633,141 @@ def main():
                 st.error(f"Error in stress analysis: {str(e)}")
         else:
             st.info("Please load session data to access driver stress analysis.")
+    
+    # Downforce Configuration Analysis Tab
+    with tab9:
+        st.header("🏎️ Downforce Configuration Analysis")
+        
+        if hasattr(st.session_state.data_loader, 'session') and st.session_state.data_loader.session is not None:
+            try:
+                downforce_analyzer = DownforceAnalyzer(st.session_state.data_loader.session)
+                downforce_data = downforce_analyzer.calculate_downforce_metrics()
+                
+                if not downforce_data.empty:
+                    # Session info for visualization titles
+                    session_info_str = f"{session_info['event_name']} {session_info['date']}" if session_info else "Current Session"
+                    
+                    # Filter data for selected drivers
+                    filtered_downforce_data = downforce_data[downforce_data['Driver'].isin(selected_drivers)]
+                    
+                    if not filtered_downforce_data.empty:
+                        st.subheader("📊 Comprehensive Downforce Analysis")
+                        
+                        # Create main downforce visualization
+                        downforce_chart = downforce_analyzer.create_downforce_visualizations(
+                            filtered_downforce_data, session_info_str
+                        )
+                        if downforce_chart:
+                            st.plotly_chart(downforce_chart, use_container_width=True)
+                        
+                        # Downforce efficiency ranking
+                        st.subheader("🏆 Downforce Efficiency Ranking")
+                        ranking_chart = downforce_analyzer.create_downforce_ranking_chart(filtered_downforce_data)
+                        if ranking_chart:
+                            st.plotly_chart(ranking_chart, use_container_width=True)
+                        
+                        # Detailed metrics table
+                        st.subheader("📋 Detailed Downforce Metrics")
+                        
+                        # Format the data for display
+                        display_downforce = filtered_downforce_data.copy()
+                        display_downforce['Downforce_Efficiency'] = display_downforce['Downforce_Efficiency'].round(2).astype(str) + '%'
+                        display_downforce['Average_Speed'] = display_downforce['Average_Speed'].round(1).astype(str) + ' km/h'
+                        display_downforce['Top_Speed'] = display_downforce['Top_Speed'].round(1).astype(str) + ' km/h'
+                        display_downforce['Corner_Speed_Avg'] = display_downforce['Corner_Speed_Avg'].round(1).astype(str) + ' km/h'
+                        display_downforce['Straight_Speed_Avg'] = display_downforce['Straight_Speed_Avg'].round(1).astype(str) + ' km/h'
+                        display_downforce['Aero_Balance'] = display_downforce['Aero_Balance'].round(2).astype(str) + '%'
+                        
+                        # Display table
+                        downforce_display_df = display_downforce[['Driver', 'Team', 'Downforce_Efficiency', 'Average_Speed', 
+                                                                 'Top_Speed', 'Corner_Speed_Avg', 'Straight_Speed_Avg', 'Aero_Balance']].copy()
+                        downforce_display_df.columns = ['Driver', 'Team', 'Efficiency', 'Avg Speed', 'Top Speed', 'Corner Speed', 'Straight Speed', 'Aero Balance']
+                        st.dataframe(downforce_display_df, use_container_width=True)
+                        
+                        # Performance insights
+                        st.subheader("🔍 Aerodynamic Insights")
+                        
+                        # Find best performers
+                        best_efficiency_idx = filtered_downforce_data['Downforce_Efficiency'].idxmax()
+                        best_corners_idx = filtered_downforce_data['Corner_Speed_Avg'].idxmax()
+                        best_straights_idx = filtered_downforce_data['Straight_Speed_Avg'].idxmax()
+                        best_balance_idx = filtered_downforce_data['Aero_Balance'].idxmax()
+                        
+                        best_efficiency = filtered_downforce_data.loc[best_efficiency_idx]
+                        best_corners = filtered_downforce_data.loc[best_corners_idx]
+                        best_straights = filtered_downforce_data.loc[best_straights_idx]
+                        best_balance = filtered_downforce_data.loc[best_balance_idx]
+                        
+                        col1, col2 = st.columns(2)
+                        
+                        with col1:
+                            st.markdown(f"""
+                            <div class="metric-card">
+                                <h4>🎯 Most Efficient Setup</h4>
+                                <div style="font-size: 1.4rem; font-weight: 700; color: #00D2BE;">
+                                    {best_efficiency['Driver']}
+                                </div>
+                                <div style="color: #888; font-size: 0.9rem;">
+                                    Efficiency: {best_efficiency['Downforce_Efficiency']:.2f}%
+                                </div>
+                            </div>
+                            """, unsafe_allow_html=True)
+                            
+                            st.markdown(f"""
+                            <div class="metric-card">
+                                <h4>🏁 Corner Speed King</h4>
+                                <div style="font-size: 1.4rem; font-weight: 700; color: #4ECDC4;">
+                                    {best_corners['Driver']}
+                                </div>
+                                <div style="color: #888; font-size: 0.9rem;">
+                                    Corner Speed: {best_corners['Corner_Speed_Avg']:.1f} km/h
+                                </div>
+                            </div>
+                            """, unsafe_allow_html=True)
+                        
+                        with col2:
+                            st.markdown(f"""
+                            <div class="metric-card">
+                                <h4>🚀 Straight Line Rocket</h4>
+                                <div style="font-size: 1.4rem; font-weight: 700; color: #FFD700;">
+                                    {best_straights['Driver']}
+                                </div>
+                                <div style="color: #888; font-size: 0.9rem;">
+                                    Straight Speed: {best_straights['Straight_Speed_Avg']:.1f} km/h
+                                </div>
+                            </div>
+                            """, unsafe_allow_html=True)
+                            
+                            st.markdown(f"""
+                            <div class="metric-card">
+                                <h4>⚖️ Best Aero Balance</h4>
+                                <div style="font-size: 1.4rem; font-weight: 700; color: #FF6B6B;">
+                                    {best_balance['Driver']}
+                                </div>
+                                <div style="color: #888; font-size: 0.9rem;">
+                                    Balance: {best_balance['Aero_Balance']:.2f}%
+                                </div>
+                            </div>
+                            """, unsafe_allow_html=True)
+                        
+                        # Technical explanation
+                        st.subheader("📝 Technical Notes")
+                        st.markdown("""
+                        **Downforce Efficiency**: Calculated as 100 × (Average Speed / Top Speed). Higher values indicate better overall aerodynamic balance.
+                        
+                        **Aerodynamic Balance**: The ratio of corner speeds to straight-line speeds, indicating how well the car handles different track sections.
+                        
+                        **Speed Profiles**: Analysis of performance in different track zones helps understand aerodynamic setup preferences.
+                        """)
+                        
+                    else:
+                        st.info("No downforce analysis data available for selected drivers.")
+                else:
+                    st.info("Unable to calculate downforce configuration data for this session.")
+            except Exception as e:
+                st.error(f"Error in downforce analysis: {str(e)}")
+        else:
+            st.info("Please load session data to access downforce configuration analysis.")
 
 if __name__ == "__main__":
     main()

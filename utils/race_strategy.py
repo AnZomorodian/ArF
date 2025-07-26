@@ -26,7 +26,7 @@ class RaceStrategyAnalyzer:
             if pd.isna(driver):
                 continue
                 
-            driver_laps = self.laps.pick_driver(driver)
+            driver_laps = self.laps.pick_drivers(driver)
             pit_stops = []
             
             # Find pit stops by looking for compound changes
@@ -220,7 +220,7 @@ class RaceStrategyAnalyzer:
             if pd.isna(driver):
                 continue
                 
-            driver_laps = self.laps.pick_driver(driver)
+            driver_laps = self.laps.pick_drivers(driver)
             valid_laps = driver_laps[driver_laps['LapTime'].notna()]
             
             if len(valid_laps) < 5:
@@ -263,7 +263,7 @@ class RaceStrategyAnalyzer:
         color_idx = 0
         
         for driver, analysis in fuel_analysis.items():
-            driver_laps = self.laps.pick_driver(driver)
+            driver_laps = self.laps.pick_drivers(driver)
             valid_laps = driver_laps[driver_laps['LapTime'].notna()]
             
             if len(valid_laps) < 5:
