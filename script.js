@@ -6,7 +6,7 @@ let selectedDrivers = [];
 // Session mappings
 const sessionMappings = {
     'Practice 1': 'FP1',
-    'Practice 2': 'FP2', 
+    'Practice 2': 'FP2',
     'Practice 3': 'FP3',
     'Qualifying': 'Q',
     'Sprint': 'Sprint',
@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', function() {
 function initializeEventListeners() {
     // Load session button
     document.getElementById('loadSession').addEventListener('click', loadSession);
-    
+
     // Telemetry type change
     document.getElementById('telemetryType').addEventListener('change', function() {
         if (selectedDrivers.length > 0) {
@@ -51,19 +51,19 @@ function initializeEventListeners() {
 function setupTabs() {
     const tabButtons = document.querySelectorAll('.tab-button');
     const tabPanes = document.querySelectorAll('.tab-pane');
-    
+
     tabButtons.forEach(button => {
         button.addEventListener('click', function() {
             const tabId = this.getAttribute('data-tab');
-            
+
             // Remove active class from all tabs and panes
             tabButtons.forEach(btn => btn.classList.remove('active'));
             tabPanes.forEach(pane => pane.classList.remove('active'));
-            
+
             // Add active class to clicked tab and corresponding pane
             this.classList.add('active');
             document.getElementById(tabId).classList.add('active');
-            
+
             // Load data for the active tab
             loadTabData(tabId);
         });
@@ -77,12 +77,12 @@ async function loadSession() {
     const session = document.getElementById('session').value;
     const statusDiv = document.getElementById('sessionStatus');
     const loadButton = document.getElementById('loadSession');
-    
+
     // Show loading state
     loadButton.disabled = true;
     loadButton.textContent = '⏳ Loading...';
     statusDiv.innerHTML = '<div class="status-message status-info">Loading F1 session data...</div>';
-    
+
     try {
         // Call Python backend API
         const response = await fetch('/api/load-session', {
@@ -96,16 +96,16 @@ async function loadSession() {
                 session_type: sessionMappings[session]
             })
         });
-        
+
         const result = await response.json();
-        
+
         if (result.success) {
             currentSession = result.session_info;
             availableDrivers = result.drivers;
-            
+
             statusDiv.innerHTML = `<div class="status-message status-success">✅ Successfully loaded ${year} ${grandPrix} ${session}</div>`;
             setupDriverSelection();
-            
+
         } else {
             statusDiv.innerHTML = `<div class="status-message status-error">❌ Failed to load session: ${result.error}</div>`;
         }
@@ -121,27 +121,27 @@ async function loadSession() {
 function setupDriverSelection() {
     const driverSection = document.getElementById('driverSection');
     const driverGrid = document.getElementById('driverGrid');
-    
+
     driverSection.style.display = 'block';
     driverGrid.innerHTML = '';
-    
+
     availableDrivers.forEach(driver => {
         const driverCard = document.createElement('div');
         driverCard.className = 'driver-card';
         driverCard.setAttribute('data-driver', driver.code);
-        
+
         const teamColor = teamColors[driver.team] || '#808080';
-        
+
         driverCard.innerHTML = `
             <div class="driver-name">${driver.abbreviation}</div>
             <div class="driver-team" style="color: ${teamColor};">${driver.team}</div>
             <div class="driver-number">#${driver.number || 'N/A'}</div>
         `;
-        
+
         driverCard.addEventListener('click', function() {
             toggleDriverSelection(driver);
         });
-        
+
         driverGrid.appendChild(driverCard);
     });
 }
@@ -150,7 +150,7 @@ function setupDriverSelection() {
 function toggleDriverSelection(driver) {
     const driverCard = document.querySelector(`[data-driver="${driver.code}"]`);
     const index = selectedDrivers.findIndex(d => d.code === driver.code);
-    
+
     if (index > -1) {
         // Remove driver
         selectedDrivers.splice(index, 1);
@@ -165,9 +165,9 @@ function toggleDriverSelection(driver) {
             return;
         }
     }
-    
+
     updateSelectedDriversDisplay();
-    
+
     if (selectedDrivers.length > 0) {
         document.getElementById('analysisSection').style.display = 'block';
         loadTabData('telemetry'); // Load default tab
@@ -179,12 +179,12 @@ function toggleDriverSelection(driver) {
 // Update selected drivers display
 function updateSelectedDriversDisplay() {
     const selectedDiv = document.getElementById('selectedDrivers');
-    
+
     if (selectedDrivers.length === 0) {
         selectedDiv.innerHTML = '';
         return;
     }
-    
+
     const driverTags = selectedDrivers.map(driver => {
         const teamColor = teamColors[driver.team] || '#808080';
         return `
@@ -194,7 +194,7 @@ function updateSelectedDriversDisplay() {
             </div>
         `;
     }).join('');
-    
+
     selectedDiv.innerHTML = `
         <h4>Selected Drivers:</h4>
         <div class="selected-driver-list">
@@ -214,7 +214,7 @@ function removeDriver(driverCode) {
 // Load data for active tab
 function loadTabData(tabId) {
     if (selectedDrivers.length === 0) return;
-    
+
     switch (tabId) {
         case 'telemetry':
             loadTelemetryData();
@@ -290,9 +290,9 @@ async function loadTelemetryData() {
     const telemetryType = document.getElementById('telemetryType').value;
     const chartDiv = document.getElementById('telemetryChart');
     const loadingDiv = document.getElementById('telemetryLoading');
-    
+
     showLoading(loadingDiv);
-    
+
     try {
         const response = await fetch('/api/telemetry', {
             method: 'POST',
@@ -304,9 +304,9 @@ async function loadTelemetryData() {
                 telemetry_type: telemetryType
             })
         });
-        
+
         const result = await response.json();
-        
+
         if (result.success) {
             // Create Plotly chart
             const plotData = result.data.map(trace => ({
@@ -320,7 +320,7 @@ async function loadTelemetryData() {
                     width: 2
                 }
             }));
-            
+
             const layout = {
                 title: `${telemetryType.charAt(0).toUpperCase() + telemetryType.slice(1)} Comparison`,
                 xaxis: { title: 'Distance (m)' },
@@ -330,7 +330,7 @@ async function loadTelemetryData() {
                 plot_bgcolor: 'rgba(0,0,0,0)',
                 paper_bgcolor: 'rgba(0,0,0,0)'
             };
-            
+
             Plotly.newPlot(chartDiv, plotData, layout, {responsive: true});
         } else {
             chartDiv.innerHTML = `<div class="status-message status-error">Error: ${result.error}</div>`;
@@ -346,9 +346,9 @@ async function loadTelemetryData() {
 async function loadTrackMapData() {
     const chartDiv = document.getElementById('trackmapChart');
     const loadingDiv = document.getElementById('trackmapLoading');
-    
+
     showLoading(loadingDiv);
-    
+
     try {
         const response = await fetch('/api/track-map', {
             method: 'POST',
@@ -359,9 +359,9 @@ async function loadTrackMapData() {
                 drivers: selectedDrivers.map(d => d.code)
             })
         });
-        
+
         const result = await response.json();
-        
+
         if (result.success) {
             // Create track dominance map
             const plotData = [{
@@ -377,7 +377,7 @@ async function loadTrackMapData() {
                 text: result.hover_text,
                 hoverinfo: 'text'
             }];
-            
+
             const layout = {
                 title: 'Track Dominance Map',
                 xaxis: { title: 'X Position', showgrid: false },
@@ -387,7 +387,7 @@ async function loadTrackMapData() {
                 plot_bgcolor: 'rgba(0,0,0,0)',
                 paper_bgcolor: 'rgba(0,0,0,0)'
             };
-            
+
             Plotly.newPlot(chartDiv, plotData, layout, {responsive: true});
         } else {
             chartDiv.innerHTML = `<div class="status-message status-error">Error: ${result.error}</div>`;
@@ -403,9 +403,9 @@ async function loadTrackMapData() {
 async function loadLapTimesData() {
     const tableDiv = document.getElementById('laptimesTable');
     const loadingDiv = document.getElementById('laptimesLoading');
-    
+
     showLoading(loadingDiv);
-    
+
     try {
         const response = await fetch('/api/lap-times', {
             method: 'POST',
@@ -416,9 +416,9 @@ async function loadLapTimesData() {
                 drivers: selectedDrivers.map(d => d.code)
             })
         });
-        
+
         const result = await response.json();
-        
+
         if (result.success && result.data.length > 0) {
             // Create HTML table
             const headers = Object.keys(result.data[0]);
@@ -428,7 +428,7 @@ async function loadLapTimesData() {
                         <tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr>
                     </thead>
                     <tbody>
-                        ${result.data.map(row => 
+                        ${result.data.map(row =>
                             `<tr>${headers.map(h => `<td>${row[h]}</td>`).join('')}</tr>`
                         ).join('')}
                     </tbody>
@@ -449,9 +449,9 @@ async function loadLapTimesData() {
 async function loadTiresData() {
     const chartDiv = document.getElementById('tiresChart');
     const loadingDiv = document.getElementById('tiresLoading');
-    
+
     showLoading(loadingDiv);
-    
+
     try {
         const response = await fetch('/api/tire-strategy', {
             method: 'POST',
@@ -462,23 +462,47 @@ async function loadTiresData() {
                 drivers: selectedDrivers.map(d => d.code)
             })
         });
-        
+
         const result = await response.json();
-        
+
         if (result.success) {
             // Create tire strategy visualization
-            const plotData = result.data;
-            
+            const plotData = result.data.map(driverData => {
+                const driver = availableDrivers.find(d => d.code === driverData.driver_code);
+                const teamColor = teamColors[driver.team] || '#808080';
+                return {
+                    x: driverData.laps,
+                    y: Array(driverData.laps.length).fill(driver.abbreviation),
+                    mode: 'markers',
+                    type: 'scatter',
+                    marker: {
+                        color: driverData.tire_colors.map(tire => {
+                            if (tire === 'INTERMEDIATE') return '#00FF00'; // Green for intermediate
+                            if (tire === 'WET') return '#0000FF'; // Blue for wet
+                            if (tire === 'SOFT') return '#FF0000'; // Red for soft
+                            if (tire === 'MEDIUM') return '#FFFF00'; // Yellow for medium
+                            if (tire === 'HARD') return '#FFFFFF'; // White for hard
+                            return '#808080'; // Grey for unknown
+                        }),
+                        size: 10,
+                        opacity: 0.8
+                    },
+                    name: driver.abbreviation,
+                    hoverinfo: 'text',
+                    hovertext: driverData.tire_stints.map(stint => `Lap ${stint.start_lap} - ${stint.end_lap}: ${stint.tire_compound}`)
+                };
+            });
+
             const layout = {
                 title: 'Tire Strategy Analysis',
                 xaxis: { title: 'Lap Number' },
-                yaxis: { title: 'Driver' },
+                yaxis: { title: 'Driver', tickvals: selectedDrivers.map(d => d.abbreviation), ticktext: selectedDrivers.map(d => d.abbreviation)},
                 showlegend: true,
                 height: 500,
                 plot_bgcolor: 'rgba(0,0,0,0)',
                 paper_bgcolor: 'rgba(0,0,0,0)'
             };
-            
+
             Plotly.newPlot(chartDiv, plotData, layout, {responsive: true});
         } else {
             chartDiv.innerHTML = `<div class="status-message status-error">Error: ${result.error}</div>`;
@@ -490,13 +514,14 @@ async function loadTiresData() {
     }
 }
 
+
 // Load progress data
 async function loadProgressData() {
     const chartDiv = document.getElementById('progressChart');
     const loadingDiv = document.getElementById('progressLoading');
-    
+
     showLoading(loadingDiv);
-    
+
     try {
         const response = await fetch('/api/race-progress', {
             method: 'POST',
@@ -507,13 +532,13 @@ async function loadProgressData() {
                 drivers: selectedDrivers.map(d => d.code)
             })
         });
-        
+
         const result = await response.json();
-        
+
         if (result.success) {
             // Create race progression chart
             const plotData = result.data;
-            
+
             const layout = {
                 title: 'Race Progression',
                 xaxis: { title: 'Lap Number' },
@@ -523,7 +548,7 @@ async function loadProgressData() {
                 plot_bgcolor: 'rgba(0,0,0,0)',
                 paper_bgcolor: 'rgba(0,0,0,0)'
             };
-            
+
             Plotly.newPlot(chartDiv, plotData, layout, {responsive: true});
         } else {
             chartDiv.innerHTML = `<div class="status-message status-error">Error: ${result.error}</div>`;
@@ -539,9 +564,9 @@ async function loadProgressData() {
 async function loadAnalyticsData() {
     const contentDiv = document.getElementById('analyticsContent');
     const loadingDiv = document.getElementById('analyticsLoading');
-    
+
     showLoading(loadingDiv);
-    
+
     try {
         const response = await fetch('/api/analytics', {
             method: 'POST',
@@ -552,13 +577,13 @@ async function loadAnalyticsData() {
                 drivers: selectedDrivers.map(d => d.code)
             })
         });
-        
+
         const result = await response.json();
-        
+
         if (result.success && result.data.length > 0) {
             // Create metrics display
             let metricsHTML = '<div class="metrics-grid">';
-            
+
             result.data.forEach(driver => {
                 metricsHTML += `
                     <div class="metric-card">
@@ -579,9 +604,9 @@ async function loadAnalyticsData() {
                     </div>
                 `;
             });
-            
+
             metricsHTML += '</div>';
-            
+
             // Add detailed table
             const headers = Object.keys(result.data[0]);
             metricsHTML += `
@@ -592,14 +617,14 @@ async function loadAnalyticsData() {
                             <tr>${headers.map(h => `<th>${h.replace('_', ' ').toUpperCase()}</th>`).join('')}</tr>
                         </thead>
                         <tbody>
-                            ${result.data.map(row => 
+                            ${result.data.map(row =>
                                 `<tr>${headers.map(h => `<td>${row[h]}</td>`).join('')}</tr>`
                             ).join('')}
                         </tbody>
                     </table>
                 </div>
             `;
-            
+
             contentDiv.innerHTML = metricsHTML;
         } else {
             contentDiv.innerHTML = `<div class="status-message status-info">No analytics data available</div>`;
@@ -620,23 +645,22 @@ function hideLoading(loadingDiv) {
     loadingDiv.style.display = 'none';
 }
 
-// Format lap time helper
 // Load Speed Analysis Data
 async function loadSpeedAnalysisData() {
     const contentDiv = document.getElementById('speedContent');
     const loadingDiv = document.getElementById('speedLoading');
-    
+
     showLoading(loadingDiv);
-    
+
     try {
         const response = await fetch('/api/speed-analysis', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ drivers: selectedDrivers.map(d => d.code) })
         });
-        
+
         const result = await response.json();
-        
+
         if (result.success && result.data.length > 0) {
             const headers = Object.keys(result.data[0]);
             const tableHTML = `
@@ -646,7 +670,7 @@ async function loadSpeedAnalysisData() {
                             <tr>${headers.map(h => `<th>${h.replace('_', ' ').toUpperCase()}</th>`).join('')}</tr>
                         </thead>
                         <tbody>
-                            ${result.data.map(row => 
+                            ${result.data.map(row =>
                                 `<tr>${headers.map(h => `<td>${row[h]}</td>`).join('')}</tr>`
                             ).join('')}
                         </tbody>
@@ -668,35 +692,47 @@ async function loadSpeedAnalysisData() {
 async function loadCorneringAnalysisData() {
     const contentDiv = document.getElementById('corneringContent');
     const loadingDiv = document.getElementById('corneringLoading');
-    
+
     showLoading(loadingDiv);
-    
+
     try {
         const response = await fetch('/api/cornering-analysis', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ drivers: selectedDrivers.map(d => d.code) })
         });
-        
+
         const result = await response.json();
-        
+
         if (result.success && result.data.length > 0) {
-            const headers = Object.keys(result.data[0]);
-            const tableHTML = `
-                <div class="table-container">
-                    <table class="data-table">
-                        <thead>
-                            <tr>${headers.map(h => `<th>${h.replace('_', ' ').toUpperCase()}</th>`).join('')}</tr>
-                        </thead>
-                        <tbody>
-                            ${result.data.map(row => 
-                                `<tr>${headers.map(h => `<td>${row[h]}</td>`).join('')}</tr>`
-                            ).join('')}
-                        </tbody>
-                    </table>
-                </div>
-            `;
-            contentDiv.innerHTML = tableHTML;
+            // Create Plotly chart for cornering data
+            const plotData = [{
+                x: result.data.map(d => d.corner_number),
+                y: result.data.map(d => d.speed),
+                mode: 'markers',
+                type: 'scatter',
+                marker: {
+                    color: result.data.map(d => d.g_force),
+                    size: 10,
+                    colorscale: 'Hot',
+                    showscale: true,
+                    colorbar: { title: 'G-Force' }
+                },
+                text: result.data.map(d => `Lap: ${d.lap}, Speed: ${d.speed}, G-Force: ${d.g_force.toFixed(2)}`),
+                hoverinfo: 'text'
+            }];
+
+            const layout = {
+                title: 'Cornering Analysis by Speed and G-Force',
+                xaxis: { title: 'Corner Number' },
+                yaxis: { title: 'Speed (km/h)' },
+                showlegend: false,
+                height: 500,
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                paper_bgcolor: 'rgba(0,0,0,0)'
+            };
+
+            Plotly.newPlot(chartDiv, plotData, layout, {responsive: true});
         } else {
             contentDiv.innerHTML = `<div class="status-message status-info">No cornering analysis data available</div>`;
         }
@@ -707,22 +743,23 @@ async function loadCorneringAnalysisData() {
     }
 }
 
+
 // Load Braking Analysis Data
 async function loadBrakingAnalysisData() {
     const contentDiv = document.getElementById('brakingContent');
     const loadingDiv = document.getElementById('brakingLoading');
-    
+
     showLoading(loadingDiv);
-    
+
     try {
         const response = await fetch('/api/brake-analysis', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ drivers: selectedDrivers.map(d => d.code) })
         });
-        
+
         const result = await response.json();
-        
+
         if (result.success && result.data.length > 0) {
             const headers = Object.keys(result.data[0]);
             const tableHTML = `
@@ -732,7 +769,7 @@ async function loadBrakingAnalysisData() {
                             <tr>${headers.map(h => `<th>${h.replace('_', ' ').toUpperCase()}</th>`).join('')}</tr>
                         </thead>
                         <tbody>
-                            ${result.data.map(row => 
+                            ${result.data.map(row =>
                                 `<tr>${headers.map(h => `<td>${row[h]}</td>`).join('')}</tr>`
                             ).join('')}
                         </tbody>
@@ -754,35 +791,47 @@ async function loadBrakingAnalysisData() {
 async function loadGearAnalysisData() {
     const contentDiv = document.getElementById('gearsContent');
     const loadingDiv = document.getElementById('gearsLoading');
-    
+
     showLoading(loadingDiv);
-    
+
     try {
         const response = await fetch('/api/gear-analysis', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ drivers: selectedDrivers.map(d => d.code) })
         });
-        
+
         const result = await response.json();
-        
+
         if (result.success && result.data.length > 0) {
-            const headers = Object.keys(result.data[0]);
-            const tableHTML = `
-                <div class="table-container">
-                    <table class="data-table">
-                        <thead>
-                            <tr>${headers.map(h => `<th>${h.replace('_', ' ').toUpperCase()}</th>`).join('')}</tr>
-                        </thead>
-                        <tbody>
-                            ${result.data.map(row => 
-                                `<tr>${headers.map(h => `<td>${row[h]}</td>`).join('')}</tr>`
-                            ).join('')}
-                        </tbody>
-                    </table>
-                </div>
-            `;
-            contentDiv.innerHTML = tableHTML;
+            // Create Plotly chart for gear analysis
+            const plotData = [{
+                x: result.data.map(d => d.lap),
+                y: result.data.map(d => d.gear),
+                mode: 'markers',
+                type: 'scatter',
+                marker: {
+                    color: result.data.map(d => d.speed),
+                    size: 8,
+                    colorscale: 'Plasma',
+                    showscale: true,
+                    colorbar: { title: 'Speed (km/h)' }
+                },
+                text: result.data.map(d => `Lap: ${d.lap}, Gear: ${d.gear}, Speed: ${d.speed.toFixed(2)}`),
+                hoverinfo: 'text'
+            }];
+
+            const layout = {
+                title: 'Gear Usage Analysis by Lap and Speed',
+                xaxis: { title: 'Lap Number' },
+                yaxis: { title: 'Gear', dtick: 1, range: [1, 8] },
+                showlegend: false,
+                height: 500,
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                paper_bgcolor: 'rgba(0,0,0,0)'
+            };
+
+            Plotly.newPlot(chartDiv, plotData, layout, {responsive: true});
         } else {
             contentDiv.innerHTML = `<div class="status-message status-info">No gear analysis data available</div>`;
         }
@@ -793,22 +842,23 @@ async function loadGearAnalysisData() {
     }
 }
 
+
 // Load Consistency Analysis Data
 async function loadConsistencyAnalysisData() {
     const contentDiv = document.getElementById('consistencyContent');
     const loadingDiv = document.getElementById('consistencyLoading');
-    
+
     showLoading(loadingDiv);
-    
+
     try {
         const response = await fetch('/api/consistency-analysis', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ drivers: selectedDrivers.map(d => d.code) })
         });
-        
+
         const result = await response.json();
-        
+
         if (result.success && result.data.length > 0) {
             const headers = Object.keys(result.data[0]);
             const tableHTML = `
@@ -818,7 +868,7 @@ async function loadConsistencyAnalysisData() {
                             <tr>${headers.map(h => `<th>${h.replace('_', ' ').toUpperCase()}</th>`).join('')}</tr>
                         </thead>
                         <tbody>
-                            ${result.data.map(row => 
+                            ${result.data.map(row =>
                                 `<tr>${headers.map(h => `<td>${row[h]}</td>`).join('')}</tr>`
                             ).join('')}
                         </tbody>
@@ -840,18 +890,18 @@ async function loadConsistencyAnalysisData() {
 async function loadLapComparisonData() {
     const contentDiv = document.getElementById('compareTable');
     const loadingDiv = document.getElementById('compareLoading');
-    
+
     showLoading(loadingDiv);
-    
+
     try {
         const response = await fetch('/api/lap-comparison', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ drivers: selectedDrivers.map(d => d.code) })
         });
-        
+
         const result = await response.json();
-        
+
         if (result.success && result.data.length > 0) {
             const headers = Object.keys(result.data[0]);
             const tableHTML = `
@@ -860,7 +910,7 @@ async function loadLapComparisonData() {
                         <tr>${headers.map(h => `<th>${h.replace('_', ' ').toUpperCase()}</th>`).join('')}</tr>
                     </thead>
                     <tbody>
-                        ${result.data.map(row => 
+                        ${result.data.map(row =>
                             `<tr>${headers.map(h => `<td>${row[h]}</td>`).join('')}</tr>`
                         ).join('')}
                     </tbody>
@@ -922,18 +972,18 @@ async function loadChampionshipData() {
 async function loadGenericAnalysisData(endpoint, contentId, loadingId) {
     const contentDiv = document.getElementById(contentId);
     const loadingDiv = document.getElementById(loadingId);
-    
+
     showLoading(loadingDiv);
-    
+
     try {
         const response = await fetch(endpoint, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ drivers: selectedDrivers.map(d => d.code) })
         });
-        
+
         const result = await response.json();
-        
+
         if (result.success && result.data.length > 0) {
             const headers = Object.keys(result.data[0]);
             const tableHTML = `
@@ -943,7 +993,7 @@ async function loadGenericAnalysisData(endpoint, contentId, loadingId) {
                             <tr>${headers.map(h => `<th>${h.replace('_', ' ').toUpperCase()}</th>`).join('')}</tr>
                         </thead>
                         <tbody>
-                            ${result.data.map(row => 
+                            ${result.data.map(row =>
                                 `<tr>${headers.map(h => `<td>${row[h]}</td>`).join('')}</tr>`
                             ).join('')}
                         </tbody>

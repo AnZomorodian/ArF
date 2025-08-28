@@ -59,6 +59,21 @@ def create_track_dominance_map(data_loader, drivers, num_minisectors=200, show_t
                 
             telemetry = telemetry_data[driver]
             
+            # Add Distance column if not present
+            if 'Distance' not in telemetry.columns:
+                if hasattr(telemetry, 'add_distance'):
+                    telemetry = telemetry.add_distance()
+                else:
+                    # Calculate distance manually
+                    if 'X' in telemetry.columns and 'Y' in telemetry.columns:
+                        dx = telemetry['X'].diff()
+                        dy = telemetry['Y'].diff()
+                        distance = np.sqrt(dx**2 + dy**2).fillna(0).cumsum()
+                        telemetry['Distance'] = distance
+                    else:
+                        # Fallback: use index as distance
+                        telemetry['Distance'] = np.arange(len(telemetry)) * 10
+            
             if 'X' not in telemetry.columns or 'Y' not in telemetry.columns or 'Speed' not in telemetry.columns:
                 continue
             

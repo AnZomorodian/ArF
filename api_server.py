@@ -79,8 +79,8 @@ async def load_session(request: SessionRequest):
     """Load F1 session data"""
     try:
         success = data_loader.load_session(
-            request.year, 
-            request.grand_prix, 
+            request.year,
+            request.grand_prix,
             request.session_type
         )
 
@@ -283,7 +283,7 @@ async def get_lap_times(request: DriversRequest):
 
                             # Get sector times
                             s1_time = lap['Sector1Time']
-                            s2_time = lap['Sector2Time'] 
+                            s2_time = lap['Sector2Time']
                             s3_time = lap['Sector3Time']
 
                             def format_sector_time(sector_time):
@@ -512,12 +512,13 @@ async def get_speed_analysis(request: DriversRequest):
 
 @app.post("/api/cornering-analysis", response_model=DataResponse)
 async def get_cornering_analysis(request: DriversRequest):
-    """Cornering performance analysis"""
+    """Cornering performance analysis with charts"""
     try:
         if not data_loader.session:
             raise HTTPException(status_code=400, detail="No session loaded")
 
         cornering_data = []
+        chart_data = {}
 
         for driver in request.drivers:
             try:
@@ -538,28 +539,47 @@ async def get_cornering_analysis(request: DriversRequest):
                         # Calculate corner exit acceleration
                         corner_exit_accel = telemetry[corner_mask]['Throttle'].mean()
 
+                        # Calculate cornering G-forces (simplified)
+                        speed_ms = telemetry['Speed'] / 3.6  # Convert to m/s
+                        lateral_g = (speed_ms**2 / 100) / 9.81  # Simplified calculation
+                        max_g_force = lateral_g[corner_mask].max() if not corner_mask.empty else 0
+
+                        # Corner braking analysis
+                        corner_braking = telemetry[corner_mask]['Brake'].mean()
+
                         cornering_data.append({
                             'driver': driver,
                             'avg_corner_speed': f"{avg_corner_speed:.1f} km/h",
                             'min_corner_speed': f"{min_corner_speed:.1f} km/h",
+                            'max_g_force': f"{max_g_force:.2f}g",
                             'corner_count': corner_count,
-                            'avg_corner_throttle': f"{corner_exit_accel:.1f}%"
+                            'avg_corner_throttle': f"{corner_exit_accel:.1f}%",
+                            'avg_corner_braking': f"{corner_braking:.1f}%"
                         })
+
+                        # Chart data for speed through corners
+                        corner_distances = telemetry[corner_mask]['Distance'].tolist()
+                        corner_speed_values = corner_speeds.tolist()
+
+                        if driver not in chart_data:
+                            chart_data[driver] = {}
+
+                        chart_data[driver]['corner_speed_chart'] = {
+                            'x': corner_distances[:50],  # Limit points for performance
+                            'y': corner_speed_values[:50],
+                            'name': f"{driver} Corner Speed",
+                            'type': 'scatter',
+                            'mode': 'lines+markers'
+                        }
 
             except Exception as e:
                 print(f"Error processing cornering analysis for {driver}: {e}")
                 continue
 
-        return DataResponse(
-            success=True,
-            data=cornering_data
-        )
+        return DataResponse(success=True, data={'table_data': cornering_data, 'chart_data': chart_data})
 
     except Exception as e:
-        return DataResponse(
-            success=False,
-            error=str(e)
-        )
+        return DataResponse(success=False, error=str(e))
 
 @app.post("/api/brake-analysis", response_model=DataResponse)
 async def get_brake_analysis(request: DriversRequest):
@@ -614,12 +634,13 @@ async def get_brake_analysis(request: DriversRequest):
 
 @app.post("/api/gear-analysis", response_model=DataResponse)
 async def get_gear_analysis(request: DriversRequest):
-    """Gear usage and shifting analysis"""
+    """Gear usage and shifting analysis with charts"""
     try:
         if not data_loader.session:
             raise HTTPException(status_code=400, detail="No session loaded")
 
         gear_data = []
+        chart_data = {}
 
         for driver in request.drivers:
             try:
@@ -642,28 +663,48 @@ async def get_gear_analysis(request: DriversRequest):
                     # Count gear shifts
                     gear_shifts = (telemetry[gear_column].diff() != 0).sum()
 
+                    # Calculate gear efficiency (time in optimal gears)
+                    optimal_gears = [4, 5, 6, 7, 8]  # Typical optimal gears
+                    optimal_time = telemetry[telemetry[gear_column].isin(optimal_gears)].shape[0]
+                    gear_efficiency = (optimal_time / len(telemetry)) * 100
+
                     gear_data.append({
                         'driver': driver,
                         'max_gear': int(max_gear),
                         'avg_gear': f"{avg_gear:.1f}",
                         'gear_shifts': int(gear_shifts),
-                        'most_used_gear': int(gear_usage.idxmax())
+                        'most_used_gear': int(gear_usage.idxmax()),
+                        'gear_efficiency': f"{gear_efficiency:.1f}%"
                     })
+
+                    # Chart data for gear usage
+                    if driver not in chart_data:
+                        chart_data[driver] = {}
+
+                    chart_data[driver]['gear_usage_chart'] = {
+                        'x': gear_usage.index.tolist(),
+                        'y': gear_usage.values.tolist(),
+                        'name': f"{driver} Gear Usage",
+                        'type': 'bar'
+                    }
+
+                    # Chart data for gear changes over distance
+                    chart_data[driver]['gear_distance_chart'] = {
+                        'x': telemetry['Distance'].tolist()[::10],  # Sample every 10th point
+                        'y': telemetry[gear_column].tolist()[::10],
+                        'name': f"{driver} Gear vs Distance",
+                        'type': 'scatter',
+                        'mode': 'lines'
+                    }
 
             except Exception as e:
                 print(f"Error processing gear analysis for {driver}: {e}")
                 continue
 
-        return DataResponse(
-            success=True,
-            data=gear_data
-        )
+        return DataResponse(success=True, data={'table_data': gear_data, 'chart_data': chart_data})
 
     except Exception as e:
-        return DataResponse(
-            success=False,
-            error=str(e)
-        )
+        return DataResponse(success=False, error=str(e))
 
 @app.post("/api/consistency-analysis", response_model=DataResponse)
 async def get_consistency_analysis(request: DriversRequest):
@@ -1169,7 +1210,7 @@ async def get_tire_degradation(request: DriversRequest):
                     avg_consistency = np.mean(consistency_scores) if consistency_scores else 0
 
                     # Find best compound
-                    best_compound = min(degradation_analysis.keys(), 
+                    best_compound = min(degradation_analysis.keys(),
                                       key=lambda x: degradation_analysis[x]) if degradation_analysis else 'Unknown'
 
                     tire_data.append({
@@ -1377,8 +1418,8 @@ if __name__ == "__main__":
     print("=" * 50)
 
     uvicorn.run(
-        "api_server:app", 
-        host="0.0.0.0", 
+        "api_server:app",
+        host="0.0.0.0",
         port=5000,
         reload=True
     )

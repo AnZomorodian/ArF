@@ -106,10 +106,17 @@ SESSIONS = {
 # Tire compound colors
 TIRE_COLORS = {
     'SOFT': '#DC0000',
-    'MEDIUM': '#FFD700',
+    'MEDIUM': '#FFD700', 
     'HARD': '#FFFFFF',
     'INTERMEDIATE': '#00FF00',
-    'WET': '#0000FF'
+    'WET': '#0000FF',
+    'C1': '#FFFFFF',  # Hard compound
+    'C2': '#FFD700',  # Medium-hard
+    'C3': '#FFD700',  # Medium
+    'C4': '#FF8C00',  # Medium-soft
+    'C5': '#DC0000',  # Soft compound
+    'INTER': '#00FF00',  # Alternative naming
+    'WET_WEATHER': '#0000FF'  # Alternative naming
 }
 
 # Circuit aliases for better display names
