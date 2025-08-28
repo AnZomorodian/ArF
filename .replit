@@ -1,5 +1,5 @@
-modules = ["python-3.11", "nodejs-20", "web"]
-run = "node index.js"
+modules = ["python-3.11"]
+run = "node utils/stress_index.py"
 
 [nix]
 channel = "stable-25_05"
