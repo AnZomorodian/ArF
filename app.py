@@ -357,7 +357,7 @@ def main():
     with col1:
         year = st.selectbox(
             "Season",
-            options=list(range(2024, 2017, -1)),
+            options=list(range(2025, 2017, -1)),
             index=0,
             help="Select F1 season year"
         )

@@ -40,7 +40,7 @@ DRIVER_TEAMS = {
     'BOT': 'Kick Sauber'
 }
 
-# Grand Prix list
+# Grand Prix list (2024-2025 Calendar)
 GRANDS_PRIX = [
     'Australian Grand Prix',
     'Chinese Grand Prix', 
@@ -67,6 +67,30 @@ GRANDS_PRIX = [
     'Qatar Grand Prix',
     'Abu Dhabi Grand Prix'
 ]
+
+# 2025 Season Driver Teams (updated with confirmed driver lineup)
+DRIVER_TEAMS_2025 = {
+    'VER': 'Red Bull Racing',
+    'NOR': 'Red Bull Racing',  # Norris to Red Bull for 2025
+    'LEC': 'Ferrari',
+    'HAM': 'Ferrari',  # Hamilton to Ferrari for 2025
+    'RUS': 'Mercedes',
+    'KIM': 'Mercedes',  # Kimi Antonelli to Mercedes for 2025
+    'PIA': 'McLaren',
+    'SAI': 'McLaren',  # Sainz to McLaren for 2025
+    'ALO': 'Aston Martin',
+    'STR': 'Aston Martin',
+    'GAS': 'Alpine',
+    'OCO': 'Alpine',
+    'MAG': 'Haas',
+    'HUL': 'Haas',
+    'TSU': 'RB',
+    'LAW': 'RB',  # Liam Lawson for 2025
+    'ALB': 'Williams',
+    'COL': 'Williams',  # Franco Colapinto for 2025
+    'ZHO': 'Kick Sauber',
+    'BOT': 'Kick Sauber'
+}
 
 # Session types
 SESSIONS = {
