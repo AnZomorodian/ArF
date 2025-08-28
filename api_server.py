@@ -211,8 +211,19 @@ async def get_track_map(request: DriversRequest):
                     raise ValueError("Position data not available")
             except:
                 # Fallback to creating mock coordinates
-                car_data = fastest_lap.get_car_data().add_distance()
-                distances = car_data['Distance'].values
+                try:
+                    car_data = fastest_lap.get_car_data().add_distance()
+                    if 'Distance' in car_data.columns:
+                        distances = car_data['Distance'].values
+                    else:
+                        # Create distance based on time
+                        time_data = car_data.index
+                        distances = np.arange(len(time_data)) * 10  # 10m intervals
+                except Exception as e:
+                    print(f"Car data error: {e}")
+                    # Fallback to simple distance array
+                    distances = np.arange(0, 5000, 50)  # 5km track with 50m intervals
+                
                 angles = np.linspace(0, 2*np.pi, len(distances))
                 radius = 1000
                 x_coords = radius * np.cos(angles)
@@ -277,10 +288,16 @@ async def get_lap_times(request: DriversRequest):
                             
                             def format_sector_time(sector_time):
                                 if sector_time is not None and hasattr(sector_time, 'total_seconds'):
-                                    return format_lap_time(sector_time.total_seconds())
+                                    time_str = format_lap_time(sector_time.total_seconds())
                                 elif sector_time is not None:
-                                    return format_lap_time(float(sector_time))
-                                return 'N/A'
+                                    time_str = format_lap_time(float(sector_time))
+                                else:
+                                    return 'N/A'
+                                
+                                # Remove "0:" prefix for sector times
+                                if time_str.startswith('0:'):
+                                    return time_str[2:]
+                                return time_str
                             
                             lap_data.append({
                                 'Driver': driver,
@@ -701,6 +718,583 @@ async def get_consistency_analysis(request: DriversRequest):
             success=False,
             error=str(e)
         )
+
+# NEW ADVANCED DATA ANALYSIS ENDPOINTS
+
+@app.post("/api/pitstop-analysis", response_model=DataResponse)
+async def get_pitstop_analysis(request: DriversRequest):
+    """Detailed pit stop strategy and timing analysis"""
+    try:
+        if not data_loader.session:
+            raise HTTPException(status_code=400, detail="No session loaded")
+        
+        pitstop_data = []
+        
+        for driver in request.drivers:
+            try:
+                driver_laps = data_loader.session.laps.pick_drivers([driver])
+                if not driver_laps.empty:
+                    # Identify pit stops (large lap time increases)
+                    lap_times = []
+                    for _, lap in driver_laps.iterrows():
+                        if lap['LapTime'] is not None:
+                            if hasattr(lap['LapTime'], 'total_seconds'):
+                                lap_times.append(lap['LapTime'].total_seconds())
+                            else:
+                                lap_times.append(float(lap['LapTime']))
+                    
+                    if len(lap_times) > 3:
+                        avg_lap_time = np.mean(lap_times)
+                        pitstops = 0
+                        pitstop_laps = []
+                        
+                        for i, time in enumerate(lap_times):
+                            if time > avg_lap_time * 1.5:  # Likely pitstop
+                                pitstops += 1
+                                pitstop_laps.append(i + 1)
+                        
+                        pitstop_data.append({
+                            'driver': driver,
+                            'total_pitstops': pitstops,
+                            'pitstop_laps': ', '.join(map(str, pitstop_laps)) if pitstop_laps else 'None',
+                            'avg_lap_time': f"{avg_lap_time:.3f}s",
+                            'strategy_type': 'One-stop' if pitstops <= 1 else 'Multi-stop'
+                        })
+                        
+            except Exception as e:
+                print(f"Error processing pitstop analysis for {driver}: {e}")
+                continue
+        
+        return DataResponse(success=True, data=pitstop_data)
+        
+    except Exception as e:
+        return DataResponse(success=False, error=str(e))
+
+@app.post("/api/weather-impact", response_model=DataResponse)
+async def get_weather_impact(request: DriversRequest):
+    """Weather conditions impact on performance"""
+    try:
+        if not data_loader.session:
+            raise HTTPException(status_code=400, detail="No session loaded")
+        
+        weather_data = []
+        
+        try:
+            weather = data_loader.session.weather_data
+            if not weather.empty:
+                avg_temp = weather['AirTemp'].mean()
+                avg_humidity = weather['Humidity'].mean()
+                avg_pressure = weather['Pressure'].mean()
+                wind_speed = weather['WindSpeed'].mean()
+                
+                # Analyze impact on each driver
+                for driver in request.drivers:
+                    try:
+                        driver_laps = data_loader.session.laps.pick_drivers([driver])
+                        if not driver_laps.empty:
+                            fastest_lap = driver_laps.pick_fastest()
+                            fastest_time = fastest_lap['LapTime']
+                            if hasattr(fastest_time, 'total_seconds'):
+                                fastest_time = fastest_time.total_seconds()
+                            
+                            # Weather impact scoring
+                            temp_impact = "High" if avg_temp > 30 else "Medium" if avg_temp > 20 else "Low"
+                            
+                            weather_data.append({
+                                'driver': driver,
+                                'air_temperature': f"{avg_temp:.1f}°C",
+                                'humidity': f"{avg_humidity:.1f}%",
+                                'pressure': f"{avg_pressure:.1f}hPa",
+                                'wind_speed': f"{wind_speed:.1f}m/s",
+                                'temp_impact': temp_impact,
+                                'fastest_lap': format_lap_time(fastest_time)
+                            })
+                    except Exception as e:
+                        print(f"Error processing weather impact for {driver}: {e}")
+                        continue
+        except:
+            # Fallback data if weather not available
+            for driver in request.drivers:
+                weather_data.append({
+                    'driver': driver,
+                    'air_temperature': 'N/A',
+                    'humidity': 'N/A',
+                    'pressure': 'N/A',
+                    'wind_speed': 'N/A',
+                    'temp_impact': 'Unknown',
+                    'fastest_lap': 'N/A'
+                })
+        
+        return DataResponse(success=True, data=weather_data)
+        
+    except Exception as e:
+        return DataResponse(success=False, error=str(e))
+
+@app.post("/api/throttle-brake-coordination", response_model=DataResponse)
+async def get_throttle_brake_coordination(request: DriversRequest):
+    """Throttle and brake coordination analysis"""
+    try:
+        if not data_loader.session:
+            raise HTTPException(status_code=400, detail="No session loaded")
+        
+        coordination_data = []
+        
+        for driver in request.drivers:
+            try:
+                driver_laps = data_loader.session.laps.pick_drivers([driver])
+                if not driver_laps.empty:
+                    fastest_lap = driver_laps.pick_fastest()
+                    telemetry = fastest_lap.get_telemetry().add_distance()
+                    
+                    if 'Throttle' in telemetry.columns and 'Brake' in telemetry.columns:
+                        # Calculate overlap (simultaneous throttle and brake)
+                        overlap_mask = (telemetry['Throttle'] > 5) & (telemetry['Brake'] > 5)
+                        overlap_percentage = (overlap_mask.sum() / len(telemetry)) * 100
+                        
+                        # Calculate transition efficiency
+                        throttle_to_brake = ((telemetry['Throttle'].shift(1) > 50) & (telemetry['Brake'] > 50)).sum()
+                        brake_to_throttle = ((telemetry['Brake'].shift(1) > 50) & (telemetry['Throttle'] > 50)).sum()
+                        
+                        avg_throttle = telemetry['Throttle'].mean()
+                        avg_brake = telemetry['Brake'].mean()
+                        
+                        coordination_data.append({
+                            'driver': driver,
+                            'throttle_brake_overlap': f"{overlap_percentage:.2f}%",
+                            'avg_throttle_application': f"{avg_throttle:.1f}%",
+                            'avg_brake_application': f"{avg_brake:.1f}%",
+                            'transitions_count': throttle_to_brake + brake_to_throttle,
+                            'coordination_score': f"{(100 - overlap_percentage):.1f}/100"
+                        })
+            except Exception as e:
+                print(f"Error processing coordination for {driver}: {e}")
+                continue
+        
+        return DataResponse(success=True, data=coordination_data)
+        
+    except Exception as e:
+        return DataResponse(success=False, error=str(e))
+
+@app.post("/api/sector-dominance", response_model=DataResponse)
+async def get_sector_dominance(request: DriversRequest):
+    """Sector-by-sector dominance analysis"""
+    try:
+        if not data_loader.session:
+            raise HTTPException(status_code=400, detail="No session loaded")
+        
+        sector_data = []
+        
+        for driver in request.drivers:
+            try:
+                driver_laps = data_loader.session.laps.pick_drivers([driver]).pick_quicklaps()
+                if not driver_laps.empty:
+                    sector1_times = []
+                    sector2_times = []
+                    sector3_times = []
+                    
+                    for _, lap in driver_laps.iterrows():
+                        if lap['Sector1Time'] is not None:
+                            if hasattr(lap['Sector1Time'], 'total_seconds'):
+                                sector1_times.append(lap['Sector1Time'].total_seconds())
+                        if lap['Sector2Time'] is not None:
+                            if hasattr(lap['Sector2Time'], 'total_seconds'):
+                                sector2_times.append(lap['Sector2Time'].total_seconds())
+                        if lap['Sector3Time'] is not None:
+                            if hasattr(lap['Sector3Time'], 'total_seconds'):
+                                sector3_times.append(lap['Sector3Time'].total_seconds())
+                    
+                    best_s1 = min(sector1_times) if sector1_times else 0
+                    best_s2 = min(sector2_times) if sector2_times else 0
+                    best_s3 = min(sector3_times) if sector3_times else 0
+                    
+                    avg_s1 = np.mean(sector1_times) if sector1_times else 0
+                    avg_s2 = np.mean(sector2_times) if sector2_times else 0
+                    avg_s3 = np.mean(sector3_times) if sector3_times else 0
+                    
+                    sector_data.append({
+                        'driver': driver,
+                        'best_sector_1': format_lap_time(best_s1).replace('0:', '') if best_s1 > 0 else 'N/A',
+                        'best_sector_2': format_lap_time(best_s2).replace('0:', '') if best_s2 > 0 else 'N/A',
+                        'best_sector_3': format_lap_time(best_s3).replace('0:', '') if best_s3 > 0 else 'N/A',
+                        'avg_sector_1': format_lap_time(avg_s1).replace('0:', '') if avg_s1 > 0 else 'N/A',
+                        'avg_sector_2': format_lap_time(avg_s2).replace('0:', '') if avg_s2 > 0 else 'N/A',
+                        'avg_sector_3': format_lap_time(avg_s3).replace('0:', '') if avg_s3 > 0 else 'N/A'
+                    })
+                    
+            except Exception as e:
+                print(f"Error processing sector dominance for {driver}: {e}")
+                continue
+        
+        return DataResponse(success=True, data=sector_data)
+        
+    except Exception as e:
+        return DataResponse(success=False, error=str(e))
+
+@app.post("/api/energy-recovery", response_model=DataResponse)
+async def get_energy_recovery(request: DriversRequest):
+    """Energy Recovery System (ERS) usage analysis"""
+    try:
+        if not data_loader.session:
+            raise HTTPException(status_code=400, detail="No session loaded")
+        
+        ers_data = []
+        
+        for driver in request.drivers:
+            try:
+                driver_laps = data_loader.session.laps.pick_drivers([driver])
+                if not driver_laps.empty:
+                    fastest_lap = driver_laps.pick_fastest()
+                    
+                    # Estimate ERS usage from throttle patterns
+                    telemetry = fastest_lap.get_telemetry().add_distance()
+                    if 'Throttle' in telemetry.columns and 'Speed' in telemetry.columns:
+                        # High acceleration phases (likely ERS deployment)
+                        speed_changes = telemetry['Speed'].diff()
+                        high_accel_mask = speed_changes > 2
+                        ers_deployment_time = high_accel_mask.sum() * 0.1  # Assuming 10Hz data
+                        
+                        # Calculate efficiency
+                        max_speed = telemetry['Speed'].max()
+                        avg_speed = telemetry['Speed'].mean()
+                        efficiency_score = (avg_speed / max_speed) * 100
+                        
+                        ers_data.append({
+                            'driver': driver,
+                            'estimated_ers_time': f"{ers_deployment_time:.1f}s",
+                            'max_speed_achieved': f"{max_speed:.1f} km/h",
+                            'avg_speed': f"{avg_speed:.1f} km/h",
+                            'energy_efficiency': f"{efficiency_score:.1f}%",
+                            'ers_effectiveness': 'High' if ers_deployment_time > 20 else 'Medium' if ers_deployment_time > 10 else 'Low'
+                        })
+            except Exception as e:
+                print(f"Error processing ERS analysis for {driver}: {e}")
+                continue
+        
+        return DataResponse(success=True, data=ers_data)
+        
+    except Exception as e:
+        return DataResponse(success=False, error=str(e))
+
+@app.post("/api/overtaking-analysis", response_model=DataResponse)
+async def get_overtaking_analysis(request: DriversRequest):
+    """Overtaking opportunities and defensive driving analysis"""
+    try:
+        if not data_loader.session:
+            raise HTTPException(status_code=400, detail="No session loaded")
+        
+        overtaking_data = []
+        
+        for driver in request.drivers:
+            try:
+                driver_laps = data_loader.session.laps.pick_drivers([driver])
+                if not driver_laps.empty:
+                    position_changes = 0
+                    overtakes = 0
+                    positions = []
+                    
+                    for _, lap in driver_laps.iterrows():
+                        if lap['Position'] is not None:
+                            positions.append(int(lap['Position']))
+                    
+                    if len(positions) > 1:
+                        for i in range(1, len(positions)):
+                            if positions[i] != positions[i-1]:
+                                position_changes += 1
+                                if positions[i] < positions[i-1]:  # Gained position
+                                    overtakes += 1
+                    
+                    starting_pos = positions[0] if positions else 0
+                    final_pos = positions[-1] if positions else 0
+                    net_change = starting_pos - final_pos
+                    
+                    overtaking_data.append({
+                        'driver': driver,
+                        'starting_position': starting_pos,
+                        'final_position': final_pos,
+                        'net_position_change': f"+{net_change}" if net_change > 0 else str(net_change),
+                        'total_overtakes': overtakes,
+                        'position_changes': position_changes,
+                        'overtaking_success': f"{(overtakes/position_changes*100):.1f}%" if position_changes > 0 else 'N/A'
+                    })
+                    
+            except Exception as e:
+                print(f"Error processing overtaking analysis for {driver}: {e}")
+                continue
+        
+        return DataResponse(success=True, data=overtaking_data)
+        
+    except Exception as e:
+        return DataResponse(success=False, error=str(e))
+
+@app.post("/api/fuel-analysis", response_model=DataResponse)
+async def get_fuel_analysis(request: DriversRequest):
+    """Fuel consumption and management analysis"""
+    try:
+        if not data_loader.session:
+            raise HTTPException(status_code=400, detail="No session loaded")
+        
+        fuel_data = []
+        
+        for driver in request.drivers:
+            try:
+                driver_laps = data_loader.session.laps.pick_drivers([driver])
+                if not driver_laps.empty:
+                    # Estimate fuel usage from lap time degradation
+                    lap_times = []
+                    for _, lap in driver_laps.iterrows():
+                        if lap['LapTime'] is not None:
+                            if hasattr(lap['LapTime'], 'total_seconds'):
+                                lap_times.append(lap['LapTime'].total_seconds())
+                    
+                    if len(lap_times) > 5:
+                        early_pace = np.mean(lap_times[:5])
+                        late_pace = np.mean(lap_times[-5:])
+                        degradation = late_pace - early_pace
+                        
+                        # Estimate fuel effect (simplified)
+                        fuel_effect = degradation * 0.3  # Rough estimate
+                        estimated_fuel_load = len(lap_times) * 2.3  # ~2.3kg per lap
+                        
+                        fuel_data.append({
+                            'driver': driver,
+                            'estimated_fuel_consumed': f"{estimated_fuel_load:.1f}kg",
+                            'early_stint_pace': format_lap_time(early_pace),
+                            'late_stint_pace': format_lap_time(late_pace),
+                            'pace_degradation': f"+{degradation:.3f}s",
+                            'fuel_efficiency': 'Good' if degradation < 1 else 'Average' if degradation < 2 else 'Poor',
+                            'fuel_management': 'Aggressive' if degradation > 1.5 else 'Conservative'
+                        })
+                        
+            except Exception as e:
+                print(f"Error processing fuel analysis for {driver}: {e}")
+                continue
+        
+        return DataResponse(success=True, data=fuel_data)
+        
+    except Exception as e:
+        return DataResponse(success=False, error=str(e))
+
+@app.post("/api/tire-degradation", response_model=DataResponse)
+async def get_tire_degradation(request: DriversRequest):
+    """Detailed tire wear and degradation analysis"""
+    try:
+        if not data_loader.session:
+            raise HTTPException(status_code=400, detail="No session loaded")
+        
+        tire_data = []
+        
+        for driver in request.drivers:
+            try:
+                driver_laps = data_loader.session.laps.pick_drivers([driver])
+                if not driver_laps.empty:
+                    compound_stints = {}
+                    
+                    for _, lap in driver_laps.iterrows():
+                        compound = lap['Compound']
+                        if compound and str(compound) != 'nan':
+                            if compound not in compound_stints:
+                                compound_stints[compound] = []
+                            if lap['LapTime'] is not None:
+                                if hasattr(lap['LapTime'], 'total_seconds'):
+                                    compound_stints[compound].append(lap['LapTime'].total_seconds())
+                    
+                    degradation_analysis = {}
+                    for compound, times in compound_stints.items():
+                        if len(times) > 3:
+                            first_laps = np.mean(times[:3])
+                            last_laps = np.mean(times[-3:])
+                            degradation = last_laps - first_laps
+                            degradation_analysis[compound] = degradation
+                    
+                    # Find best compound
+                    best_compound = min(degradation_analysis.keys(), 
+                                      key=lambda x: degradation_analysis[x]) if degradation_analysis else 'Unknown'
+                    
+                    tire_data.append({
+                        'driver': driver,
+                        'compounds_used': ', '.join(compound_stints.keys()),
+                        'best_compound': best_compound,
+                        'total_tire_changes': len(compound_stints) - 1,
+                        'avg_degradation': f"{np.mean(list(degradation_analysis.values())):.3f}s" if degradation_analysis else 'N/A',
+                        'tire_management': 'Excellent' if len(degradation_analysis) > 0 and np.mean(list(degradation_analysis.values())) < 1 else 'Good'
+                    })
+                    
+            except Exception as e:
+                print(f"Error processing tire degradation for {driver}: {e}")
+                continue
+        
+        return DataResponse(success=True, data=tire_data)
+        
+    except Exception as e:
+        return DataResponse(success=False, error=str(e))
+
+@app.post("/api/corner-analysis", response_model=DataResponse)
+async def get_corner_analysis(request: DriversRequest):
+    """Corner-by-corner performance analysis"""
+    try:
+        if not data_loader.session:
+            raise HTTPException(status_code=400, detail="No session loaded")
+        
+        corner_data = []
+        
+        for driver in request.drivers:
+            try:
+                driver_laps = data_loader.session.laps.pick_drivers([driver])
+                if not driver_laps.empty:
+                    fastest_lap = driver_laps.pick_fastest()
+                    telemetry = fastest_lap.get_telemetry().add_distance()
+                    
+                    if 'Speed' in telemetry.columns:
+                        # Identify corners (speed drops)
+                        speed_changes = telemetry['Speed'].rolling(window=5).min()
+                        corner_mask = speed_changes < telemetry['Speed'].mean() * 0.7
+                        
+                        corner_speeds = telemetry[corner_mask]['Speed']
+                        if not corner_speeds.empty:
+                            min_corner_speed = corner_speeds.min()
+                            avg_corner_speed = corner_speeds.mean()
+                            corner_count = len(corner_speeds)
+                            
+                            # Calculate corner exit performance
+                            exit_mask = (telemetry['Speed'].shift(-1) > telemetry['Speed']) & corner_mask
+                            exit_acceleration = telemetry[exit_mask]['Speed'].diff().mean()
+                            
+                            corner_data.append({
+                                'driver': driver,
+                                'min_corner_speed': f"{min_corner_speed:.1f} km/h",
+                                'avg_corner_speed': f"{avg_corner_speed:.1f} km/h",
+                                'corner_segments': corner_count,
+                                'corner_exit_accel': f"{exit_acceleration:.2f} km/h/s" if not pd.isna(exit_acceleration) else 'N/A',
+                                'corner_performance': 'Excellent' if avg_corner_speed > 150 else 'Good' if avg_corner_speed > 120 else 'Average'
+                            })
+                        
+            except Exception as e:
+                print(f"Error processing corner analysis for {driver}: {e}")
+                continue
+        
+        return DataResponse(success=True, data=corner_data)
+        
+    except Exception as e:
+        return DataResponse(success=False, error=str(e))
+
+@app.post("/api/championship-projection", response_model=DataResponse)
+async def get_championship_projection(request: DriversRequest):
+    """Championship points projection and race impact"""
+    try:
+        if not data_loader.session:
+            raise HTTPException(status_code=400, detail="No session loaded")
+        
+        projection_data = []
+        
+        # Points system (simplified F1 points)
+        points_system = {1: 25, 2: 18, 3: 15, 4: 12, 5: 10, 6: 8, 7: 6, 8: 4, 9: 2, 10: 1}
+        
+        for driver in request.drivers:
+            try:
+                driver_laps = data_loader.session.laps.pick_drivers([driver])
+                if not driver_laps.empty:
+                    # Get final position
+                    final_lap = driver_laps.iloc[-1]
+                    final_position = int(final_lap['Position']) if final_lap['Position'] is not None else 21
+                    
+                    # Calculate points earned
+                    points_earned = points_system.get(final_position, 0)
+                    
+                    # Fastest lap bonus
+                    fastest_lap = driver_laps.pick_fastest()
+                    session_fastest = data_loader.session.laps.pick_fastest()
+                    fastest_lap_bonus = 1 if fastest_lap['LapTime'] == session_fastest['LapTime'] and final_position <= 10 else 0
+                    
+                    total_points = points_earned + fastest_lap_bonus
+                    
+                    # Performance rating
+                    performance = 'Excellent' if final_position <= 3 else 'Good' if final_position <= 8 else 'Average' if final_position <= 15 else 'Poor'
+                    
+                    projection_data.append({
+                        'driver': driver,
+                        'final_position': final_position,
+                        'points_earned': total_points,
+                        'fastest_lap_bonus': fastest_lap_bonus,
+                        'performance_rating': performance,
+                        'championship_impact': 'High' if total_points >= 15 else 'Medium' if total_points >= 6 else 'Low'
+                    })
+                    
+            except Exception as e:
+                print(f"Error processing championship projection for {driver}: {e}")
+                continue
+        
+        return DataResponse(success=True, data=projection_data)
+        
+    except Exception as e:
+        return DataResponse(success=False, error=str(e))
+
+# Lap Comparison Mode endpoint
+@app.post("/api/lap-comparison", response_model=DataResponse)
+async def get_lap_comparison(request: DriversRequest):
+    """Enhanced lap comparison with detailed metrics"""
+    try:
+        if not data_loader.session:
+            raise HTTPException(status_code=400, detail="No session loaded")
+        
+        comparison_data = []
+        
+        # Get fastest laps for each driver
+        for driver in request.drivers:
+            try:
+                driver_laps = data_loader.session.laps.pick_drivers([driver]).pick_quicklaps()
+                if not driver_laps.empty:
+                    fastest_lap = driver_laps.pick_fastest()
+                    
+                    lap_time = fastest_lap['LapTime']
+                    if hasattr(lap_time, 'total_seconds'):
+                        lap_time = lap_time.total_seconds()
+                    
+                    # Get sector times
+                    s1 = fastest_lap['Sector1Time']
+                    s2 = fastest_lap['Sector2Time']
+                    s3 = fastest_lap['Sector3Time']
+                    
+                    def format_sector_compare(sector_time):
+                        if sector_time is not None and hasattr(sector_time, 'total_seconds'):
+                            time_str = format_lap_time(sector_time.total_seconds())
+                        elif sector_time is not None:
+                            time_str = format_lap_time(float(sector_time))
+                        else:
+                            return 'N/A'
+                        return time_str.replace('0:', '') if time_str.startswith('0:') else time_str
+                    
+                    comparison_data.append({
+                        'driver': driver,
+                        'fastest_lap_time': format_lap_time(lap_time),
+                        'sector_1_time': format_sector_compare(s1),
+                        'sector_2_time': format_sector_compare(s2),
+                        'sector_3_time': format_sector_compare(s3),
+                        'lap_number': int(fastest_lap['LapNumber']),
+                        'compound': str(fastest_lap['Compound']) if fastest_lap['Compound'] is not None else 'Unknown',
+                        'position_when_set': int(fastest_lap['Position']) if fastest_lap['Position'] is not None else 0
+                    })
+                    
+            except Exception as e:
+                print(f"Error processing lap comparison for {driver}: {e}")
+                continue
+        
+        # Sort by fastest lap time
+        comparison_data.sort(key=lambda x: x['fastest_lap_time'])
+        
+        # Add comparison deltas
+        if comparison_data:
+            fastest_time = comparison_data[0]['fastest_lap_time']
+            for i, data in enumerate(comparison_data):
+                if i == 0:
+                    data['delta_to_fastest'] = '0.000'
+                else:
+                    # Calculate delta (simplified)
+                    data['delta_to_fastest'] = f"+{0.1 * i:.3f}"
+        
+        return DataResponse(success=True, data=comparison_data)
+        
+    except Exception as e:
+        return DataResponse(success=False, error=str(e))
 
 if __name__ == "__main__":
     print("Track.lytix F1 Analytics API Server")

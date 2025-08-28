@@ -96,6 +96,7 @@
                 <button class="tab-button active" data-tab="telemetry">📈 Telemetry</button>
                 <button class="tab-button" data-tab="trackmap">🗺️ Track Map</button>
                 <button class="tab-button" data-tab="laptimes">⏱️ All Laps & Sectors</button>
+                <button class="tab-button" data-tab="compare">🏁 Lap Compare</button>
                 <button class="tab-button" data-tab="tires">🔧 Tire Strategy</button>
                 <button class="tab-button" data-tab="progress">📊 Race Progress</button>
                 <button class="tab-button" data-tab="analytics">🧠 Performance</button>
@@ -104,6 +105,16 @@
                 <button class="tab-button" data-tab="braking">🛑 Braking</button>
                 <button class="tab-button" data-tab="gears">⚙️ Gear Analysis</button>
                 <button class="tab-button" data-tab="consistency">📊 Consistency</button>
+                <button class="tab-button" data-tab="pitstop">🏃 Pit Stops</button>
+                <button class="tab-button" data-tab="weather">🌤️ Weather Impact</button>
+                <button class="tab-button" data-tab="coordination">🤝 Coordination</button>
+                <button class="tab-button" data-tab="sectors">🎯 Sector Dominance</button>
+                <button class="tab-button" data-tab="ers">⚡ ERS Analysis</button>
+                <button class="tab-button" data-tab="overtaking">🏎️ Overtaking</button>
+                <button class="tab-button" data-tab="fuel">⛽ Fuel Analysis</button>
+                <button class="tab-button" data-tab="tiredeg">🔄 Tire Degradation</button>
+                <button class="tab-button" data-tab="corners">🏁 Corner Analysis</button>
+                <button class="tab-button" data-tab="championship">🏆 Championship</button>
             </div>
 
             <!-- Tab Content -->
@@ -150,6 +161,18 @@
                         <div id="laptimesLoading" class="loading" style="display: none;">
                             <div class="spinner"></div>
                             <p>Analyzing all laps and sectors...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lap Compare Mode Tab -->
+                <div id="compare" class="tab-pane">
+                    <div class="card">
+                        <h3 class="card-title">🏁 Fastest Lap Comparison</h3>
+                        <div id="compareTable" class="table-container"></div>
+                        <div id="compareLoading" class="loading" style="display: none;">
+                            <div class="spinner"></div>
+                            <p>Comparing fastest laps...</p>
                         </div>
                     </div>
                 </div>
@@ -246,6 +269,126 @@
                         <div id="consistencyLoading" class="loading" style="display: none;">
                             <div class="spinner"></div>
                             <p>Analyzing lap consistency...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pit Stop Analysis Tab -->
+                <div id="pitstop" class="tab-pane">
+                    <div class="card">
+                        <h3 class="card-title">🏃 Pit Stop Analysis</h3>
+                        <div id="pitstopContent" class="analytics-content"></div>
+                        <div id="pitstopLoading" class="loading" style="display: none;">
+                            <div class="spinner"></div>
+                            <p>Analyzing pit stop strategy...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Weather Impact Tab -->
+                <div id="weather" class="tab-pane">
+                    <div class="card">
+                        <h3 class="card-title">🌤️ Weather Impact Analysis</h3>
+                        <div id="weatherContent" class="analytics-content"></div>
+                        <div id="weatherLoading" class="loading" style="display: none;">
+                            <div class="spinner"></div>
+                            <p>Analyzing weather conditions...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Throttle-Brake Coordination Tab -->
+                <div id="coordination" class="tab-pane">
+                    <div class="card">
+                        <h3 class="card-title">🤝 Throttle-Brake Coordination</h3>
+                        <div id="coordinationContent" class="analytics-content"></div>
+                        <div id="coordinationLoading" class="loading" style="display: none;">
+                            <div class="spinner"></div>
+                            <p>Analyzing driving coordination...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sector Dominance Tab -->
+                <div id="sectors" class="tab-pane">
+                    <div class="card">
+                        <h3 class="card-title">🎯 Sector Dominance Analysis</h3>
+                        <div id="sectorsContent" class="analytics-content"></div>
+                        <div id="sectorsLoading" class="loading" style="display: none;">
+                            <div class="spinner"></div>
+                            <p>Analyzing sector performance...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ERS Analysis Tab -->
+                <div id="ers" class="tab-pane">
+                    <div class="card">
+                        <h3 class="card-title">⚡ Energy Recovery System</h3>
+                        <div id="ersContent" class="analytics-content"></div>
+                        <div id="ersLoading" class="loading" style="display: none;">
+                            <div class="spinner"></div>
+                            <p>Analyzing ERS deployment...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Overtaking Analysis Tab -->
+                <div id="overtaking" class="tab-pane">
+                    <div class="card">
+                        <h3 class="card-title">🏎️ Overtaking Analysis</h3>
+                        <div id="overtakingContent" class="analytics-content"></div>
+                        <div id="overtakingLoading" class="loading" style="display: none;">
+                            <div class="spinner"></div>
+                            <p>Analyzing overtaking moves...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fuel Analysis Tab -->
+                <div id="fuel" class="tab-pane">
+                    <div class="card">
+                        <h3 class="card-title">⛽ Fuel Usage Analysis</h3>
+                        <div id="fuelContent" class="analytics-content"></div>
+                        <div id="fuelLoading" class="loading" style="display: none;">
+                            <div class="spinner"></div>
+                            <p>Analyzing fuel consumption...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tire Degradation Tab -->
+                <div id="tiredeg" class="tab-pane">
+                    <div class="card">
+                        <h3 class="card-title">🔄 Tire Degradation Analysis</h3>
+                        <div id="tiredegContent" class="analytics-content"></div>
+                        <div id="tiredegLoading" class="loading" style="display: none;">
+                            <div class="spinner"></div>
+                            <p>Analyzing tire wear patterns...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Corner Analysis Tab -->
+                <div id="corners" class="tab-pane">
+                    <div class="card">
+                        <h3 class="card-title">🏁 Corner-by-Corner Analysis</h3>
+                        <div id="cornersContent" class="analytics-content"></div>
+                        <div id="cornersLoading" class="loading" style="display: none;">
+                            <div class="spinner"></div>
+                            <p>Analyzing corner performance...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Championship Tab -->
+                <div id="championship" class="tab-pane">
+                    <div class="card">
+                        <h3 class="card-title">🏆 Championship Impact</h3>
+                        <div id="championshipContent" class="analytics-content"></div>
+                        <div id="championshipLoading" class="loading" style="display: none;">
+                            <div class="spinner"></div>
+                            <p>Calculating championship points...</p>
                         </div>
                     </div>
                 </div>

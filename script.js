@@ -249,6 +249,39 @@ function loadTabData(tabId) {
         case 'consistency':
             loadConsistencyAnalysisData();
             break;
+        case 'compare':
+            loadLapComparisonData();
+            break;
+        case 'pitstop':
+            loadPitstopAnalysisData();
+            break;
+        case 'weather':
+            loadWeatherImpactData();
+            break;
+        case 'coordination':
+            loadCoordinationData();
+            break;
+        case 'sectors':
+            loadSectorDominanceData();
+            break;
+        case 'ers':
+            loadErsData();
+            break;
+        case 'overtaking':
+            loadOvertakingData();
+            break;
+        case 'fuel':
+            loadFuelData();
+            break;
+        case 'tiredeg':
+            loadTireDegradationData();
+            break;
+        case 'corners':
+            loadCornerData();
+            break;
+        case 'championship':
+            loadChampionshipData();
+            break;
     }
 }
 
@@ -795,6 +828,131 @@ async function loadConsistencyAnalysisData() {
             contentDiv.innerHTML = tableHTML;
         } else {
             contentDiv.innerHTML = `<div class="status-message status-info">No consistency analysis data available</div>`;
+        }
+    } catch (error) {
+        contentDiv.innerHTML = `<div class="status-message status-error">Error: ${error.message}</div>`;
+    } finally {
+        hideLoading(loadingDiv);
+    }
+}
+
+// Load Lap Comparison Data
+async function loadLapComparisonData() {
+    const contentDiv = document.getElementById('compareTable');
+    const loadingDiv = document.getElementById('compareLoading');
+    
+    showLoading(loadingDiv);
+    
+    try {
+        const response = await fetch('/api/lap-comparison', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ drivers: selectedDrivers.map(d => d.code) })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success && result.data.length > 0) {
+            const headers = Object.keys(result.data[0]);
+            const tableHTML = `
+                <table class="data-table">
+                    <thead>
+                        <tr>${headers.map(h => `<th>${h.replace('_', ' ').toUpperCase()}</th>`).join('')}</tr>
+                    </thead>
+                    <tbody>
+                        ${result.data.map(row => 
+                            `<tr>${headers.map(h => `<td>${row[h]}</td>`).join('')}</tr>`
+                        ).join('')}
+                    </tbody>
+                </table>
+            `;
+            contentDiv.innerHTML = tableHTML;
+        } else {
+            contentDiv.innerHTML = `<div class="status-message status-info">No comparison data available</div>`;
+        }
+    } catch (error) {
+        contentDiv.innerHTML = `<div class="status-message status-error">Error: ${error.message}</div>`;
+    } finally {
+        hideLoading(loadingDiv);
+    }
+}
+
+// Load all the new advanced analysis data
+async function loadPitstopAnalysisData() {
+    await loadGenericAnalysisData('/api/pitstop-analysis', 'pitstopContent', 'pitstopLoading');
+}
+
+async function loadWeatherImpactData() {
+    await loadGenericAnalysisData('/api/weather-impact', 'weatherContent', 'weatherLoading');
+}
+
+async function loadCoordinationData() {
+    await loadGenericAnalysisData('/api/throttle-brake-coordination', 'coordinationContent', 'coordinationLoading');
+}
+
+async function loadSectorDominanceData() {
+    await loadGenericAnalysisData('/api/sector-dominance', 'sectorsContent', 'sectorsLoading');
+}
+
+async function loadErsData() {
+    await loadGenericAnalysisData('/api/energy-recovery', 'ersContent', 'ersLoading');
+}
+
+async function loadOvertakingData() {
+    await loadGenericAnalysisData('/api/overtaking-analysis', 'overtakingContent', 'overtakingLoading');
+}
+
+async function loadFuelData() {
+    await loadGenericAnalysisData('/api/fuel-analysis', 'fuelContent', 'fuelLoading');
+}
+
+async function loadTireDegradationData() {
+    await loadGenericAnalysisData('/api/tire-degradation', 'tiredegContent', 'tiredegLoading');
+}
+
+async function loadCornerData() {
+    await loadGenericAnalysisData('/api/corner-analysis', 'cornersContent', 'cornersLoading');
+}
+
+async function loadChampionshipData() {
+    await loadGenericAnalysisData('/api/championship-projection', 'championshipContent', 'championshipLoading');
+}
+
+// Generic function to load analysis data
+async function loadGenericAnalysisData(endpoint, contentId, loadingId) {
+    const contentDiv = document.getElementById(contentId);
+    const loadingDiv = document.getElementById(loadingId);
+    
+    showLoading(loadingDiv);
+    
+    try {
+        const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ drivers: selectedDrivers.map(d => d.code) })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success && result.data.length > 0) {
+            const headers = Object.keys(result.data[0]);
+            const tableHTML = `
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>${headers.map(h => `<th>${h.replace('_', ' ').toUpperCase()}</th>`).join('')}</tr>
+                        </thead>
+                        <tbody>
+                            ${result.data.map(row => 
+                                `<tr>${headers.map(h => `<td>${row[h]}</td>`).join('')}</tr>`
+                            ).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            contentDiv.innerHTML = tableHTML;
+        } else {
+            contentDiv.innerHTML = `<div class="status-message status-info">No analysis data available</div>`;
         }
     } catch (error) {
         contentDiv.innerHTML = `<div class="status-message status-error">Error: ${error.message}</div>`;
