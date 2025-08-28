@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Track.lytix - F1 Analytics Platform</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1 class="header-title">🏎️ Track.lytix</h1>
+                <p class="header-subtitle">Professional Formula 1 Data Analysis Platform</p>
+            </div>
+        </header>
+
+        <!-- Session Configuration -->
+        <section class="session-config card">
+            <h2 class="section-title">📊 Session Configuration</h2>
+            <div class="config-grid">
+                <div class="form-group">
+                    <label for="year">Season</label>
+                    <select id="year" class="form-control">
+                        <option value="2024">2024</option>
+                        <option value="2023">2023</option>
+                        <option value="2022">2022</option>
+                        <option value="2021">2021</option>
+                        <option value="2020">2020</option>
+                        <option value="2019">2019</option>
+                        <option value="2018">2018</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="grandprix">Grand Prix</label>
+                    <select id="grandprix" class="form-control">
+                        <option value="Australian Grand Prix">Australian Grand Prix</option>
+                        <option value="Chinese Grand Prix">Chinese Grand Prix</option>
+                        <option value="Japanese Grand Prix">Japanese Grand Prix</option>
+                        <option value="Bahrain Grand Prix">Bahrain Grand Prix</option>
+                        <option value="Saudi Arabian Grand Prix">Saudi Arabian Grand Prix</option>
+                        <option value="Miami Grand Prix">Miami Grand Prix</option>
+                        <option value="Emilia Romagna Grand Prix">Emilia Romagna Grand Prix</option>
+                        <option value="Monaco Grand Prix">Monaco Grand Prix</option>
+                        <option value="Spanish Grand Prix">Spanish Grand Prix</option>
+                        <option value="Canadian Grand Prix">Canadian Grand Prix</option>
+                        <option value="Austrian Grand Prix">Austrian Grand Prix</option>
+                        <option value="British Grand Prix">British Grand Prix</option>
+                        <option value="Belgian Grand Prix">Belgian Grand Prix</option>
+                        <option value="Hungarian Grand Prix">Hungarian Grand Prix</option>
+                        <option value="Dutch Grand Prix">Dutch Grand Prix</option>
+                        <option value="Italian Grand Prix">Italian Grand Prix</option>
+                        <option value="Azerbaijan Grand Prix">Azerbaijan Grand Prix</option>
+                        <option value="Singapore Grand Prix">Singapore Grand Prix</option>
+                        <option value="United States Grand Prix">United States Grand Prix</option>
+                        <option value="Mexico City Grand Prix">Mexico City Grand Prix</option>
+                        <option value="São Paulo Grand Prix">São Paulo Grand Prix</option>
+                        <option value="Las Vegas Grand Prix">Las Vegas Grand Prix</option>
+                        <option value="Qatar Grand Prix">Qatar Grand Prix</option>
+                        <option value="Abu Dhabi Grand Prix">Abu Dhabi Grand Prix</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="session">Session</label>
+                    <select id="session" class="form-control">
+                        <option value="Practice 1">Practice 1</option>
+                        <option value="Practice 2">Practice 2</option>
+                        <option value="Practice 3">Practice 3</option>
+                        <option value="Qualifying" selected>Qualifying</option>
+                        <option value="Sprint">Sprint</option>
+                        <option value="Sprint Qualifying">Sprint Qualifying</option>
+                        <option value="Race">Race</option>
+                    </select>
+                </div>
+            </div>
+            <button id="loadSession" class="btn btn-primary">🔄 Load Session Data</button>
+            <div id="sessionStatus" class="status-message"></div>
+        </section>
+
+        <!-- Driver Selection -->
+        <section id="driverSection" class="driver-selection card" style="display: none;">
+            <h2 class="section-title">🏁 Driver Selection</h2>
+            <p class="section-description">Choose drivers for analysis</p>
+            <div id="driverGrid" class="driver-grid"></div>
+            <div id="selectedDrivers" class="selected-drivers"></div>
+        </section>
+
+        <!-- Analysis Tabs -->
+        <section id="analysisSection" class="analysis-section" style="display: none;">
+            <div class="tabs">
+                <button class="tab-button active" data-tab="telemetry">📈 Telemetry</button>
+                <button class="tab-button" data-tab="trackmap">🗺️ Track Map</button>
+                <button class="tab-button" data-tab="laptimes">⏱️ Lap Times</button>
+                <button class="tab-button" data-tab="tires">🔧 Tire Strategy</button>
+                <button class="tab-button" data-tab="progress">📊 Race Progress</button>
+                <button class="tab-button" data-tab="analytics">🧠 Analytics</button>
+            </div>
+
+            <!-- Tab Content -->
+            <div class="tab-content">
+                <!-- Telemetry Tab -->
+                <div id="telemetry" class="tab-pane active">
+                    <div class="card">
+                        <h3 class="card-title">📈 Telemetry Analysis</h3>
+                        <div class="form-group">
+                            <label for="telemetryType">Telemetry Parameter</label>
+                            <select id="telemetryType" class="form-control">
+                                <option value="speed">Speed</option>
+                                <option value="throttle">Throttle</option>
+                                <option value="brake">Brake</option>
+                                <option value="rpm">RPM</option>
+                                <option value="gear">Gear</option>
+                            </select>
+                        </div>
+                        <div id="telemetryChart" class="chart-container"></div>
+                        <div id="telemetryLoading" class="loading" style="display: none;">
+                            <div class="spinner"></div>
+                            <p>Generating telemetry visualization...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Track Map Tab -->
+                <div id="trackmap" class="tab-pane">
+                    <div class="card">
+                        <h3 class="card-title">🗺️ Track Dominance Map</h3>
+                        <div id="trackmapChart" class="chart-container"></div>
+                        <div id="trackmapLoading" class="loading" style="display: none;">
+                            <div class="spinner"></div>
+                            <p>Creating track dominance map...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lap Times Tab -->
+                <div id="laptimes" class="tab-pane">
+                    <div class="card">
+                        <h3 class="card-title">⏱️ Lap Time Comparison</h3>
+                        <div id="laptimesTable" class="table-container"></div>
+                        <div id="laptimesLoading" class="loading" style="display: none;">
+                            <div class="spinner"></div>
+                            <p>Analyzing lap times...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tire Strategy Tab -->
+                <div id="tires" class="tab-pane">
+                    <div class="card">
+                        <h3 class="card-title">🔧 Tire Strategy Analysis</h3>
+                        <div id="tiresChart" class="chart-container"></div>
+                        <div id="tiresLoading" class="loading" style="display: none;">
+                            <div class="spinner"></div>
+                            <p>Analyzing tire strategy...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Race Progress Tab -->
+                <div id="progress" class="tab-pane">
+                    <div class="card">
+                        <h3 class="card-title">📊 Race Progression</h3>
+                        <div id="progressChart" class="chart-container"></div>
+                        <div id="progressLoading" class="loading" style="display: none;">
+                            <div class="spinner"></div>
+                            <p>Creating race progression chart...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Analytics Tab -->
+                <div id="analytics" class="tab-pane">
+                    <div class="card">
+                        <h3 class="card-title">🧠 Advanced Analytics</h3>
+                        <div id="analyticsContent" class="analytics-content"></div>
+                        <div id="analyticsLoading" class="loading" style="display: none;">
+                            <div class="spinner"></div>
+                            <p>Computing advanced analytics...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,7 +1,7 @@
 # Track.lytix - F1 Data Analysis Platform
 
 ## Overview
-Track.lytix is a comprehensive Formula 1 data analysis platform that provides advanced race data visualization and analytics. It leverages the FastF1 library to access official F1 timing data and creates interactive visualizations. The platform offers capabilities such as telemetry analysis, race progression tracking, tire strategy visualization, track dominance mapping, advanced driver performance analytics, weather impact analysis, and sophisticated race strategy evaluation. The project aims to offer a professional, mobile-responsive web application experience with F1-themed aesthetics.
+Track.lytix is a modern Formula 1 data analysis platform built with JavaScript, CSS, and Python. The platform provides advanced race data visualization and analytics through a professional web interface. It leverages the FastF1 library to access official F1 timing data and creates interactive visualizations using Plotly.js. The platform offers capabilities such as telemetry analysis, race progression tracking, tire strategy visualization, track dominance mapping, and advanced driver performance analytics. The project features a completely custom web application built with modern web technologies.
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
@@ -15,23 +15,15 @@ Analysis requirements: Comprehensive sector analysis, detailed driver comparison
 The platform features a modern, mobile-responsive F1 web application with dynamic animations and F1-themed styling. This includes professional F1 gradient backgrounds, racing animations, championship-style effects, and the Orbitron racing font. The layout is centered, often using a three-column structure, with an app-like tab system. Interactive elements like data tables and metric cards are designed with racing themes and team colors, incorporating glass morphism, glow effects, and high-contrast F1 styling for enhanced visibility.
 
 ### Technical Implementations
-The system has evolved to a modern architecture but maintains a legacy Streamlit interface.
+The system has been completely modernized with a full JavaScript/CSS frontend and FastAPI backend.
 
-**Current (Next.js/TypeScript) Architecture:**
-- **Frontend Framework**: Next.js 14 with React 18 and TypeScript.
-- **Build Tool**: Turbopack.
-- **Styling**: Tailwind CSS with a high-contrast F1-themed design system and professional glass morphism.
-- **Animations**: Framer Motion for smooth transitions.
-- **UI Components**: Headless UI, Heroicons, and custom F1-themed components.
-- **Data Visualization**: Recharts for interactive charts.
-- **Layout**: Responsive design with dynamic tab system and mobile-first approach.
-- **API Integration**: Axios for seamless communication with FastAPI.
-
-**Legacy (Streamlit) Architecture (Preserved):**
-- **Framework**: Streamlit web application with custom CSS styling.
-- **Visualization Library**: Plotly for interactive charts and graphs.
-- **UI Components**: Custom F1-themed styling with team colors and gradients.
-- **Layout**: Wide layout with an expandable sidebar.
+**Current (JavaScript/CSS) Architecture:**
+- **Frontend**: Pure JavaScript, HTML5, and CSS3 with modern responsive design
+- **Styling**: Custom CSS with professional design system, smooth animations, and mobile-responsive layout
+- **Data Visualization**: Plotly.js for interactive charts and real-time data visualization
+- **UI/UX**: Card-based layout with intuitive tab navigation and professional typography
+- **API Communication**: Native Fetch API for seamless backend integration
+- **Design**: Clean, minimal interface focusing on usability and performance
 
 **Backend Architecture:**
 - **API Server**: FastAPI with automatic OpenAPI documentation and CORS support.
