@@ -705,34 +705,22 @@ async function loadCorneringAnalysisData() {
         const result = await response.json();
 
         if (result.success && result.data.length > 0) {
-            // Create Plotly chart for cornering data
-            const plotData = [{
-                x: result.data.map(d => d.corner_number),
-                y: result.data.map(d => d.speed),
-                mode: 'markers',
-                type: 'scatter',
-                marker: {
-                    color: result.data.map(d => d.g_force),
-                    size: 10,
-                    colorscale: 'Hot',
-                    showscale: true,
-                    colorbar: { title: 'G-Force' }
-                },
-                text: result.data.map(d => `Lap: ${d.lap}, Speed: ${d.speed}, G-Force: ${d.g_force.toFixed(2)}`),
-                hoverinfo: 'text'
-            }];
-
-            const layout = {
-                title: 'Cornering Analysis by Speed and G-Force',
-                xaxis: { title: 'Corner Number' },
-                yaxis: { title: 'Speed (km/h)' },
-                showlegend: false,
-                height: 500,
-                plot_bgcolor: 'rgba(0,0,0,0)',
-                paper_bgcolor: 'rgba(0,0,0,0)'
-            };
-
-            Plotly.newPlot(chartDiv, plotData, layout, {responsive: true});
+            const headers = Object.keys(result.data[0]);
+            const tableHTML = `
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>${headers.map(h => `<th>${h.replace('_', ' ').toUpperCase()}</th>`).join('')}</tr>
+                        </thead>
+                        <tbody>
+                            ${result.data.map(row =>
+                                `<tr>${headers.map(h => `<td>${row[h]}</td>`).join('')}</tr>`
+                            ).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            contentDiv.innerHTML = tableHTML;
         } else {
             contentDiv.innerHTML = `<div class="status-message status-info">No cornering analysis data available</div>`;
         }
@@ -804,34 +792,22 @@ async function loadGearAnalysisData() {
         const result = await response.json();
 
         if (result.success && result.data.length > 0) {
-            // Create Plotly chart for gear analysis
-            const plotData = [{
-                x: result.data.map(d => d.lap),
-                y: result.data.map(d => d.gear),
-                mode: 'markers',
-                type: 'scatter',
-                marker: {
-                    color: result.data.map(d => d.speed),
-                    size: 8,
-                    colorscale: 'Plasma',
-                    showscale: true,
-                    colorbar: { title: 'Speed (km/h)' }
-                },
-                text: result.data.map(d => `Lap: ${d.lap}, Gear: ${d.gear}, Speed: ${d.speed.toFixed(2)}`),
-                hoverinfo: 'text'
-            }];
-
-            const layout = {
-                title: 'Gear Usage Analysis by Lap and Speed',
-                xaxis: { title: 'Lap Number' },
-                yaxis: { title: 'Gear', dtick: 1, range: [1, 8] },
-                showlegend: false,
-                height: 500,
-                plot_bgcolor: 'rgba(0,0,0,0)',
-                paper_bgcolor: 'rgba(0,0,0,0)'
-            };
-
-            Plotly.newPlot(chartDiv, plotData, layout, {responsive: true});
+            const headers = Object.keys(result.data[0]);
+            const tableHTML = `
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>${headers.map(h => `<th>${h.replace('_', ' ').toUpperCase()}</th>`).join('')}</tr>
+                        </thead>
+                        <tbody>
+                            ${result.data.map(row =>
+                                `<tr>${headers.map(h => `<td>${row[h]}</td>`).join('')}</tr>`
+                            ).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            contentDiv.innerHTML = tableHTML;
         } else {
             contentDiv.innerHTML = `<div class="status-message status-info">No gear analysis data available</div>`;
         }
