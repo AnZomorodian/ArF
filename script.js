@@ -234,6 +234,21 @@ function loadTabData(tabId) {
         case 'analytics':
             loadAnalyticsData();
             break;
+        case 'speed':
+            loadSpeedAnalysisData();
+            break;
+        case 'cornering':
+            loadCorneringAnalysisData();
+            break;
+        case 'braking':
+            loadBrakingAnalysisData();
+            break;
+        case 'gears':
+            loadGearAnalysisData();
+            break;
+        case 'consistency':
+            loadConsistencyAnalysisData();
+            break;
     }
 }
 
@@ -573,6 +588,221 @@ function hideLoading(loadingDiv) {
 }
 
 // Format lap time helper
+// Load Speed Analysis Data
+async function loadSpeedAnalysisData() {
+    const contentDiv = document.getElementById('speedContent');
+    const loadingDiv = document.getElementById('speedLoading');
+    
+    showLoading(loadingDiv);
+    
+    try {
+        const response = await fetch('/api/speed-analysis', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ drivers: selectedDrivers.map(d => d.code) })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success && result.data.length > 0) {
+            const headers = Object.keys(result.data[0]);
+            const tableHTML = `
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>${headers.map(h => `<th>${h.replace('_', ' ').toUpperCase()}</th>`).join('')}</tr>
+                        </thead>
+                        <tbody>
+                            ${result.data.map(row => 
+                                `<tr>${headers.map(h => `<td>${row[h]}</td>`).join('')}</tr>`
+                            ).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            contentDiv.innerHTML = tableHTML;
+        } else {
+            contentDiv.innerHTML = `<div class="status-message status-info">No speed analysis data available</div>`;
+        }
+    } catch (error) {
+        contentDiv.innerHTML = `<div class="status-message status-error">Error: ${error.message}</div>`;
+    } finally {
+        hideLoading(loadingDiv);
+    }
+}
+
+// Load Cornering Analysis Data
+async function loadCorneringAnalysisData() {
+    const contentDiv = document.getElementById('corneringContent');
+    const loadingDiv = document.getElementById('corneringLoading');
+    
+    showLoading(loadingDiv);
+    
+    try {
+        const response = await fetch('/api/cornering-analysis', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ drivers: selectedDrivers.map(d => d.code) })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success && result.data.length > 0) {
+            const headers = Object.keys(result.data[0]);
+            const tableHTML = `
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>${headers.map(h => `<th>${h.replace('_', ' ').toUpperCase()}</th>`).join('')}</tr>
+                        </thead>
+                        <tbody>
+                            ${result.data.map(row => 
+                                `<tr>${headers.map(h => `<td>${row[h]}</td>`).join('')}</tr>`
+                            ).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            contentDiv.innerHTML = tableHTML;
+        } else {
+            contentDiv.innerHTML = `<div class="status-message status-info">No cornering analysis data available</div>`;
+        }
+    } catch (error) {
+        contentDiv.innerHTML = `<div class="status-message status-error">Error: ${error.message}</div>`;
+    } finally {
+        hideLoading(loadingDiv);
+    }
+}
+
+// Load Braking Analysis Data
+async function loadBrakingAnalysisData() {
+    const contentDiv = document.getElementById('brakingContent');
+    const loadingDiv = document.getElementById('brakingLoading');
+    
+    showLoading(loadingDiv);
+    
+    try {
+        const response = await fetch('/api/brake-analysis', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ drivers: selectedDrivers.map(d => d.code) })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success && result.data.length > 0) {
+            const headers = Object.keys(result.data[0]);
+            const tableHTML = `
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>${headers.map(h => `<th>${h.replace('_', ' ').toUpperCase()}</th>`).join('')}</tr>
+                        </thead>
+                        <tbody>
+                            ${result.data.map(row => 
+                                `<tr>${headers.map(h => `<td>${row[h]}</td>`).join('')}</tr>`
+                            ).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            contentDiv.innerHTML = tableHTML;
+        } else {
+            contentDiv.innerHTML = `<div class="status-message status-info">No braking analysis data available</div>`;
+        }
+    } catch (error) {
+        contentDiv.innerHTML = `<div class="status-message status-error">Error: ${error.message}</div>`;
+    } finally {
+        hideLoading(loadingDiv);
+    }
+}
+
+// Load Gear Analysis Data
+async function loadGearAnalysisData() {
+    const contentDiv = document.getElementById('gearsContent');
+    const loadingDiv = document.getElementById('gearsLoading');
+    
+    showLoading(loadingDiv);
+    
+    try {
+        const response = await fetch('/api/gear-analysis', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ drivers: selectedDrivers.map(d => d.code) })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success && result.data.length > 0) {
+            const headers = Object.keys(result.data[0]);
+            const tableHTML = `
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>${headers.map(h => `<th>${h.replace('_', ' ').toUpperCase()}</th>`).join('')}</tr>
+                        </thead>
+                        <tbody>
+                            ${result.data.map(row => 
+                                `<tr>${headers.map(h => `<td>${row[h]}</td>`).join('')}</tr>`
+                            ).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            contentDiv.innerHTML = tableHTML;
+        } else {
+            contentDiv.innerHTML = `<div class="status-message status-info">No gear analysis data available</div>`;
+        }
+    } catch (error) {
+        contentDiv.innerHTML = `<div class="status-message status-error">Error: ${error.message}</div>`;
+    } finally {
+        hideLoading(loadingDiv);
+    }
+}
+
+// Load Consistency Analysis Data
+async function loadConsistencyAnalysisData() {
+    const contentDiv = document.getElementById('consistencyContent');
+    const loadingDiv = document.getElementById('consistencyLoading');
+    
+    showLoading(loadingDiv);
+    
+    try {
+        const response = await fetch('/api/consistency-analysis', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ drivers: selectedDrivers.map(d => d.code) })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success && result.data.length > 0) {
+            const headers = Object.keys(result.data[0]);
+            const tableHTML = `
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>${headers.map(h => `<th>${h.replace('_', ' ').toUpperCase()}</th>`).join('')}</tr>
+                        </thead>
+                        <tbody>
+                            ${result.data.map(row => 
+                                `<tr>${headers.map(h => `<td>${row[h]}</td>`).join('')}</tr>`
+                            ).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            contentDiv.innerHTML = tableHTML;
+        } else {
+            contentDiv.innerHTML = `<div class="status-message status-info">No consistency analysis data available</div>`;
+        }
+    } catch (error) {
+        contentDiv.innerHTML = `<div class="status-message status-error">Error: ${error.message}</div>`;
+    } finally {
+        hideLoading(loadingDiv);
+    }
+}
+
 function formatLapTime(seconds) {
     if (!seconds || isNaN(seconds)) return 'N/A';
     const minutes = Math.floor(seconds / 60);

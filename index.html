@@ -15,7 +15,7 @@
         <!-- Header -->
         <header class="header">
             <div class="header-content">
-                <h1 class="header-title">🏎️ Track.lytix</h1>
+                <h1 class="header-title">Track.lytix</h1>
                 <p class="header-subtitle">Professional Formula 1 Data Analysis Platform</p>
             </div>
         </header>
@@ -95,10 +95,15 @@
             <div class="tabs">
                 <button class="tab-button active" data-tab="telemetry">📈 Telemetry</button>
                 <button class="tab-button" data-tab="trackmap">🗺️ Track Map</button>
-                <button class="tab-button" data-tab="laptimes">⏱️ Lap Times</button>
+                <button class="tab-button" data-tab="laptimes">⏱️ All Laps & Sectors</button>
                 <button class="tab-button" data-tab="tires">🔧 Tire Strategy</button>
                 <button class="tab-button" data-tab="progress">📊 Race Progress</button>
-                <button class="tab-button" data-tab="analytics">🧠 Analytics</button>
+                <button class="tab-button" data-tab="analytics">🧠 Performance</button>
+                <button class="tab-button" data-tab="speed">🚀 Speed Analysis</button>
+                <button class="tab-button" data-tab="cornering">🌀 Cornering</button>
+                <button class="tab-button" data-tab="braking">🛑 Braking</button>
+                <button class="tab-button" data-tab="gears">⚙️ Gear Analysis</button>
+                <button class="tab-button" data-tab="consistency">📊 Consistency</button>
             </div>
 
             <!-- Tab Content -->
@@ -137,14 +142,14 @@
                     </div>
                 </div>
 
-                <!-- Lap Times Tab -->
+                <!-- All Laps & Sectors Tab -->
                 <div id="laptimes" class="tab-pane">
                     <div class="card">
-                        <h3 class="card-title">⏱️ Lap Time Comparison</h3>
+                        <h3 class="card-title">⏱️ All Laps & Sector Analysis</h3>
                         <div id="laptimesTable" class="table-container"></div>
                         <div id="laptimesLoading" class="loading" style="display: none;">
                             <div class="spinner"></div>
-                            <p>Analyzing lap times...</p>
+                            <p>Analyzing all laps and sectors...</p>
                         </div>
                     </div>
                 </div>
@@ -173,14 +178,74 @@
                     </div>
                 </div>
 
-                <!-- Analytics Tab -->
+                <!-- Performance Analytics Tab -->
                 <div id="analytics" class="tab-pane">
                     <div class="card">
-                        <h3 class="card-title">🧠 Advanced Analytics</h3>
+                        <h3 class="card-title">🧠 Performance Analytics</h3>
                         <div id="analyticsContent" class="analytics-content"></div>
                         <div id="analyticsLoading" class="loading" style="display: none;">
                             <div class="spinner"></div>
-                            <p>Computing advanced analytics...</p>
+                            <p>Computing performance analytics...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Speed Analysis Tab -->
+                <div id="speed" class="tab-pane">
+                    <div class="card">
+                        <h3 class="card-title">🚀 Speed Analysis</h3>
+                        <div id="speedContent" class="analytics-content"></div>
+                        <div id="speedLoading" class="loading" style="display: none;">
+                            <div class="spinner"></div>
+                            <p>Analyzing speed data...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cornering Analysis Tab -->
+                <div id="cornering" class="tab-pane">
+                    <div class="card">
+                        <h3 class="card-title">🌀 Cornering Performance</h3>
+                        <div id="corneringContent" class="analytics-content"></div>
+                        <div id="corneringLoading" class="loading" style="display: none;">
+                            <div class="spinner"></div>
+                            <p>Analyzing cornering performance...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Braking Analysis Tab -->
+                <div id="braking" class="tab-pane">
+                    <div class="card">
+                        <h3 class="card-title">🛑 Braking Performance</h3>
+                        <div id="brakingContent" class="analytics-content"></div>
+                        <div id="brakingLoading" class="loading" style="display: none;">
+                            <div class="spinner"></div>
+                            <p>Analyzing braking performance...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Gear Analysis Tab -->
+                <div id="gears" class="tab-pane">
+                    <div class="card">
+                        <h3 class="card-title">⚙️ Gear Analysis</h3>
+                        <div id="gearsContent" class="analytics-content"></div>
+                        <div id="gearsLoading" class="loading" style="display: none;">
+                            <div class="spinner"></div>
+                            <p>Analyzing gear usage...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Consistency Analysis Tab -->
+                <div id="consistency" class="tab-pane">
+                    <div class="card">
+                        <h3 class="card-title">📊 Consistency Analysis</h3>
+                        <div id="consistencyContent" class="analytics-content"></div>
+                        <div id="consistencyLoading" class="loading" style="display: none;">
+                            <div class="spinner"></div>
+                            <p>Analyzing lap consistency...</p>
                         </div>
                     </div>
                 </div>
