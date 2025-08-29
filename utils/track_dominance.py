@@ -44,7 +44,22 @@ def interpolate_track_coordinates(X, Y, num_points=2000):
 def create_track_dominance_map(data_loader, drivers, num_minisectors=200, show_track_outline=True):
     """Create professional track dominance map showing fastest mini-sectors with enhanced visualization"""
     try:
-        telemetry_data = data_loader.get_fastest_lap_telemetry(drivers)
+        if not hasattr(data_loader, 'session') or data_loader.session is None:
+            return None
+            
+        # Get telemetry data for each driver
+        telemetry_data = {}
+        for driver in drivers:
+            try:
+                driver_laps = data_loader.session.laps.pick_drivers([driver])
+                if not driver_laps.empty:
+                    fastest_lap = driver_laps.pick_fastest()
+                    telemetry = fastest_lap.get_telemetry().add_distance()
+                    if not telemetry.empty and 'X' in telemetry.columns and 'Y' in telemetry.columns:
+                        telemetry_data[driver] = telemetry
+            except Exception as e:
+                print(f"Error getting telemetry for {driver}: {e}")
+                continue
         
         if not telemetry_data:
             return None
@@ -53,64 +68,50 @@ def create_track_dominance_map(data_loader, drivers, num_minisectors=200, show_t
         driver_telemetry = {}
         driver_lap_times = {}
         
-        for driver in drivers:
-            if driver not in telemetry_data:
-                continue
-                
-            telemetry = telemetry_data[driver]
-            
-            # Add Distance column if not present
-            if 'Distance' not in telemetry.columns:
-                if hasattr(telemetry, 'add_distance'):
-                    telemetry = telemetry.add_distance()
-                else:
-                    # Calculate distance manually
-                    if 'X' in telemetry.columns and 'Y' in telemetry.columns:
-                        dx = telemetry['X'].diff()
-                        dy = telemetry['Y'].diff()
-                        distance = np.sqrt(dx**2 + dy**2).fillna(0).cumsum()
-                        telemetry['Distance'] = distance
-                    else:
-                        # Fallback: use index as distance
-                        telemetry['Distance'] = np.arange(len(telemetry)) * 10
-            
-            if 'X' not in telemetry.columns or 'Y' not in telemetry.columns or 'Speed' not in telemetry.columns:
-                continue
-            
-            # Get lap time for this driver
+        for driver, telemetry in telemetry_data.items():
             try:
-                driver_laps = data_loader.session.laps.pick_drivers(driver)
-                fastest_lap = driver_laps.pick_fastest()
-                lap_time = fastest_lap['LapTime'].total_seconds()
-                driver_lap_times[driver] = lap_time
-            except:
-                driver_lap_times[driver] = float('inf')
-            
-            # Interpolate track coordinates and speed
-            X_interp, Y_interp, dist = interpolate_track_coordinates(
-                telemetry['X'].values, 
-                telemetry['Y'].values, 
-                num_minisectors * 2  # Higher resolution for smoother visualization
-            )
-            
-            # Interpolate speed data
-            if len(telemetry['Speed']) > 1:
-                speed_interp_func = interp1d(
-                    np.linspace(0, 1, len(telemetry)), 
-                    telemetry['Speed'].values, 
-                    kind='cubic', 
-                    fill_value='extrapolate'
+                # Ensure we have valid telemetry data
+                if telemetry.empty or 'X' not in telemetry.columns or 'Y' not in telemetry.columns:
+                    continue
+                
+                # Get lap time for this driver
+                try:
+                    driver_laps = data_loader.session.laps.pick_drivers([driver])
+                    fastest_lap = driver_laps.pick_fastest()
+                    lap_time = fastest_lap['LapTime'].total_seconds()
+                    driver_lap_times[driver] = lap_time
+                except:
+                    driver_lap_times[driver] = float('inf')
+                
+                # Interpolate track coordinates and speed
+                X_interp, Y_interp, dist = interpolate_track_coordinates(
+                    telemetry['X'].values, 
+                    telemetry['Y'].values, 
+                    num_minisectors * 2  # Higher resolution for smoother visualization
                 )
-                speed_interp = speed_interp_func(np.linspace(0, 1, len(X_interp)))
-            else:
-                speed_interp = np.full(len(X_interp), telemetry['Speed'].iloc[0])
-            
-            driver_telemetry[driver] = {
-                'X': X_interp,
-                'Y': Y_interp,
-                'Speed': speed_interp,
-                'Distance': np.linspace(0, 1, len(X_interp))
-            }
+                
+                # Interpolate speed data
+                if len(telemetry['Speed']) > 1:
+                    speed_interp_func = interp1d(
+                        np.linspace(0, 1, len(telemetry)), 
+                        telemetry['Speed'].values, 
+                        kind='cubic', 
+                        fill_value='extrapolate'
+                    )
+                    speed_interp = speed_interp_func(np.linspace(0, 1, len(X_interp)))
+                else:
+                    speed_interp = np.full(len(X_interp), telemetry['Speed'].iloc[0])
+                
+                driver_telemetry[driver] = {
+                    'X': X_interp,
+                    'Y': Y_interp,
+                    'Speed': speed_interp,
+                    'Distance': np.linspace(0, 1, len(X_interp))
+                }
+                
+            except Exception as e:
+                print(f"Error processing telemetry for {driver}: {e}")
+                continue
         
         if not driver_telemetry:
             return None

@@ -22,6 +22,11 @@ from utils.constants import TEAM_COLORS, SESSIONS
 from utils.formatters import format_lap_time
 from utils.advanced_analytics import AdvancedF1Analytics
 from utils.driver_manager import DynamicDriverManager
+from utils.sector_analysis import SectorAnalyzer
+from utils.power_analysis import PowerAnalyzer
+from utils.racecraft_analysis import RacecraftAnalyzer
+from utils.pit_strategy_analysis import PitStrategyAnalyzer
+from utils.mechanical_analysis import MechanicalAnalyzer
 
 app = FastAPI(title="Track.lytix F1 API", version="1.0.0")
 
@@ -1065,63 +1070,114 @@ async def get_weather_adaptation(request: DriversRequest):
             try:
                 driver_laps = data_loader.session.laps.pick_drivers([driver])
                 if not driver_laps.empty:
-                    # Analyze weather conditions if available
-                    weather_conditions = 'Unknown'
-                    if 'TrackTemp' in driver_laps.columns:
-                        avg_track_temp = driver_laps['TrackTemp'].mean()
-                        weather_conditions = f"{avg_track_temp:.1f}°C" if pd.notna(avg_track_temp) else 'N/A'
+                    # Enhanced weather analysis
+                    weather_conditions = {}
                     
-                    # Calculate lap time consistency in different conditions
+                    # Track temperature analysis
+                    if 'TrackTemp' in driver_laps.columns:
+                        track_temps = driver_laps['TrackTemp'].dropna()
+                        if not track_temps.empty:
+                            weather_conditions['track_temp'] = {
+                                'avg': float(track_temps.mean()),
+                                'range': float(track_temps.max() - track_temps.min())
+                            }
+                    
+                    # Air temperature analysis
+                    if 'AirTemp' in driver_laps.columns:
+                        air_temps = driver_laps['AirTemp'].dropna()
+                        if not air_temps.empty:
+                            weather_conditions['air_temp'] = {
+                                'avg': float(air_temps.mean()),
+                                'range': float(air_temps.max() - air_temps.min())
+                            }
+                    
+                    # Humidity analysis (if available)
+                    if 'Humidity' in driver_laps.columns:
+                        humidity = driver_laps['Humidity'].dropna()
+                        if not humidity.empty:
+                            weather_conditions['humidity'] = float(humidity.mean())
+                    
+                    # Lap time analysis in different conditions
                     lap_times = []
+                    track_temps = []
+                    
                     for _, lap in driver_laps.iterrows():
                         if pd.notna(lap['LapTime']):
                             try:
-                                if hasattr(lap['LapTime'], 'total_seconds'):
-                                    lap_times.append(lap['LapTime'].total_seconds())
-                                else:
-                                    lap_times.append(float(lap['LapTime']))
+                                lap_time = lap['LapTime'].total_seconds() if hasattr(lap['LapTime'], 'total_seconds') else float(lap['LapTime'])
+                                lap_times.append(lap_time)
+                                
+                                # Correlate with track temperature
+                                if 'TrackTemp' in lap and pd.notna(lap['TrackTemp']):
+                                    track_temps.append(float(lap['TrackTemp']))
+                                
                             except (ValueError, TypeError):
                                 continue
                     
                     if len(lap_times) >= 5:
+                        # Consistency analysis
                         lap_time_std = float(np.std(lap_times))
                         lap_time_mean = float(np.mean(lap_times))
                         consistency_score = max(0, 100 - (lap_time_std / lap_time_mean * 100))
                         
-                        # Tire compound adaptation
+                        # Temperature adaptation analysis
+                        temp_adaptation_score = 75.0  # Default
+                        if len(track_temps) >= 5:
+                            # Calculate correlation between lap times and temperature
+                            try:
+                                from scipy.stats import pearsonr
+                                correlation, p_value = pearsonr(lap_times, track_temps)
+                                # Lower correlation means better adaptation (times don't vary much with temp)
+                                temp_adaptation_score = max(0, min(100, 100 - abs(correlation) * 100))
+                            except:
+                                temp_adaptation_score = 75.0
+                        
+                        # Tire compound strategy in weather
                         compounds_used = driver_laps['Compound'].dropna().unique() if 'Compound' in driver_laps.columns else []
-                        compound_adaptability = len(compounds_used) * 20 if len(compounds_used) > 0 else 0
+                        compound_flexibility = min(100, len(compounds_used) * 30) if len(compounds_used) > 0 else 50
+                        
+                        # Overall weather adaptation score
+                        overall_score = (consistency_score + temp_adaptation_score + compound_flexibility) / 3
                         
                         weather_data.append({
                             'driver': str(driver),
-                            'track_conditions': str(weather_conditions),
+                            'weather_conditions': weather_conditions,
                             'consistency_score': f"{consistency_score:.1f}%",
-                            'compound_adaptability': f"{min(compound_adaptability, 100):.0f}%",
+                            'temperature_adaptation': f"{temp_adaptation_score:.1f}%",
+                            'compound_flexibility': f"{compound_flexibility:.1f}%",
+                            'overall_adaptation': f"{overall_score:.1f}%",
                             'lap_time_variance': f"{lap_time_std:.3f}s",
-                            'weather_rating': 'Excellent' if consistency_score > 85 else 'Good' if consistency_score > 70 else 'Average',
-                            'total_laps_analyzed': int(len(lap_times))
+                            'weather_rating': 'Elite' if overall_score > 85 else 'Advanced' if overall_score > 70 else 'Good' if overall_score > 55 else 'Average',
+                            'conditions_analyzed': len(track_temps),
+                            'total_laps': len(lap_times)
                         })
                     else:
                         weather_data.append({
                             'driver': str(driver),
-                            'track_conditions': str(weather_conditions),
-                            'consistency_score': 'N/A',
-                            'compound_adaptability': 'N/A',
+                            'weather_conditions': weather_conditions if weather_conditions else {'status': 'No data available'},
+                            'consistency_score': 'Insufficient data',
+                            'temperature_adaptation': 'Insufficient data',
+                            'compound_flexibility': 'Insufficient data',
+                            'overall_adaptation': 'Insufficient data',
                             'lap_time_variance': 'N/A',
                             'weather_rating': 'Insufficient Data',
-                            'total_laps_analyzed': int(0)
+                            'conditions_analyzed': 0,
+                            'total_laps': len(lap_times)
                         })
 
             except Exception as e:
                 print(f"Error processing weather adaptation for {driver}: {e}")
                 weather_data.append({
                     'driver': str(driver),
-                    'track_conditions': 'Error',
+                    'weather_conditions': {'status': 'Error in analysis'},
                     'consistency_score': 'Error',
-                    'compound_adaptability': 'Error',
+                    'temperature_adaptation': 'Error',
+                    'compound_flexibility': 'Error',
+                    'overall_adaptation': 'Error',
                     'lap_time_variance': 'Error',
                     'weather_rating': 'Error',
-                    'total_laps_analyzed': int(0)
+                    'conditions_analyzed': 0,
+                    'total_laps': 0
                 })
                 continue
 
@@ -1883,6 +1939,113 @@ async def get_advanced_metrics(request: DriversRequest):
                 
         return DataResponse(success=True, data=advanced_data)
         
+    except Exception as e:
+        return DataResponse(success=False, error=str(e))
+
+# NEW ADVANCED ANALYSIS ENDPOINTS
+
+@app.post("/api/sector-analysis", response_model=DataResponse)
+async def get_sector_analysis(request: DriversRequest):
+    """Advanced sector-by-sector performance analysis"""
+    try:
+        if not data_loader.session:
+            raise HTTPException(status_code=400, detail="No session loaded")
+
+        analyzer = SectorAnalyzer(data_loader.session)
+        sector_data = analyzer.analyze_sector_performance(request.drivers)
+        
+        return DataResponse(success=True, data=sector_data)
+
+    except Exception as e:
+        return DataResponse(success=False, error=str(e))
+
+@app.post("/api/power-analysis", response_model=DataResponse)
+async def get_power_analysis(request: DriversRequest):
+    """Power unit and energy analysis"""
+    try:
+        if not data_loader.session:
+            raise HTTPException(status_code=400, detail="No session loaded")
+
+        analyzer = PowerAnalyzer(data_loader.session)
+        power_data = analyzer.analyze_power_delivery(request.drivers)
+        
+        return DataResponse(success=True, data=power_data)
+
+    except Exception as e:
+        return DataResponse(success=False, error=str(e))
+
+@app.post("/api/racecraft-analysis", response_model=DataResponse)
+async def get_racecraft_analysis(request: DriversRequest):
+    """Racecraft and driving style analysis"""
+    try:
+        if not data_loader.session:
+            raise HTTPException(status_code=400, detail="No session loaded")
+
+        analyzer = RacecraftAnalyzer(data_loader.session)
+        overtaking_data = analyzer.analyze_overtaking_patterns(request.drivers)
+        defensive_data = analyzer.analyze_defensive_driving(request.drivers)
+        
+        # Combine both datasets
+        racecraft_data = []
+        for i, driver in enumerate(request.drivers):
+            overtaking = next((item for item in overtaking_data if item['driver'] == driver), {})
+            defensive = next((item for item in defensive_data if item['driver'] == driver), {})
+            
+            racecraft_data.append({
+                'driver': driver,
+                'overtaking_ability': overtaking.get('racecraft_score', 50),
+                'defensive_skills': float(defensive.get('defensive_score', '50').replace('%', '')) if defensive else 50,
+                'racing_aggression': overtaking.get('racing_aggression', '0'),
+                'position_changes': overtaking.get('net_position_change', 0)
+            })
+        
+        return DataResponse(success=True, data=racecraft_data)
+
+    except Exception as e:
+        return DataResponse(success=False, error=str(e))
+
+@app.post("/api/pit-strategy-analysis", response_model=DataResponse)
+async def get_pit_strategy_analysis(request: DriversRequest):
+    """Advanced pit strategy analysis"""
+    try:
+        if not data_loader.session:
+            raise HTTPException(status_code=400, detail="No session loaded")
+
+        analyzer = PitStrategyAnalyzer(data_loader.session)
+        pit_data = analyzer.analyze_pit_windows(request.drivers)
+        
+        return DataResponse(success=True, data=pit_data)
+
+    except Exception as e:
+        return DataResponse(success=False, error=str(e))
+
+@app.post("/api/mechanical-analysis", response_model=DataResponse)
+async def get_mechanical_analysis(request: DriversRequest):
+    """Mechanical performance and reliability analysis"""
+    try:
+        if not data_loader.session:
+            raise HTTPException(status_code=400, detail="No session loaded")
+
+        analyzer = MechanicalAnalyzer(data_loader.session)
+        grip_data = analyzer.analyze_mechanical_grip(request.drivers)
+        stress_data = analyzer.analyze_component_stress(request.drivers)
+        
+        # Combine datasets
+        mechanical_data = []
+        for i, driver in enumerate(request.drivers):
+            grip = next((item for item in grip_data if item['driver'] == driver), {})
+            stress = next((item for item in stress_data if item['driver'] == driver), {})
+            
+            mechanical_data.append({
+                'driver': driver,
+                'mechanical_score': grip.get('setup_effectiveness', 50),
+                'reliability_score': stress.get('reliability_score', '50%'),
+                'low_speed_grip': grip.get('low_speed_grip', '50%'),
+                'high_speed_stability': grip.get('high_speed_stability', '50%')
+            })
+        
+        return DataResponse(success=True, data=mechanical_data)
+
     except Exception as e:
         return DataResponse(success=False, error=str(e))
 
