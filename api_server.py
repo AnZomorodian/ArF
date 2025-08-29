@@ -353,13 +353,13 @@ async def get_lap_times(request: DriversRequest):
 
                             lap_data.append({
                                 'Driver': driver,
-                                'Lap Number': int(lap['LapNumber']) if lap['LapNumber'] is not None else 0,
+                                'Lap Number': int(lap['LapNumber']) if pd.notna(lap['LapNumber']) else 0,
                                 'Lap Time': format_lap_time(lap_time),
                                 'Sector 1': format_sector_time(s1_time),
                                 'Sector 2': format_sector_time(s2_time),
                                 'Sector 3': format_sector_time(s3_time),
                                 'Compound': str(lap['Compound']) if lap['Compound'] is not None else 'Unknown',
-                                'Position': int(lap['Position']) if lap['Position'] is not None else 0,
+                                'Position': int(lap['Position']) if pd.notna(lap['Position']) else 0,
                                 'Best Lap': '✓' if lap['LapNumber'] == best_lap['LapNumber'] else ''
                             })
                         except Exception as e:
@@ -411,9 +411,9 @@ async def get_tire_strategy(request: DriversRequest):
                             if current_compound is not None:
                                 tire_stints.append({
                                     'start_lap': int(stint_start),
-                                    'end_lap': int(lap['LapNumber']) - 1,
+                                    'end_lap': int(lap['LapNumber']) - 1 if pd.notna(lap['LapNumber']) else 0,
                                     'compound': str(current_compound),
-                                    'lap_count': int(lap['LapNumber']) - int(stint_start)
+                                    'lap_count': int(lap['LapNumber']) - int(stint_start) if pd.notna(lap['LapNumber']) and stint_start is not None else 0
                                 })
                             current_compound = lap['Compound']
                             stint_start = lap['LapNumber']
@@ -422,9 +422,9 @@ async def get_tire_strategy(request: DriversRequest):
                     if current_compound is not None:
                         tire_stints.append({
                             'start_lap': int(stint_start),
-                            'end_lap': int(driver_laps.iloc[-1]['LapNumber']),
+                            'end_lap': int(driver_laps.iloc[-1]['LapNumber']) if pd.notna(driver_laps.iloc[-1]['LapNumber']) else 0,
                             'compound': str(current_compound),
-                            'lap_count': int(driver_laps.iloc[-1]['LapNumber']) - int(stint_start) + 1
+                            'lap_count': int(driver_laps.iloc[-1]['LapNumber']) - int(stint_start) + 1 if pd.notna(driver_laps.iloc[-1]['LapNumber']) and stint_start is not None else 0
                         })
 
                     strategy_data.append({
@@ -432,7 +432,7 @@ async def get_tire_strategy(request: DriversRequest):
                         'tire_stints': tire_stints,
                         'total_compounds': int(len(compounds)),
                         'compounds_used': [str(c) for c in compounds if not pd.isna(c)],
-                        'total_laps': int(len(driver_laps)),
+                        'total_laps': len(driver_laps),
                         'strategy_type': 'Multi-stop' if len(compounds) > 1 else 'One-stop'
                     })
 
@@ -543,56 +543,7 @@ async def get_analytics(request: DriversRequest):
 
 # NEW DATA ANALYSIS ENDPOINTS
 
-@app.post("/api/speed-analysis", response_model=DataResponse)
-async def get_speed_analysis(request: DriversRequest):
-    """Speed trap and acceleration analysis"""
-    try:
-        if not data_loader.session:
-            raise HTTPException(status_code=400, detail="No session loaded")
-
-        speed_data = []
-
-        for driver in request.drivers:
-            try:
-                driver_laps = data_loader.session.laps.pick_drivers([driver])
-                if not driver_laps.empty:
-                    fastest_lap = driver_laps.pick_fastest()
-                    telemetry = fastest_lap.get_telemetry().add_distance()
-
-                    max_speed = telemetry['Speed'].max()
-                    min_speed = telemetry['Speed'].min()
-                    avg_speed = telemetry['Speed'].mean()
-
-                    # Calculate acceleration (simplified)
-                    speed_diff = telemetry['Speed'].diff()
-                    time_diff = telemetry['Time'].diff().dt.total_seconds()
-                    acceleration = speed_diff / time_diff
-                    max_acceleration = acceleration.max()
-                    max_deceleration = acceleration.min()
-
-                    speed_data.append({
-                        'driver': driver,
-                        'max_speed': f"{max_speed:.1f} km/h",
-                        'avg_speed': f"{avg_speed:.1f} km/h",
-                        'min_speed': f"{min_speed:.1f} km/h",
-                        'max_acceleration': f"{max_acceleration:.2f} km/h/s",
-                        'max_deceleration': f"{abs(max_deceleration):.2f} km/h/s"
-                    })
-
-            except Exception as e:
-                print(f"Error processing speed analysis for {driver}: {e}")
-                continue
-
-        return DataResponse(
-            success=True,
-            data=speed_data
-        )
-
-    except Exception as e:
-        return DataResponse(
-            success=False,
-            error=str(e)
-        )
+# Speed analysis model removed as requested by user - replaced with enhanced mini sectors analysis
 
 @app.post("/api/cornering-analysis", response_model=DataResponse)
 async def get_cornering_analysis(request: DriversRequest):
@@ -1199,7 +1150,7 @@ async def get_race_intelligence(request: DriversRequest):
             try:
                 driver_laps = data_loader.session.laps.pick_drivers([driver])
                 if not driver_laps.empty:
-                    total_laps = int(len(driver_laps))
+                    total_laps = len(driver_laps)
                     
                     # Calculate strategic metrics
                     position_changes = 0
@@ -1250,7 +1201,7 @@ async def get_race_intelligence(request: DriversRequest):
                         'race_craft_score': f"{((sector_consistency + pace_intelligence) / 2):.1f}/100",
                         'decision_quality': 'Excellent' if pace_intelligence > 85 else 'Good' if pace_intelligence > 70 else 'Average',
                         'adaptability_rating': f"{min(100, abs(position_changes) * 10 + 60):.0f}%",
-                        'total_race_laps': int(total_laps)
+                        'total_race_laps': total_laps
                     })
 
             except Exception as e:
@@ -1391,7 +1342,8 @@ async def get_overtaking_analysis(request: DriversRequest):
 
                     for _, lap in driver_laps.iterrows():
                         if lap['Position'] is not None:
-                            positions.append(int(lap['Position']))
+                            if pd.notna(lap['Position']):
+                                positions.append(int(lap['Position']))
 
                     if len(positions) > 1:
                         for i in range(1, len(positions)):
@@ -1664,7 +1616,7 @@ async def get_championship_projection(request: DriversRequest):
                 if not driver_laps.empty:
                     # Get final position
                     final_lap = driver_laps.iloc[-1]
-                    final_position = int(final_lap['Position']) if final_lap['Position'] is not None else 21
+                    final_position = int(final_lap['Position']) if pd.notna(final_lap['Position']) else 21
 
                     # Calculate points earned
                     points_earned = points_system.get(final_position, 0)
@@ -1738,9 +1690,9 @@ async def get_lap_comparison(request: DriversRequest):
                         'sector_1_time': format_sector_compare(s1),
                         'sector_2_time': format_sector_compare(s2),
                         'sector_3_time': format_sector_compare(s3),
-                        'lap_number': int(fastest_lap['LapNumber']),
+                        'lap_number': int(fastest_lap['LapNumber']) if pd.notna(fastest_lap['LapNumber']) else 0,
                         'compound': str(fastest_lap['Compound']) if fastest_lap['Compound'] is not None else 'Unknown',
-                        'position_when_set': int(fastest_lap['Position']) if fastest_lap['Position'] is not None else 0
+                        'position_when_set': int(fastest_lap['Position']) if pd.notna(fastest_lap['Position']) else 0
                     })
 
             except Exception as e:

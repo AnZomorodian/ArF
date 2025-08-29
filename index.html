@@ -101,7 +101,6 @@
                 <button class="tab-button" data-tab="tires">🔧 Tire Strategy</button>
                 <button class="tab-button" data-tab="progress">📊 Race Progress</button>
                 <button class="tab-button" data-tab="analytics">🧠 Performance</button>
-                <button class="tab-button" data-tab="speed">🚀 Speed Analysis</button>
                 <button class="tab-button" data-tab="cornering">🌀 Cornering</button>
                 <button class="tab-button" data-tab="braking">🛑 Braking</button>
                 <button class="tab-button" data-tab="gears">⚙️ Gear Analysis</button>
@@ -117,6 +116,11 @@
                 <button class="tab-button" data-tab="corners">🏁 Corner Analysis</button>
                 <button class="tab-button" data-tab="weather-adaptation">🌡️ Weather Adaptation</button>
                 <button class="tab-button" data-tab="race-intelligence">🧠 Race Intelligence</button>
+                <button class="tab-button new-feature" data-tab="sector-analysis">🎯 <span class="new-badge">NEW</span> Sector Analysis</button>
+                <button class="tab-button new-feature" data-tab="power-analysis">⚡ <span class="new-badge">NEW</span> Power Analysis</button>
+                <button class="tab-button new-feature" data-tab="racecraft-analysis">🏎️ <span class="new-badge">NEW</span> Racecraft Analysis</button>
+                <button class="tab-button new-feature" data-tab="pit-strategy-analysis">🔧 <span class="new-badge">NEW</span> Pit Strategy</button>
+                <button class="tab-button new-feature" data-tab="mechanical-analysis">⚙️ <span class="new-badge">NEW</span> Mechanical Analysis</button>
             </div>
 
             <!-- Tab Content -->
@@ -223,17 +227,7 @@
                     </div>
                 </div>
 
-                <!-- Speed Analysis Tab -->
-                <div id="speed" class="tab-pane">
-                    <div class="card">
-                        <h3 class="card-title">🚀 Speed Analysis</h3>
-                        <div id="speedContent" class="analytics-content"></div>
-                        <div id="speedLoading" class="loading" style="display: none;">
-                            <div class="spinner"></div>
-                            <p>Analyzing speed data...</p>
-                        </div>
-                    </div>
-                </div>
+                <!-- Speed Analysis Removed - Enhanced mini sectors in Track Layout instead -->
 
                 <!-- Cornering Analysis Tab -->
                 <div id="cornering" class="tab-pane">
@@ -447,6 +441,73 @@
                         <div id="race-intelligenceLoading" class="loading" style="display: none;">
                             <div class="spinner"></div>
                             <p>Computing race intelligence metrics...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- NEW ADVANCED ANALYSIS SECTIONS -->
+
+                <!-- Sector Analysis Tab -->
+                <div id="sector-analysis" class="tab-pane">
+                    <div class="card new-feature-card">
+                        <h3 class="card-title">🎯 <span class="new-badge">NEW</span> Advanced Sector Analysis</h3>
+                        <p class="feature-description">Comprehensive sector-by-sector performance analysis with mini-sectors and speed zones</p>
+                        <div id="sectorAnalysisContent" class="analytics-content"></div>
+                        <div id="sectorAnalysisLoading" class="loading" style="display: none;">
+                            <div class="spinner"></div>
+                            <p>Analyzing sector performance...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Power Analysis Tab -->
+                <div id="power-analysis" class="tab-pane">
+                    <div class="card new-feature-card">
+                        <h3 class="card-title">⚡ <span class="new-badge">NEW</span> Power Unit & Energy Analysis</h3>
+                        <p class="feature-description">Detailed analysis of power delivery, energy recovery, and deployment strategies</p>
+                        <div id="powerAnalysisContent" class="analytics-content"></div>
+                        <div id="powerAnalysisLoading" class="loading" style="display: none;">
+                            <div class="spinner"></div>
+                            <p>Analyzing power systems...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Racecraft Analysis Tab -->
+                <div id="racecraft-analysis" class="tab-pane">
+                    <div class="card new-feature-card">
+                        <h3 class="card-title">🏎️ <span class="new-badge">NEW</span> Racecraft & Driving Style</h3>
+                        <p class="feature-description">Advanced analysis of overtaking patterns, defensive driving, and racing aggression</p>
+                        <div id="racecraftAnalysisContent" class="analytics-content"></div>
+                        <div id="racecraftAnalysisLoading" class="loading" style="display: none;">
+                            <div class="spinner"></div>
+                            <p>Analyzing racecraft data...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pit Strategy Analysis Tab -->
+                <div id="pit-strategy-analysis" class="tab-pane">
+                    <div class="card new-feature-card">
+                        <h3 class="card-title">🔧 <span class="new-badge">NEW</span> Advanced Pit Strategy</h3>
+                        <p class="feature-description">Strategic analysis of pit windows, undercut/overcut opportunities, and strategy effectiveness</p>
+                        <div id="pitStrategyAnalysisContent" class="analytics-content"></div>
+                        <div id="pitStrategyAnalysisLoading" class="loading" style="display: none;">
+                            <div class="spinner"></div>
+                            <p>Analyzing pit strategies...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mechanical Analysis Tab -->
+                <div id="mechanical-analysis" class="tab-pane">
+                    <div class="card new-feature-card">
+                        <h3 class="card-title">⚙️ <span class="new-badge">NEW</span> Mechanical Performance</h3>
+                        <p class="feature-description">Comprehensive analysis of mechanical grip, setup effectiveness, and component reliability</p>
+                        <div id="mechanicalAnalysisContent" class="analytics-content"></div>
+                        <div id="mechanicalAnalysisLoading" class="loading" style="display: none;">
+                            <div class="spinner"></div>
+                            <p>Analyzing mechanical systems...</p>
                         </div>
                     </div>
                 </div>

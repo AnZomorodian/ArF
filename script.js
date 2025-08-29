@@ -486,15 +486,16 @@ async function loadTrackMapData() {
                     showgrid: false, 
                     zeroline: false, 
                     showticklabels: false,
-                    scaleanchor: 'y',
-                    title: ''
+                    title: '',
+                    fixedrange: true
                 },
                 yaxis: { 
                     showgrid: false, 
                     zeroline: false, 
                     showticklabels: false,
-                    scaleratio: 1,
-                    title: ''
+                    title: '',
+                    scaleanchor: 'x',
+                    fixedrange: true
                 },
                 showlegend: false,
                 height: 600,
@@ -1558,4 +1559,150 @@ function formatLapTime(seconds) {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = (seconds % 60).toFixed(3);
     return `${minutes}:${remainingSeconds.padStart(6, '0')}`;
+}
+
+// NEW ADVANCED ANALYSIS FUNCTIONS
+async function loadSectorAnalysisData() {
+    const contentDiv = document.getElementById('sectorAnalysisContent');
+    const loadingDiv = document.getElementById('sectorAnalysisLoading');
+    showLoading(loadingDiv);
+    try {
+        const response = await fetch('/api/sector-analysis', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ drivers: selectedDrivers.map(d => d.code) })
+        });
+        const result = await response.json();
+        if (result.success && result.data.length > 0) {
+            let contentHTML = '<h4>🎯 Advanced Sector Analysis</h4><div class="table-container">';
+            contentHTML += '<table class="data-table"><thead><tr><th>Driver</th><th>S1 Performance</th><th>S2 Performance</th><th>S3 Performance</th><th>Overall</th></tr></thead><tbody>';
+            result.data.forEach(driver => {
+                contentHTML += `<tr><td><strong>${driver.driver}</strong></td><td>${driver.sector1_performance}</td><td>${driver.sector2_performance}</td><td>${driver.sector3_performance}</td><td>${driver.overall_sector_score}</td></tr>`;
+            });
+            contentHTML += '</tbody></table></div>';
+            contentDiv.innerHTML = contentHTML;
+        } else {
+            contentDiv.innerHTML = `<div class="status-message status-info">No sector analysis data available</div>`;
+        }
+    } catch (error) {
+        contentDiv.innerHTML = `<div class="status-message status-error">Error: ${error.message}</div>`;
+    } finally {
+        hideLoading(loadingDiv);
+    }
+}
+
+async function loadPowerAnalysisData() {
+    const contentDiv = document.getElementById('powerAnalysisContent');
+    const loadingDiv = document.getElementById('powerAnalysisLoading');
+    showLoading(loadingDiv);
+    try {
+        const response = await fetch('/api/power-analysis', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ drivers: selectedDrivers.map(d => d.code) })
+        });
+        const result = await response.json();
+        if (result.success && result.data.length > 0) {
+            let contentHTML = '<h4>⚡ Power Unit Analysis</h4><div class="table-container"><table class="data-table">';
+            contentHTML += '<thead><tr><th>Driver</th><th>Power Efficiency</th><th>Energy Recovery</th><th>Deployment</th></tr></thead><tbody>';
+            result.data.forEach(driver => {
+                contentHTML += `<tr><td><strong>${driver.driver}</strong></td><td>${driver.power_efficiency}</td><td>${driver.energy_recovery}</td><td>${driver.deployment_strategy}</td></tr>`;
+            });
+            contentHTML += '</tbody></table></div>';
+            contentDiv.innerHTML = contentHTML;
+        } else {
+            contentDiv.innerHTML = `<div class="status-message status-info">No power analysis data available</div>`;
+        }
+    } catch (error) {
+        contentDiv.innerHTML = `<div class="status-message status-error">Error: ${error.message}</div>`;
+    } finally {
+        hideLoading(loadingDiv);
+    }
+}
+
+async function loadRacecraftAnalysisData() {
+    const contentDiv = document.getElementById('racecraftAnalysisContent');
+    const loadingDiv = document.getElementById('racecraftAnalysisLoading');
+    showLoading(loadingDiv);
+    try {
+        const response = await fetch('/api/racecraft-analysis', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ drivers: selectedDrivers.map(d => d.code) })
+        });
+        const result = await response.json();
+        if (result.success && result.data.length > 0) {
+            let contentHTML = '<h4>🏎️ Racecraft Analysis</h4><div class="table-container">';
+            contentHTML += '<table class="data-table"><thead><tr><th>Driver</th><th>Overtaking</th><th>Defensive</th><th>Aggression</th><th>Positions</th></tr></thead><tbody>';
+            result.data.forEach(driver => {
+                contentHTML += `<tr><td><strong>${driver.driver}</strong></td><td>${driver.overtaking_ability}</td><td>${driver.defensive_skills}</td><td>${driver.racing_aggression}</td><td>${driver.position_changes}</td></tr>`;
+            });
+            contentHTML += '</tbody></table></div>';
+            contentDiv.innerHTML = contentHTML;
+        } else {
+            contentDiv.innerHTML = `<div class="status-message status-info">No racecraft data available</div>`;
+        }
+    } catch (error) {
+        contentDiv.innerHTML = `<div class="status-message status-error">Error: ${error.message}</div>`;
+    } finally {
+        hideLoading(loadingDiv);
+    }
+}
+
+async function loadPitStrategyAnalysisData() {
+    const contentDiv = document.getElementById('pitStrategyAnalysisContent');
+    const loadingDiv = document.getElementById('pitStrategyAnalysisLoading');
+    showLoading(loadingDiv);
+    try {
+        const response = await fetch('/api/pit-strategy-analysis', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ drivers: selectedDrivers.map(d => d.code) })
+        });
+        const result = await response.json();
+        if (result.success && result.data.length > 0) {
+            let contentHTML = '<h4>🔧 Pit Strategy Analysis</h4><div class="table-container">';
+            contentHTML += '<table class="data-table"><thead><tr><th>Driver</th><th>Strategy</th><th>Effectiveness</th><th>Stint Length</th></tr></thead><tbody>';
+            result.data.forEach(driver => {
+                contentHTML += `<tr><td><strong>${driver.driver}</strong></td><td>${driver.strategy_type}</td><td>${driver.effectiveness_score}</td><td>${driver.avg_stint_length}</td></tr>`;
+            });
+            contentHTML += '</tbody></table></div>';
+            contentDiv.innerHTML = contentHTML;
+        } else {
+            contentDiv.innerHTML = `<div class="status-message status-info">No pit strategy data available</div>`;
+        }
+    } catch (error) {
+        contentDiv.innerHTML = `<div class="status-message status-error">Error: ${error.message}</div>`;
+    } finally {
+        hideLoading(loadingDiv);
+    }
+}
+
+async function loadMechanicalAnalysisData() {
+    const contentDiv = document.getElementById('mechanicalAnalysisContent');
+    const loadingDiv = document.getElementById('mechanicalAnalysisLoading');
+    showLoading(loadingDiv);
+    try {
+        const response = await fetch('/api/mechanical-analysis', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ drivers: selectedDrivers.map(d => d.code) })
+        });
+        const result = await response.json();
+        if (result.success && result.data.length > 0) {
+            let contentHTML = '<h4>⚙️ Mechanical Performance</h4><div class="table-container">';
+            contentHTML += '<table class="data-table"><thead><tr><th>Driver</th><th>Score</th><th>Reliability</th><th>Low Speed Grip</th></tr></thead><tbody>';
+            result.data.forEach(driver => {
+                contentHTML += `<tr><td><strong>${driver.driver}</strong></td><td>${driver.mechanical_score}</td><td>${driver.reliability_score}</td><td>${driver.low_speed_grip}</td></tr>`;
+            });
+            contentHTML += '</tbody></table></div>';
+            contentDiv.innerHTML = contentHTML;
+        } else {
+            contentDiv.innerHTML = `<div class="status-message status-info">No mechanical analysis data available</div>`;
+        }
+    } catch (error) {
+        contentDiv.innerHTML = `<div class="status-message status-error">Error: ${error.message}</div>`;
+    } finally {
+        hideLoading(loadingDiv);
+    }
 }
