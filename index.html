@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Track.lytix - F1 Analytics Platform</title>
+    <title>CEBRIC - Advanced F1 Data Analysis</title>
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -15,8 +15,8 @@
         <!-- Header -->
         <header class="header">
             <div class="header-content">
-                <h1 class="header-title">Track.lytix</h1>
-                <p class="header-subtitle">Professional Formula 1 Data Analysis Platform</p>
+                <h1 class="header-title">CEBRIC</h1>
+                <p class="header-subtitle">Next-Generation Formula 1 Analytics & Telemetry Platform</p>
             </div>
         </header>
 
@@ -115,7 +115,6 @@
                 <button class="tab-button" data-tab="fuel">⛽ Fuel Analysis</button>
                 <button class="tab-button" data-tab="tiredeg">🔄 Tire Degradation</button>
                 <button class="tab-button" data-tab="corners">🏁 Corner Analysis</button>
-                <button class="tab-button" data-tab="championship">🏆 Championship</button>
             </div>
 
             <!-- Tab Content -->
@@ -145,7 +144,15 @@
                 <!-- Track Map Tab -->
                 <div id="trackmap" class="tab-pane">
                     <div class="card">
-                        <h3 class="card-title">🗺️ Track Dominance Map</h3>
+                        <h3 class="card-title">🗺️ Track Layout & Analysis</h3>
+                        <div class="track-controls">
+                            <select id="trackViewMode" class="form-control">
+                                <option value="speed">Speed Analysis</option>
+                                <option value="sectors">Sector Dominance</option>
+                                <option value="racing_line">Racing Line</option>
+                                <option value="elevation">Track Elevation</option>
+                            </select>
+                        </div>
                         <div id="trackmapChart" class="chart-container"></div>
                         <div id="trackmapLoading" class="loading" style="display: none;">
                             <div class="spinner"></div>
@@ -382,17 +389,42 @@
                     </div>
                 </div>
 
-                <!-- Championship Tab -->
-                <div id="championship" class="tab-pane">
+                <!-- NEW: Driver Coordination Tab -->
+                <div id="driver-coord" class="tab-pane">
                     <div class="card">
-                        <h3 class="card-title">🏆 Championship Impact</h3>
-                        <div id="championshipContent" class="analytics-content"></div>
-                        <div id="championshipLoading" class="loading" style="display: none;">
+                        <h3 class="card-title">🎯 Driver Coordination</h3>
+                        <div id="driver-coordContent" class="analytics-content"></div>
+                        <div id="driver-coordLoading" class="loading" style="display: none;">
                             <div class="spinner"></div>
-                            <p>Calculating championship points...</p>
+                            <p>Analyzing throttle-brake coordination...</p>
                         </div>
                     </div>
                 </div>
+
+                <!-- NEW: Sector Performance Tab -->
+                <div id="sector-perf" class="tab-pane">
+                    <div class="card">
+                        <h3 class="card-title">🏁 Sector Performance</h3>
+                        <div id="sector-perfContent" class="analytics-content"></div>
+                        <div id="sector-perfLoading" class="loading" style="display: none;">
+                            <div class="spinner"></div>
+                            <p>Analyzing sector dominance...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- NEW: Advanced Metrics Tab -->
+                <div id="advanced-metrics" class="tab-pane">
+                    <div class="card">
+                        <h3 class="card-title">⚡ Advanced Metrics</h3>
+                        <div id="advanced-metricsContent" class="analytics-content"></div>
+                        <div id="advanced-metricsLoading" class="loading" style="display: none;">
+                            <div class="spinner"></div>
+                            <p>Computing advanced telemetry metrics...</p>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </section>
     </div>
@@ -400,7 +432,7 @@
     <!-- Simple Footer -->
     <footer class="footer">
         <div class="footer-content">
-            <p>&copy; 2025 Track.lytix - Professional F1 Data Analysis Platform</p>
+            <p>&copy; 2025 CEBRIC - Advanced F1 Data Analysis Platform</p>
             <p>Built with FastF1 • Plotly • Modern Web Technologies</p>
             <div class="footer-links">
                 <span>🏎️ Formula 1 Analytics</span>

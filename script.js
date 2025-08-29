@@ -267,6 +267,15 @@ function loadTabData(tabId) {
         case 'ers':
             loadErsData();
             break;
+        case 'driver-coord':
+            loadDriverCoordinationData();
+            break;
+        case 'sector-perf':
+            loadSectorPerformanceData();
+            break;
+        case 'advanced-metrics':
+            loadAdvancedMetricsData();
+            break;
         case 'overtaking':
             loadOvertakingData();
             break;
@@ -278,9 +287,6 @@ function loadTabData(tabId) {
             break;
         case 'corners':
             loadCornerData();
-            break;
-        case 'championship':
-            loadChampionshipData();
             break;
     }
 }
@@ -363,29 +369,78 @@ async function loadTrackMapData() {
         const result = await response.json();
 
         if (result.success) {
-            // Create track dominance map
+            // Create enhanced track visualization like the provided image
             const plotData = [{
-                x: result.x_coords,
-                y: result.y_coords,
-                mode: 'markers',
+                x: result.data.x_coords,
+                y: result.data.y_coords,
+                mode: 'lines+markers',
                 type: 'scatter',
-                marker: {
-                    color: result.colors,
-                    size: 8,
-                    colorscale: 'Viridis'
+                line: {
+                    width: 12,
+                    color: 'rgba(30, 65, 255, 0.8)'
                 },
-                text: result.hover_text,
-                hoverinfo: 'text'
+                marker: {
+                    size: 6,
+                    color: result.data.colors,
+                    colorscale: [[0, '#1E41FF'], [0.5, '#FF8700'], [1, '#DC0000']],
+                    colorbar: {
+                        title: 'Speed (km/h)',
+                        titleside: 'right'
+                    }
+                },
+                text: result.data.hover_text,
+                hoverinfo: 'text',
+                name: 'Track Layout'
             }];
 
+            // Add START/FINISH marker
+            if (result.data.x_coords && result.data.x_coords.length > 0) {
+                plotData.push({
+                    x: [result.data.x_coords[0]],
+                    y: [result.data.y_coords[0]],
+                    mode: 'markers+text',
+                    type: 'scatter',
+                    marker: {
+                        size: 20,
+                        color: 'white',
+                        symbol: 'square',
+                        line: { color: 'black', width: 3 }
+                    },
+                    text: ['START'],
+                    textposition: 'middle center',
+                    textfont: { 
+                        color: 'black', 
+                        size: 14, 
+                        family: 'Inter',
+                        weight: 'bold'
+                    },
+                    name: 'Start/Finish',
+                    showlegend: false
+                });
+            }
+
             const layout = {
-                title: 'Track Dominance Map',
-                xaxis: { title: 'X Position', showgrid: false },
-                yaxis: { title: 'Y Position', showgrid: false },
+                title: {
+                    text: 'Track Layout & Speed Analysis',
+                    font: { size: 20, family: 'Inter', color: 'white' }
+                },
+                xaxis: { 
+                    showgrid: false, 
+                    zeroline: false, 
+                    showticklabels: false,
+                    scaleanchor: 'y'
+                },
+                yaxis: { 
+                    showgrid: false, 
+                    zeroline: false, 
+                    showticklabels: false,
+                    scaleratio: 1
+                },
                 showlegend: false,
-                height: 500,
-                plot_bgcolor: 'rgba(0,0,0,0)',
-                paper_bgcolor: 'rgba(0,0,0,0)'
+                height: 600,
+                plot_bgcolor: '#0f0f0f',
+                paper_bgcolor: '#0f0f0f',
+                margin: { l: 20, r: 20, t: 60, b: 20 }
             };
 
             Plotly.newPlot(chartDiv, plotData, layout, {responsive: true});
@@ -937,7 +992,104 @@ async function loadTireDegradationData() {
 }
 
 async function loadCornerData() {
-    await loadGenericAnalysisData('/api/corner-analysis', 'cornersContent', 'cornersLoading');
+    const contentDiv = document.getElementById('cornersContent');
+    const loadingDiv = document.getElementById('cornersLoading');
+
+    showLoading(loadingDiv);
+
+    try {
+        const response = await fetch('/api/corner-analysis', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ drivers: selectedDrivers.map(d => d.code) })
+        });
+
+        const result = await response.json();
+
+        if (result.success && result.data.length > 0) {
+            // Enhanced Corner-by-Corner Analysis with new ideas
+            let contentHTML = `
+                <div class="corner-analysis-header">
+                    <h4>🏁 Advanced Corner-by-Corner Performance Analysis</h4>
+                    <p class="analysis-description">Detailed analysis of driver performance through different corner types and phases</p>
+                </div>
+            `;
+            
+            // Corner performance comparison chart
+            contentHTML += '<div class="corner-performance-grid">';
+            result.data.forEach((driver, index) => {
+                const teamColor = teamColors[selectedDrivers.find(d => d.code === driver.driver)?.team] || '#808080';
+                const performanceRating = driver.corner_performance || 'Good';
+                const ratingColor = performanceRating === 'Excellent' ? '#059669' : 
+                                   performanceRating === 'Good' ? '#d97706' : '#6b7280';
+                
+                contentHTML += `
+                    <div class="corner-driver-card" style="border-left: 5px solid ${teamColor};">
+                        <div class="corner-driver-header">
+                            <h5 style="color: ${teamColor}; margin: 0;">${driver.driver}</h5>
+                            <span class="performance-badge" style="background-color: ${ratingColor}; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.75em;">
+                                ${performanceRating}
+                            </span>
+                        </div>
+                        <div class="corner-stats-grid">
+                            <div class="corner-stat">
+                                <div class="stat-value">${driver.corner_segments || driver.corner_count}</div>
+                                <div class="stat-label">Corner Segments</div>
+                            </div>
+                            <div class="corner-stat">
+                                <div class="stat-value">${driver.corner_exit_accel || 'N/A'}</div>
+                                <div class="stat-label">Exit Acceleration</div>
+                            </div>
+                            <div class="corner-stat">
+                                <div class="stat-value">${driver.avg_corner_speed}</div>
+                                <div class="stat-label">Avg Corner Speed</div>
+                            </div>
+                            <div class="corner-stat">
+                                <div class="stat-value">${driver.min_corner_speed}</div>
+                                <div class="stat-label">Min Corner Speed</div>
+                            </div>
+                        </div>
+                        <div class="corner-analysis-details">
+                            <small style="color: #64748b;">
+                                G-Force: ${driver.max_g_force} • 
+                                Throttle: ${driver.avg_corner_throttle} • 
+                                Braking: ${driver.avg_corner_braking}
+                            </small>
+                        </div>
+                    </div>
+                `;
+            });
+            contentHTML += '</div>';
+            
+            // Detailed comparison table
+            const headers = Object.keys(result.data[0]);
+            contentHTML += `
+                <div class="detailed-corner-analysis">
+                    <h4>📊 Complete Corner Analysis Data</h4>
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>${headers.map(h => `<th>${h.replace('_', ' ').toUpperCase()}</th>`).join('')}</tr>
+                            </thead>
+                            <tbody>
+                                ${result.data.map(row =>
+                                    `<tr>${headers.map(h => `<td>${row[h]}</td>`).join('')}</tr>`
+                                ).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+            
+            contentDiv.innerHTML = contentHTML;
+        } else {
+            contentDiv.innerHTML = `<div class="status-message status-info">No corner analysis data available</div>`;
+        }
+    } catch (error) {
+        contentDiv.innerHTML = `<div class="status-message status-error">Network error: ${error.message}</div>`;
+    } finally {
+        hideLoading(loadingDiv);
+    }
 }
 
 async function loadChampionshipData() {
@@ -979,6 +1131,203 @@ async function loadGenericAnalysisData(endpoint, contentId, loadingId) {
             contentDiv.innerHTML = tableHTML;
         } else {
             contentDiv.innerHTML = `<div class="status-message status-info">No analysis data available</div>`;
+        }
+    } catch (error) {
+        contentDiv.innerHTML = `<div class="status-message status-error">Error: ${error.message}</div>`;
+    } finally {
+        hideLoading(loadingDiv);
+    }
+}
+
+// NEW FUNCTIONS FOR 3 NEW DATA ENDPOINTS
+
+async function loadDriverCoordinationData() {
+    const contentDiv = document.getElementById('driver-coordContent');
+    const loadingDiv = document.getElementById('driver-coordLoading');
+
+    showLoading(loadingDiv);
+
+    try {
+        const response = await fetch('/api/driver-coordination', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ drivers: selectedDrivers.map(d => d.code) })
+        });
+
+        const result = await response.json();
+
+        if (result.success && result.data.length > 0) {
+            let contentHTML = '<h4>🎯 Driver Coordination Analysis</h4><div class="metrics-grid">';
+            
+            result.data.forEach(driver => {
+                const teamColor = teamColors[selectedDrivers.find(d => d.code === driver.driver)?.team] || '#808080';
+                contentHTML += `
+                    <div class="metric-card" style="border-left: 4px solid ${teamColor};">
+                        <div class="metric-value">${driver.driver}</div>
+                        <div class="metric-label">Driver</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">${driver.coordination_score}</div>
+                        <div class="metric-label">Coordination Score</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">${driver.throttle_smoothness}</div>
+                        <div class="metric-label">Throttle Smoothness</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">${driver.brake_smoothness}</div>
+                        <div class="metric-label">Brake Smoothness</div>
+                    </div>
+                `;
+            });
+            contentHTML += '</div>';
+
+            const headers = Object.keys(result.data[0]);
+            contentHTML += `<div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>${headers.map(h => `<th>${h.replace('_', ' ').toUpperCase()}</th>`).join('')}</tr>
+                    </thead>
+                    <tbody>
+                        ${result.data.map(row => `<tr>${headers.map(h => `<td>${row[h]}</td>`).join('')}</tr>`).join('')}
+                    </tbody>
+                </table>
+            </div>`;
+            
+            contentDiv.innerHTML = contentHTML;
+        } else {
+            contentDiv.innerHTML = `<div class="status-message status-info">No coordination data available</div>`;
+        }
+    } catch (error) {
+        contentDiv.innerHTML = `<div class="status-message status-error">Error: ${error.message}</div>`;
+    } finally {
+        hideLoading(loadingDiv);
+    }
+}
+
+async function loadSectorPerformanceData() {
+    const contentDiv = document.getElementById('sector-perfContent');
+    const loadingDiv = document.getElementById('sector-perfLoading');
+
+    showLoading(loadingDiv);
+
+    try {
+        const response = await fetch('/api/sector-performance', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ drivers: selectedDrivers.map(d => d.code) })
+        });
+
+        const result = await response.json();
+
+        if (result.success && result.data.length > 0) {
+            let contentHTML = '<h4>🏁 Sector Performance Analysis</h4><div class="metrics-grid">';
+            
+            result.data.forEach(driver => {
+                const teamColor = teamColors[selectedDrivers.find(d => d.code === driver.driver)?.team] || '#808080';
+                contentHTML += `
+                    <div class="metric-card" style="border-left: 4px solid ${teamColor};">
+                        <div class="metric-value">${driver.driver}</div>
+                        <div class="metric-label">Driver</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">${driver.strongest_sector}</div>
+                        <div class="metric-label">Strongest Sector</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">${driver.sector_1_best}</div>
+                        <div class="metric-label">Sector 1 Best</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">${driver.sector_1_consistency}</div>
+                        <div class="metric-label">S1 Consistency</div>
+                    </div>
+                `;
+            });
+            contentHTML += '</div>';
+
+            const headers = Object.keys(result.data[0]);
+            contentHTML += `<div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>${headers.map(h => `<th>${h.replace('_', ' ').toUpperCase()}</th>`).join('')}</tr>
+                    </thead>
+                    <tbody>
+                        ${result.data.map(row => `<tr>${headers.map(h => `<td>${row[h]}</td>`).join('')}</tr>`).join('')}
+                    </tbody>
+                </table>
+            </div>`;
+            
+            contentDiv.innerHTML = contentHTML;
+        } else {
+            contentDiv.innerHTML = `<div class="status-message status-info">No sector performance data available</div>`;
+        }
+    } catch (error) {
+        contentDiv.innerHTML = `<div class="status-message status-error">Error: ${error.message}</div>`;
+    } finally {
+        hideLoading(loadingDiv);
+    }
+}
+
+async function loadAdvancedMetricsData() {
+    const contentDiv = document.getElementById('advanced-metricsContent');
+    const loadingDiv = document.getElementById('advanced-metricsLoading');
+
+    showLoading(loadingDiv);
+
+    try {
+        const response = await fetch('/api/advanced-metrics', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ drivers: selectedDrivers.map(d => d.code) })
+        });
+
+        const result = await response.json();
+
+        if (result.success && result.data.length > 0) {
+            let contentHTML = '<h4>⚡ Advanced Telemetry Metrics</h4><div class="metrics-grid">';
+            
+            result.data.forEach(driver => {
+                const teamColor = teamColors[selectedDrivers.find(d => d.code === driver.driver)?.team] || '#808080';
+                const rating = driver.overall_rating;
+                const ratingColor = rating === 'Excellent' ? '#059669' : rating === 'Good' ? '#d97706' : '#6b7280';
+                
+                contentHTML += `
+                    <div class="metric-card" style="border-left: 4px solid ${teamColor};">
+                        <div class="metric-value">${driver.driver}</div>
+                        <div class="metric-label">Driver</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" style="color: ${ratingColor};">${driver.overall_rating}</div>
+                        <div class="metric-label">Overall Rating</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">${driver.aero_efficiency}</div>
+                        <div class="metric-label">Aero Efficiency</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">${driver.drs_usage}</div>
+                        <div class="metric-label">DRS Usage</div>
+                    </div>
+                `;
+            });
+            contentHTML += '</div>';
+
+            const headers = Object.keys(result.data[0]);
+            contentHTML += `<div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>${headers.map(h => `<th>${h.replace('_', ' ').toUpperCase()}</th>`).join('')}</tr>
+                    </thead>
+                    <tbody>
+                        ${result.data.map(row => `<tr>${headers.map(h => `<td>${row[h]}</td>`).join('')}</tr>`).join('')}
+                    </tbody>
+                </table>
+            </div>`;
+            
+            contentDiv.innerHTML = contentHTML;
+        } else {
+            contentDiv.innerHTML = `<div class="status-message status-info">No advanced metrics data available</div>`;
         }
     } catch (error) {
         contentDiv.innerHTML = `<div class="status-message status-error">Error: ${error.message}</div>`;

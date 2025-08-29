@@ -146,9 +146,19 @@ async def get_telemetry(request: TelemetryRequest):
                 telemetry_column = request.telemetry_type.title()
                 if telemetry_column == 'Rpm':
                     telemetry_column = 'RPM'
-
-                if telemetry_column not in telemetry.columns:
-                    print(f"Column {telemetry_column} not found in telemetry data for driver {driver}")
+                elif telemetry_column == 'Gear':
+                    # Try multiple possible gear column names
+                    possible_gear_cols = ['nGear', 'Gear', 'NGear', 'gear']
+                    telemetry_column = None
+                    for col in possible_gear_cols:
+                        if col in telemetry.columns:
+                            telemetry_column = col
+                            break
+                    if not telemetry_column:
+                        print(f"No gear column found in telemetry data for driver {driver}. Available columns: {list(telemetry.columns)}")
+                        continue
+                elif telemetry_column not in telemetry.columns:
+                    print(f"Column {telemetry_column} not found in telemetry data for driver {driver}. Available columns: {list(telemetry.columns)}")
                     continue
 
                 # Get team color
@@ -583,6 +593,37 @@ async def get_cornering_analysis(request: DriversRequest):
                         # Corner braking analysis
                         corner_braking = telemetry[corner_mask]['Brake'].mean()
 
+                        # Additional corner analysis data
+                        corner_entry_speeds = []
+                        corner_exit_speeds = []
+                        corner_apex_speeds = []
+                        
+                        # Analyze corner phases
+                        brake_to_throttle_transitions = 0
+                        corner_stability = 0
+                        
+                        # Calculate corner phases (entry, apex, exit)
+                        corner_indices = np.where(corner_mask)[0]
+                        if len(corner_indices) > 0:
+                            for i in range(0, len(corner_indices) - 10, 20):  # Sample corners
+                                start_idx = corner_indices[i]
+                                mid_idx = corner_indices[min(i + 10, len(corner_indices) - 1)]
+                                end_idx = corner_indices[min(i + 19, len(corner_indices) - 1)]
+                                
+                                corner_entry_speeds.append(telemetry.iloc[start_idx]['Speed'])
+                                corner_apex_speeds.append(telemetry.iloc[mid_idx]['Speed'])
+                                corner_exit_speeds.append(telemetry.iloc[end_idx]['Speed'])
+                        
+                        avg_entry_speed = np.mean(corner_entry_speeds) if corner_entry_speeds else avg_corner_speed
+                        avg_apex_speed = np.mean(corner_apex_speeds) if corner_apex_speeds else min_corner_speed
+                        avg_exit_speed = np.mean(corner_exit_speeds) if corner_exit_speeds else avg_corner_speed
+                        
+                        # Corner consistency (speed variance)
+                        corner_consistency = 100 - (corner_speeds.std() / corner_speeds.mean() * 100) if corner_speeds.std() > 0 else 100
+                        
+                        # Time spent in corners
+                        corner_time_percentage = (len(corner_speeds) / len(telemetry)) * 100
+                        
                         cornering_data.append({
                             'driver': driver,
                             'avg_corner_speed': f"{avg_corner_speed:.1f} km/h",
@@ -590,7 +631,12 @@ async def get_cornering_analysis(request: DriversRequest):
                             'max_g_force': f"{max_g_force:.2f}g",
                             'corner_count': corner_count,
                             'avg_corner_throttle': f"{corner_exit_accel:.1f}%",
-                            'avg_corner_braking': f"{corner_braking:.1f}%"
+                            'avg_corner_braking': f"{corner_braking:.1f}%",
+                            'avg_entry_speed': f"{avg_entry_speed:.1f} km/h",
+                            'avg_apex_speed': f"{avg_apex_speed:.1f} km/h",
+                            'avg_exit_speed': f"{avg_exit_speed:.1f} km/h",
+                            'corner_consistency': f"{corner_consistency:.1f}%",
+                            'time_in_corners': f"{corner_time_percentage:.1f}%"
                         })
 
             except Exception as e:
@@ -1409,8 +1455,185 @@ async def get_lap_comparison(request: DriversRequest):
     except Exception as e:
         return DataResponse(success=False, error=str(e))
 
+# NEW DATA ENDPOINTS - 3 New Advanced Analytics
+
+@app.post("/api/driver-coordination", response_model=DataResponse)
+async def get_driver_coordination(request: DriversRequest):
+    """Advanced driver coordination analysis - throttle/brake transitions"""
+    try:
+        if not data_loader.session:
+            raise HTTPException(status_code=400, detail="No session loaded")
+        
+        coordination_data = []
+        
+        for driver in request.drivers:
+            try:
+                driver_laps = data_loader.session.laps.pick_drivers([driver])
+                if not driver_laps.empty:
+                    fastest_lap = driver_laps.pick_fastest()
+                    telemetry = fastest_lap.get_telemetry().add_distance()
+                    
+                    # Throttle-Brake coordination analysis
+                    throttle_brake_overlap = ((telemetry['Throttle'] > 0) & (telemetry['Brake'] > 0)).sum()
+                    total_points = len(telemetry)
+                    overlap_percentage = (throttle_brake_overlap / total_points) * 100
+                    
+                    # Smooth transitions (derivative analysis)
+                    throttle_smoothness = 100 - (telemetry['Throttle'].diff().abs().mean() * 10)
+                    brake_smoothness = 100 - (telemetry['Brake'].diff().abs().mean() * 10)
+                    
+                    # Reaction time analysis (simplified)
+                    brake_to_throttle_switches = 0
+                    for i in range(1, len(telemetry)):
+                        if telemetry.iloc[i-1]['Brake'] > 50 and telemetry.iloc[i]['Throttle'] > 50:
+                            brake_to_throttle_switches += 1
+                    
+                    coordination_data.append({
+                        'driver': driver,
+                        'overlap_percentage': f"{overlap_percentage:.2f}%",
+                        'throttle_smoothness': f"{max(0, throttle_smoothness):.1f}%",
+                        'brake_smoothness': f"{max(0, brake_smoothness):.1f}%",
+                        'transition_count': brake_to_throttle_switches,
+                        'coordination_score': f"{max(0, 100 - overlap_percentage - (brake_to_throttle_switches * 2)):.1f}%"
+                    })
+                    
+            except Exception as e:
+                print(f"Error processing coordination for {driver}: {e}")
+                continue
+                
+        return DataResponse(success=True, data=coordination_data)
+        
+    except Exception as e:
+        return DataResponse(success=False, error=str(e))
+
+@app.post("/api/sector-performance", response_model=DataResponse) 
+async def get_sector_performance(request: DriversRequest):
+    """Detailed sector-by-sector performance analysis"""
+    try:
+        if not data_loader.session:
+            raise HTTPException(status_code=400, detail="No session loaded")
+        
+        sector_data = []
+        
+        for driver in request.drivers:
+            try:
+                driver_laps = data_loader.session.laps.pick_drivers([driver]).pick_quicklaps()
+                if not driver_laps.empty:
+                    # Get sector times for all laps
+                    sector_1_times = driver_laps['Sector1Time'].dropna()
+                    sector_2_times = driver_laps['Sector2Time'].dropna()  
+                    sector_3_times = driver_laps['Sector3Time'].dropna()
+                    
+                    # Convert to seconds for analysis
+                    def to_seconds(time_series):
+                        return time_series.apply(lambda x: x.total_seconds() if hasattr(x, 'total_seconds') else float(x))
+                    
+                    if not sector_1_times.empty:
+                        s1_seconds = to_seconds(sector_1_times)
+                        s1_best = s1_seconds.min()
+                        s1_consistency = 100 - (s1_seconds.std() / s1_seconds.mean() * 100)
+                    else:
+                        s1_best = s1_consistency = 0
+                        
+                    if not sector_2_times.empty:
+                        s2_seconds = to_seconds(sector_2_times)
+                        s2_best = s2_seconds.min() 
+                        s2_consistency = 100 - (s2_seconds.std() / s2_seconds.mean() * 100)
+                    else:
+                        s2_best = s2_consistency = 0
+                        
+                    if not sector_3_times.empty:
+                        s3_seconds = to_seconds(sector_3_times)
+                        s3_best = s3_seconds.min()
+                        s3_consistency = 100 - (s3_seconds.std() / s3_seconds.mean() * 100)  
+                    else:
+                        s3_best = s3_consistency = 0
+                    
+                    # Determine strongest sector
+                    sector_strengths = [s1_consistency, s2_consistency, s3_consistency]
+                    strongest_sector = f"Sector {sector_strengths.index(max(sector_strengths)) + 1}"
+                    
+                    sector_data.append({
+                        'driver': driver,
+                        'sector_1_best': f"{s1_best:.3f}s" if s1_best > 0 else 'N/A',
+                        'sector_1_consistency': f"{max(0, s1_consistency):.1f}%",
+                        'sector_2_best': f"{s2_best:.3f}s" if s2_best > 0 else 'N/A',
+                        'sector_2_consistency': f"{max(0, s2_consistency):.1f}%", 
+                        'sector_3_best': f"{s3_best:.3f}s" if s3_best > 0 else 'N/A',
+                        'sector_3_consistency': f"{max(0, s3_consistency):.1f}%",
+                        'strongest_sector': strongest_sector
+                    })
+                    
+            except Exception as e:
+                print(f"Error processing sector performance for {driver}: {e}")
+                continue
+                
+        return DataResponse(success=True, data=sector_data)
+        
+    except Exception as e:
+        return DataResponse(success=False, error=str(e))
+
+@app.post("/api/advanced-metrics", response_model=DataResponse)
+async def get_advanced_metrics(request: DriversRequest):  
+    """Advanced telemetry metrics - DRS, fuel efficiency, energy management"""
+    try:
+        if not data_loader.session:
+            raise HTTPException(status_code=400, detail="No session loaded")
+        
+        advanced_data = []
+        
+        for driver in request.drivers:
+            try:
+                driver_laps = data_loader.session.laps.pick_drivers([driver])
+                if not driver_laps.empty:
+                    fastest_lap = driver_laps.pick_fastest()
+                    telemetry = fastest_lap.get_telemetry().add_distance()
+                    
+                    # DRS usage analysis
+                    drs_available = 'DRS' in telemetry.columns
+                    if drs_available:
+                        drs_usage = (telemetry['DRS'] > 0).sum() / len(telemetry) * 100
+                        drs_zones = (telemetry['DRS'].diff() > 0).sum()  # DRS activation count
+                    else:
+                        drs_usage = drs_zones = 0
+                    
+                    # Energy deployment efficiency (simplified)
+                    throttle_efficiency = telemetry['Throttle'].mean()
+                    speed_consistency = 100 - (telemetry['Speed'].std() / telemetry['Speed'].mean() * 100)
+                    
+                    # Power delivery analysis
+                    power_zones = (telemetry['Throttle'] > 80).sum() / len(telemetry) * 100
+                    
+                    # Aerodynamic efficiency (speed vs throttle relationship)
+                    import scipy.stats as stats
+                    if len(telemetry) > 10:
+                        correlation = stats.pearsonr(telemetry['Speed'], telemetry['Throttle'])[0]
+                        aero_efficiency = abs(correlation) * 100  # Higher correlation = better aero efficiency
+                    else:
+                        aero_efficiency = 50
+                    
+                    advanced_data.append({
+                        'driver': driver,
+                        'drs_usage': f"{drs_usage:.1f}%" if drs_available else 'N/A',
+                        'drs_activations': drs_zones if drs_available else 'N/A',
+                        'throttle_efficiency': f"{throttle_efficiency:.1f}%",
+                        'speed_consistency': f"{max(0, speed_consistency):.1f}%",
+                        'power_delivery': f"{power_zones:.1f}%",
+                        'aero_efficiency': f"{aero_efficiency:.1f}%",
+                        'overall_rating': 'Excellent' if aero_efficiency > 80 and speed_consistency > 85 else 'Good' if aero_efficiency > 60 else 'Average'
+                    })
+                    
+            except Exception as e:
+                print(f"Error processing advanced metrics for {driver}: {e}")
+                continue
+                
+        return DataResponse(success=True, data=advanced_data)
+        
+    except Exception as e:
+        return DataResponse(success=False, error=str(e))
+
 if __name__ == "__main__":
-    print("Track.lytix F1 Analytics API Server")
+    print("🏎️  CEBRIC F1 Analytics API Server")
     print("=" * 50)
     print("🚀 Starting server on http://0.0.0.0:5000")
     print("📊 Access the web interface at http://localhost:5000")
