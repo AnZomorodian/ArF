@@ -1,4 +1,4 @@
-modules = ["python-3.11"]
+modules = ["python-3.11", "nodejs-20", "web"]
 run = "node utils/stress_index.py"
 
 [nix]
