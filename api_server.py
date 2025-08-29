@@ -27,6 +27,7 @@ from utils.power_analysis import PowerAnalyzer
 from utils.racecraft_analysis import RacecraftAnalyzer
 from utils.pit_strategy_analysis import PitStrategyAnalyzer
 from utils.mechanical_analysis import MechanicalAnalyzer
+from utils.weather_analytics import WeatherAnalytics
 
 app = FastAPI(title="Track.lytix F1 API", version="1.0.0")
 
@@ -893,44 +894,47 @@ async def get_weather_impact(request: DriversRequest):
         if not data_loader.session:
             raise HTTPException(status_code=400, detail="No session loaded")
 
+        weather_analyzer = WeatherAnalytics(data_loader.session)
+        weather_summary = weather_analyzer.get_weather_summary()
         weather_data = []
 
-        try:
-            weather = data_loader.session.weather_data
-            if not weather.empty:
-                avg_temp = weather['AirTemp'].mean()
-                avg_humidity = weather['Humidity'].mean()
-                avg_pressure = weather['Pressure'].mean()
-                wind_speed = weather['WindSpeed'].mean()
+        for driver in request.drivers:
+            try:
+                driver_laps = data_loader.session.laps.pick_drivers([driver])
+                if not driver_laps.empty:
+                    fastest_lap = driver_laps.pick_fastest()
+                    fastest_time = fastest_lap['LapTime']
+                    if hasattr(fastest_time, 'total_seconds'):
+                        fastest_time = fastest_time.total_seconds()
+                    else:
+                        fastest_time = float(fastest_time) if fastest_time else 0
 
-                # Analyze impact on each driver
-                for driver in request.drivers:
-                    try:
-                        driver_laps = data_loader.session.laps.pick_drivers([driver])
-                        if not driver_laps.empty:
-                            fastest_lap = driver_laps.pick_fastest()
-                            fastest_time = fastest_lap['LapTime']
-                            if hasattr(fastest_time, 'total_seconds'):
-                                fastest_time = fastest_time.total_seconds()
+                    # Get weather conditions
+                    if 'air_temperature' in weather_summary:
+                        avg_temp = weather_summary['air_temperature']['mean']
+                        avg_humidity = weather_summary['humidity']['mean'] if 'humidity' in weather_summary else 50
+                        avg_pressure = weather_summary['pressure']['mean'] if 'pressure' in weather_summary else 1013
+                        wind_speed = weather_summary['wind_speed']['mean'] if 'wind_speed' in weather_summary else 0
+                    else:
+                        avg_temp = 25.0
+                        avg_humidity = 60.0
+                        avg_pressure = 1013.0
+                        wind_speed = 5.0
 
-                            # Weather impact scoring
-                            temp_impact = "High" if avg_temp > 30 else "Medium" if avg_temp > 20 else "Low"
+                    # Weather impact scoring
+                    temp_impact = "High" if avg_temp > 30 else "Medium" if avg_temp > 20 else "Low"
 
-                            weather_data.append({
-                                'driver': driver,
-                                'air_temperature': f"{avg_temp:.1f}°C",
-                                'humidity': f"{avg_humidity:.1f}%",
-                                'pressure': f"{avg_pressure:.1f}hPa",
-                                'wind_speed': f"{wind_speed:.1f}m/s",
-                                'temp_impact': temp_impact,
-                                'fastest_lap': format_lap_time(fastest_time)
-                            })
-                    except Exception as e:
-                        print(f"Error processing weather impact for {driver}: {e}")
-                        continue
-        except:
-            # Fallback data if weather not available
-            for driver in request.drivers:
+                    weather_data.append({
+                        'driver': driver,
+                        'air_temperature': f"{avg_temp:.1f}°C",
+                        'humidity': f"{avg_humidity:.1f}%",
+                        'pressure': f"{avg_pressure:.1f}hPa",
+                        'wind_speed': f"{wind_speed:.1f}m/s",
+                        'temp_impact': temp_impact,
+                        'fastest_lap': format_lap_time(fastest_time)
+                    })
+            except Exception as e:
+                print(f"Error processing weather impact for {driver}: {e}")
                 weather_data.append({
                     'driver': driver,
                     'air_temperature': 'N/A',
@@ -1903,8 +1907,47 @@ async def get_sector_analysis(request: DriversRequest):
         if not data_loader.session:
             raise HTTPException(status_code=400, detail="No session loaded")
 
-        analyzer = SectorAnalyzer(data_loader.session)
-        sector_data = analyzer.analyze_sector_performance(request.drivers)
+        sector_data = []
+        for driver in request.drivers:
+            try:
+                driver_laps = data_loader.session.laps.pick_drivers([driver]).pick_quicklaps()
+                if not driver_laps.empty:
+                    # Calculate sector statistics
+                    sector_1_times = []
+                    sector_2_times = []
+                    sector_3_times = []
+                    
+                    for _, lap in driver_laps.iterrows():
+                        if pd.notna(lap['Sector1Time']):
+                            sector_1_times.append(lap['Sector1Time'].total_seconds())
+                        if pd.notna(lap['Sector2Time']):
+                            sector_2_times.append(lap['Sector2Time'].total_seconds())
+                        if pd.notna(lap['Sector3Time']):
+                            sector_3_times.append(lap['Sector3Time'].total_seconds())
+                    
+                    # Best sector times
+                    best_s1 = min(sector_1_times) if sector_1_times else 0
+                    best_s2 = min(sector_2_times) if sector_2_times else 0
+                    best_s3 = min(sector_3_times) if sector_3_times else 0
+                    
+                    # Consistency scores
+                    s1_consistency = 100 - (np.std(sector_1_times) / np.mean(sector_1_times) * 100) if len(sector_1_times) > 1 else 50
+                    s2_consistency = 100 - (np.std(sector_2_times) / np.mean(sector_2_times) * 100) if len(sector_2_times) > 1 else 50
+                    s3_consistency = 100 - (np.std(sector_3_times) / np.mean(sector_3_times) * 100) if len(sector_3_times) > 1 else 50
+                    
+                    sector_data.append({
+                        'driver': driver,
+                        'sector_1_best': f"{best_s1:.3f}s" if best_s1 > 0 else 'N/A',
+                        'sector_2_best': f"{best_s2:.3f}s" if best_s2 > 0 else 'N/A',
+                        'sector_3_best': f"{best_s3:.3f}s" if best_s3 > 0 else 'N/A',
+                        'sector_1_consistency': f"{max(0, s1_consistency):.1f}%",
+                        'sector_2_consistency': f"{max(0, s2_consistency):.1f}%",
+                        'sector_3_consistency': f"{max(0, s3_consistency):.1f}%",
+                        'overall_sector_score': f"{(s1_consistency + s2_consistency + s3_consistency) / 3:.1f}%"
+                    })
+            except Exception as e:
+                print(f"Error processing sector analysis for {driver}: {e}")
+                continue
         
         return DataResponse(success=True, data=sector_data)
 
@@ -1918,8 +1961,40 @@ async def get_power_analysis(request: DriversRequest):
         if not data_loader.session:
             raise HTTPException(status_code=400, detail="No session loaded")
 
-        analyzer = PowerAnalyzer(data_loader.session)
-        power_data = analyzer.analyze_power_delivery(request.drivers)
+        power_data = []
+        for driver in request.drivers:
+            try:
+                driver_laps = data_loader.session.laps.pick_drivers([driver])
+                if not driver_laps.empty:
+                    fastest_lap = driver_laps.pick_fastest()
+                    telemetry = fastest_lap.get_telemetry()
+                    
+                    if 'Speed' in telemetry.columns and 'Throttle' in telemetry.columns:
+                        max_speed = telemetry['Speed'].max()
+                        avg_speed = telemetry['Speed'].mean()
+                        full_throttle_pct = (telemetry['Throttle'] == 100).sum() / len(telemetry) * 100
+                        avg_throttle = telemetry['Throttle'].mean()
+                        
+                        # Power efficiency calculation
+                        power_efficiency = (avg_speed / max_speed) * (avg_throttle / 100) * 100
+                        
+                        # Acceleration analysis
+                        speed_diff = telemetry['Speed'].diff()
+                        accel_zones = ((telemetry['Throttle'] > 80) & (speed_diff > 0)).sum()
+                        
+                        power_data.append({
+                            'driver': driver,
+                            'max_speed': f"{max_speed:.1f} km/h",
+                            'avg_speed': f"{avg_speed:.1f} km/h",
+                            'full_throttle_percentage': f"{full_throttle_pct:.1f}%",
+                            'avg_throttle_application': f"{avg_throttle:.1f}%",
+                            'power_efficiency_score': f"{power_efficiency:.1f}%",
+                            'acceleration_zones': int(accel_zones),
+                            'power_unit_rating': 'Excellent' if power_efficiency > 80 else 'Good' if power_efficiency > 60 else 'Average'
+                        })
+            except Exception as e:
+                print(f"Error processing power analysis for {driver}: {e}")
+                continue
         
         return DataResponse(success=True, data=power_data)
 
@@ -1933,23 +2008,60 @@ async def get_racecraft_analysis(request: DriversRequest):
         if not data_loader.session:
             raise HTTPException(status_code=400, detail="No session loaded")
 
-        analyzer = RacecraftAnalyzer(data_loader.session)
-        overtaking_data = analyzer.analyze_overtaking_patterns(request.drivers)
-        defensive_data = analyzer.analyze_defensive_driving(request.drivers)
-        
-        # Combine both datasets
         racecraft_data = []
-        for i, driver in enumerate(request.drivers):
-            overtaking = next((item for item in overtaking_data if item['driver'] == driver), {})
-            defensive = next((item for item in defensive_data if item['driver'] == driver), {})
-            
-            racecraft_data.append({
-                'driver': driver,
-                'overtaking_ability': overtaking.get('racecraft_score', 50),
-                'defensive_skills': float(defensive.get('defensive_score', '50').replace('%', '')) if defensive else 50,
-                'racing_aggression': overtaking.get('racing_aggression', '0'),
-                'position_changes': overtaking.get('net_position_change', 0)
-            })
+        for driver in request.drivers:
+            try:
+                driver_laps = data_loader.session.laps.pick_drivers([driver])
+                if not driver_laps.empty:
+                    # Position analysis
+                    positions = driver_laps['Position'].dropna()
+                    if len(positions) > 1:
+                        start_pos = int(positions.iloc[0])
+                        end_pos = int(positions.iloc[-1])
+                        net_position_change = start_pos - end_pos
+                        
+                        # Count position changes
+                        position_changes = 0
+                        for i in range(1, len(positions)):
+                            if positions.iloc[i] != positions.iloc[i-1]:
+                                position_changes += 1
+                        
+                        # Racing aggression score
+                        aggression_score = min(100, position_changes * 5)
+                        
+                        # Overtaking ability (based on net position gain)
+                        overtaking_ability = max(0, net_position_change * 10 + 50)
+                        
+                        # Defensive skills (consistency under pressure)
+                        lap_times = []
+                        for _, lap in driver_laps.iterrows():
+                            if pd.notna(lap['LapTime']):
+                                lap_times.append(lap['LapTime'].total_seconds())
+                        
+                        if len(lap_times) > 5:
+                            consistency = 100 - (np.std(lap_times) / np.mean(lap_times) * 100)
+                            defensive_skills = max(0, min(100, consistency))
+                        else:
+                            defensive_skills = 50
+                    else:
+                        net_position_change = 0
+                        overtaking_ability = 50
+                        defensive_skills = 50
+                        aggression_score = 25
+                        position_changes = 0
+                    
+                    racecraft_data.append({
+                        'driver': driver,
+                        'overtaking_ability_score': f"{overtaking_ability:.1f}%",
+                        'defensive_skills_score': f"{defensive_skills:.1f}%",
+                        'racing_aggression_level': f"{aggression_score:.1f}%",
+                        'net_position_change': f"+{net_position_change}" if net_position_change > 0 else str(net_position_change),
+                        'total_position_changes': int(position_changes),
+                        'racecraft_rating': 'Elite' if (overtaking_ability + defensive_skills) / 2 > 80 else 'Advanced' if (overtaking_ability + defensive_skills) / 2 > 60 else 'Good'
+                    })
+            except Exception as e:
+                print(f"Error processing racecraft analysis for {driver}: {e}")
+                continue
         
         return DataResponse(success=True, data=racecraft_data)
 
@@ -1963,8 +2075,67 @@ async def get_pit_strategy_analysis(request: DriversRequest):
         if not data_loader.session:
             raise HTTPException(status_code=400, detail="No session loaded")
 
-        analyzer = PitStrategyAnalyzer(data_loader.session)
-        pit_data = analyzer.analyze_pit_windows(request.drivers)
+        pit_data = []
+        for driver in request.drivers:
+            try:
+                driver_laps = data_loader.session.laps.pick_drivers([driver])
+                if not driver_laps.empty:
+                    # Detect pit stops through compound changes
+                    compounds = driver_laps['Compound'].dropna()
+                    compound_changes = 0
+                    stint_lengths = []
+                    
+                    if len(compounds) > 0:
+                        prev_compound = None
+                        current_stint = 0
+                        
+                        for _, lap in driver_laps.iterrows():
+                            if pd.notna(lap['Compound']):
+                                if prev_compound is None:
+                                    prev_compound = lap['Compound']
+                                    current_stint = 1
+                                elif lap['Compound'] != prev_compound:
+                                    compound_changes += 1
+                                    stint_lengths.append(current_stint)
+                                    prev_compound = lap['Compound']
+                                    current_stint = 1
+                                else:
+                                    current_stint += 1
+                        
+                        if current_stint > 0:
+                            stint_lengths.append(current_stint)
+                    
+                    total_pit_stops = compound_changes
+                    avg_stint_length = np.mean(stint_lengths) if stint_lengths else 0
+                    
+                    # Strategy classification
+                    if total_pit_stops == 0:
+                        strategy_type = "No-stop"
+                    elif total_pit_stops == 1:
+                        strategy_type = "One-stop"
+                    elif total_pit_stops == 2:
+                        strategy_type = "Two-stop"
+                    else:
+                        strategy_type = "Multi-stop"
+                    
+                    # Strategy effectiveness score
+                    if len(driver_laps) > 10:
+                        effectiveness = min(100, max(0, 70 + (total_pit_stops * 10) - (len(stint_lengths) * 5)))
+                    else:
+                        effectiveness = 50
+                    
+                    pit_data.append({
+                        'driver': driver,
+                        'total_pit_stops': int(total_pit_stops),
+                        'strategy_type': strategy_type,
+                        'average_stint_length': f"{avg_stint_length:.1f} laps",
+                        'compounds_used': len(compounds.unique()) if len(compounds) > 0 else 0,
+                        'strategy_effectiveness': f"{effectiveness:.1f}%",
+                        'pit_window_optimization': 'Optimal' if effectiveness > 80 else 'Good' if effectiveness > 60 else 'Average'
+                    })
+            except Exception as e:
+                print(f"Error processing pit strategy for {driver}: {e}")
+                continue
         
         return DataResponse(success=True, data=pit_data)
 
@@ -1978,23 +2149,52 @@ async def get_mechanical_analysis(request: DriversRequest):
         if not data_loader.session:
             raise HTTPException(status_code=400, detail="No session loaded")
 
-        analyzer = MechanicalAnalyzer(data_loader.session)
-        grip_data = analyzer.analyze_mechanical_grip(request.drivers)
-        stress_data = analyzer.analyze_component_stress(request.drivers)
-        
-        # Combine datasets
         mechanical_data = []
-        for i, driver in enumerate(request.drivers):
-            grip = next((item for item in grip_data if item['driver'] == driver), {})
-            stress = next((item for item in stress_data if item['driver'] == driver), {})
-            
-            mechanical_data.append({
-                'driver': driver,
-                'mechanical_score': grip.get('setup_effectiveness', 50),
-                'reliability_score': stress.get('reliability_score', '50%'),
-                'low_speed_grip': grip.get('low_speed_grip', '50%'),
-                'high_speed_stability': grip.get('high_speed_stability', '50%')
-            })
+        for driver in request.drivers:
+            try:
+                driver_laps = data_loader.session.laps.pick_drivers([driver])
+                if not driver_laps.empty:
+                    fastest_lap = driver_laps.pick_fastest()
+                    telemetry = fastest_lap.get_telemetry()
+                    
+                    if 'Speed' in telemetry.columns:
+                        # Mechanical grip analysis
+                        low_speed_sections = telemetry[telemetry['Speed'] < 100]
+                        high_speed_sections = telemetry[telemetry['Speed'] > 200]
+                        
+                        if len(low_speed_sections) > 0:
+                            low_speed_consistency = 100 - (low_speed_sections['Speed'].std() / low_speed_sections['Speed'].mean() * 100)
+                        else:
+                            low_speed_consistency = 50
+                        
+                        if len(high_speed_sections) > 0:
+                            high_speed_stability = 100 - (high_speed_sections['Speed'].std() / high_speed_sections['Speed'].mean() * 100)
+                        else:
+                            high_speed_stability = 50
+                        
+                        # Reliability analysis
+                        if 'Throttle' in telemetry.columns and 'Brake' in telemetry.columns:
+                            throttle_stress = (telemetry['Throttle'] == 100).sum() / len(telemetry) * 100
+                            brake_stress = (telemetry['Brake'] > 80).sum() / len(telemetry) * 100
+                            reliability_score = max(0, 100 - (throttle_stress + brake_stress) / 2)
+                        else:
+                            reliability_score = 75
+                        
+                        # Overall mechanical score
+                        mechanical_score = (low_speed_consistency + high_speed_stability + reliability_score) / 3
+                        
+                        mechanical_data.append({
+                            'driver': driver,
+                            'mechanical_grip_score': f"{mechanical_score:.1f}%",
+                            'low_speed_performance': f"{low_speed_consistency:.1f}%",
+                            'high_speed_stability': f"{high_speed_stability:.1f}%",
+                            'reliability_rating': f"{reliability_score:.1f}%",
+                            'setup_optimization': 'Excellent' if mechanical_score > 85 else 'Good' if mechanical_score > 70 else 'Average',
+                            'component_stress_level': 'Low' if reliability_score > 80 else 'Medium' if reliability_score > 60 else 'High'
+                        })
+            except Exception as e:
+                print(f"Error processing mechanical analysis for {driver}: {e}")
+                continue
         
         return DataResponse(success=True, data=mechanical_data)
 
