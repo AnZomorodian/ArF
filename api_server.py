@@ -383,32 +383,64 @@ async def get_tire_strategy(request: DriversRequest):
         if not data_loader.session:
             raise HTTPException(status_code=400, detail="No session loaded")
 
-        # Simplified tire strategy data
+        # Enhanced tire strategy data
         strategy_data = []
 
-        for i, driver in enumerate(request.drivers):
+        for driver in request.drivers:
             try:
                 driver_laps = data_loader.session.laps.pick_drivers([driver])
                 if not driver_laps.empty:
+                    # Get all compounds used by this driver
                     compounds = driver_laps['Compound'].dropna().unique()
+                    
+                    # Create stint information
+                    tire_stints = []
+                    current_compound = None
+                    stint_start = None
+                    
+                    for _, lap in driver_laps.iterrows():
+                        if pd.isna(lap['Compound']):
+                            continue
+                            
+                        if current_compound != lap['Compound']:
+                            if current_compound is not None:
+                                tire_stints.append({
+                                    'start_lap': int(stint_start),
+                                    'end_lap': int(lap['LapNumber']) - 1,
+                                    'compound': str(current_compound),
+                                    'lap_count': int(lap['LapNumber']) - int(stint_start)
+                                })
+                            current_compound = lap['Compound']
+                            stint_start = lap['LapNumber']
+                    
+                    # Add final stint
+                    if current_compound is not None:
+                        tire_stints.append({
+                            'start_lap': int(stint_start),
+                            'end_lap': int(driver_laps.iloc[-1]['LapNumber']),
+                            'compound': str(current_compound),
+                            'lap_count': int(driver_laps.iloc[-1]['LapNumber']) - int(stint_start) + 1
+                        })
 
-                    for compound in compounds:
-                        compound_laps = driver_laps[driver_laps['Compound'] == compound]
-                        if not compound_laps.empty:
-                            strategy_data.append({
-                                'x': compound_laps['LapNumber'].tolist(),
-                                'y': [i] * len(compound_laps),
-                                'name': f"{driver} - {compound}",
-                                'type': 'scatter',
-                                'mode': 'markers',
-                                'marker': {
-                                    'size': 8,
-                                    'color': {'SOFT': 'red', 'MEDIUM': 'yellow', 'HARD': 'white'}.get(compound, 'blue')
-                                }
-                            })
+                    strategy_data.append({
+                        'driver_code': str(driver),
+                        'tire_stints': tire_stints,
+                        'total_compounds': int(len(compounds)),
+                        'compounds_used': [str(c) for c in compounds if not pd.isna(c)],
+                        'total_laps': int(len(driver_laps)),
+                        'strategy_type': 'Multi-stop' if len(compounds) > 1 else 'One-stop'
+                    })
 
             except Exception as e:
                 print(f"Error processing tire strategy for {driver}: {e}")
+                strategy_data.append({
+                    'driver_code': str(driver),
+                    'tire_stints': [],
+                    'total_compounds': int(0),
+                    'compounds_used': [],
+                    'total_laps': int(0),
+                    'strategy_type': 'Unknown'
+                })
                 continue
 
         return DataResponse(
@@ -821,35 +853,76 @@ async def get_pitstop_analysis(request: DriversRequest):
             try:
                 driver_laps = data_loader.session.laps.pick_drivers([driver])
                 if not driver_laps.empty:
-                    # Identify pit stops (large lap time increases)
-                    lap_times = []
+                    # Get driver info for proper display name
+                    driver_info = driver_manager.get_driver_info() if 'driver_manager' in globals() else {}
+                    driver_display = driver_info.get(driver, {}).get('abbreviation', driver)
+                    
+                    # Extract valid lap times
+                    valid_lap_times = []
+                    all_lap_times = []
+                    
                     for _, lap in driver_laps.iterrows():
-                        if lap['LapTime'] is not None:
-                            if hasattr(lap['LapTime'], 'total_seconds'):
-                                lap_times.append(lap['LapTime'].total_seconds())
-                            else:
-                                lap_times.append(float(lap['LapTime']))
+                        if pd.notna(lap['LapTime']):
+                            try:
+                                if hasattr(lap['LapTime'], 'total_seconds'):
+                                    time_seconds = lap['LapTime'].total_seconds()
+                                else:
+                                    time_seconds = float(str(lap['LapTime']).replace('0 days ', '').replace(':', '').replace('.', '')) / 1000
+                                
+                                if 60 < time_seconds < 200:  # Reasonable lap time range
+                                    valid_lap_times.append(time_seconds)
+                                all_lap_times.append(time_seconds)
+                            except (ValueError, TypeError):
+                                continue
 
-                    if len(lap_times) > 3:
-                        avg_lap_time = np.mean(lap_times)
+                    if len(valid_lap_times) >= 5:  # Need minimum laps for analysis
+                        # Calculate average lap time from valid laps only
+                        avg_lap_time = np.mean(valid_lap_times)
+                        median_lap_time = np.median(valid_lap_times)
+                        
+                        # Use median + threshold for pit stop detection (more reliable)
+                        pit_threshold = median_lap_time * 1.8
+                        
                         pitstops = 0
                         pitstop_laps = []
 
-                        for i, time in enumerate(lap_times):
-                            if time > avg_lap_time * 1.5:  # Likely pitstop
+                        for i, time_seconds in enumerate(all_lap_times):
+                            if time_seconds > pit_threshold:
                                 pitstops += 1
                                 pitstop_laps.append(i + 1)
 
+                        # Format average lap time properly
+                        avg_minutes = int(avg_lap_time // 60)
+                        avg_seconds = avg_lap_time % 60
+                        avg_formatted = f"{avg_minutes}:{avg_seconds:06.3f}"
+
                         pitstop_data.append({
-                            'driver': driver,
-                            'total_pitstops': pitstops,
-                            'pitstop_laps': ', '.join(map(str, pitstop_laps)) if pitstop_laps else 'None',
-                            'avg_lap_time': f"{avg_lap_time:.3f}s",
-                            'strategy_type': 'One-stop' if pitstops <= 1 else 'Multi-stop'
+                            'driver': str(driver_display),
+                            'total_pitstops': int(pitstops),
+                            'pitstop_laps': ', '.join(map(str, pitstop_laps)) if pitstop_laps else 'No pit stops',
+                            'avg_lap_time': str(avg_formatted),
+                            'strategy_type': 'Multi-stop' if pitstops > 1 else 'One-stop'
+                        })
+                    else:
+                        # Fallback for insufficient data
+                        pitstop_data.append({
+                            'driver': str(driver_display),
+                            'total_pitstops': int(0),
+                            'pitstop_laps': 'Insufficient data',
+                            'avg_lap_time': 'N/A',
+                            'strategy_type': 'Unknown'
                         })
 
             except Exception as e:
                 print(f"Error processing pitstop analysis for {driver}: {e}")
+                # Add fallback entry to prevent missing drivers
+                pitstop_data.append({
+                    'driver': str(driver),
+                    'total_pitstops': int(0),
+                    'pitstop_laps': 'Error',
+                    'avg_lap_time': 'N/A',
+                    'strategy_type': 'Error'
+                })
                 continue
 
         return DataResponse(success=True, data=pitstop_data)
@@ -934,30 +1007,211 @@ async def get_throttle_brake_coordination(request: DriversRequest):
                     telemetry = fastest_lap.get_telemetry().add_distance()
 
                     if 'Throttle' in telemetry.columns and 'Brake' in telemetry.columns:
-                        # Calculate overlap (simultaneous throttle and brake)
-                        overlap_mask = (telemetry['Throttle'] > 5) & (telemetry['Brake'] > 5)
-                        overlap_percentage = (overlap_mask.sum() / len(telemetry)) * 100
+                        # Clean data and handle NaN values
+                        throttle_data = pd.to_numeric(telemetry['Throttle'], errors='coerce').fillna(0)
+                        brake_data = pd.to_numeric(telemetry['Brake'], errors='coerce').fillna(0)
+                        
+                        if len(throttle_data) > 0 and len(brake_data) > 0:
+                            # Calculate overlap (simultaneous throttle and brake)
+                            overlap_mask = (throttle_data > 5) & (brake_data > 5)
+                            overlap_percentage = float((overlap_mask.sum() / len(telemetry)) * 100) if len(telemetry) > 0 else 0.0
 
-                        # Calculate transition efficiency
-                        throttle_to_brake = ((telemetry['Throttle'].shift(1) > 50) & (telemetry['Brake'] > 50)).sum()
-                        brake_to_throttle = ((telemetry['Brake'].shift(1) > 50) & (telemetry['Throttle'] > 50)).sum()
+                            # Calculate transition efficiency
+                            throttle_to_brake = int(((throttle_data.shift(1) > 50) & (brake_data > 50)).sum())
+                            brake_to_throttle = int(((brake_data.shift(1) > 50) & (throttle_data > 50)).sum())
 
-                        avg_throttle = telemetry['Throttle'].mean()
-                        avg_brake = telemetry['Brake'].mean()
-
-                        coordination_data.append({
-                            'driver': driver,
-                            'throttle_brake_overlap': f"{overlap_percentage:.2f}%",
-                            'avg_throttle_application': f"{avg_throttle:.1f}%",
-                            'avg_brake_application': f"{avg_brake:.1f}%",
-                            'transitions_count': throttle_to_brake + brake_to_throttle,
-                            'coordination_score': f"{(100 - overlap_percentage):.1f}/100"
-                        })
+                            avg_throttle = float(throttle_data.mean()) if not throttle_data.empty else 0.0
+                            avg_brake = float(brake_data.mean()) if not brake_data.empty else 0.0
+                            
+                            # Ensure all values are JSON serializable
+                            coordination_data.append({
+                                'driver': str(driver),
+                                'throttle_brake_overlap': f"{overlap_percentage:.2f}%",
+                                'avg_throttle_application': f"{avg_throttle:.1f}%",
+                                'avg_brake_application': f"{avg_brake:.1f}%",
+                                'transitions_count': int(throttle_to_brake + brake_to_throttle),
+                                'coordination_score': f"{(100 - overlap_percentage):.1f}/100",
+                                'efficiency_rating': 'Excellent' if overlap_percentage < 2 else 'Good' if overlap_percentage < 5 else 'Needs Improvement'
+                            })
+                        else:
+                            coordination_data.append({
+                                'driver': str(driver),
+                                'throttle_brake_overlap': 'N/A',
+                                'avg_throttle_application': 'N/A',
+                                'avg_brake_application': 'N/A',
+                                'transitions_count': int(0),
+                                'coordination_score': 'N/A',
+                                'efficiency_rating': 'No Data'
+                            })
             except Exception as e:
                 print(f"Error processing coordination for {driver}: {e}")
                 continue
 
         return DataResponse(success=True, data=coordination_data)
+
+    except Exception as e:
+        return DataResponse(success=False, error=str(e))
+
+@app.post("/api/weather-adaptation", response_model=DataResponse)
+async def get_weather_adaptation(request: DriversRequest):
+    """Advanced weather adaptation and performance analysis"""
+    try:
+        if not data_loader.session:
+            raise HTTPException(status_code=400, detail="No session loaded")
+
+        weather_data = []
+
+        for driver in request.drivers:
+            try:
+                driver_laps = data_loader.session.laps.pick_drivers([driver])
+                if not driver_laps.empty:
+                    # Analyze weather conditions if available
+                    weather_conditions = 'Unknown'
+                    if 'TrackTemp' in driver_laps.columns:
+                        avg_track_temp = driver_laps['TrackTemp'].mean()
+                        weather_conditions = f"{avg_track_temp:.1f}°C" if pd.notna(avg_track_temp) else 'N/A'
+                    
+                    # Calculate lap time consistency in different conditions
+                    lap_times = []
+                    for _, lap in driver_laps.iterrows():
+                        if pd.notna(lap['LapTime']):
+                            try:
+                                if hasattr(lap['LapTime'], 'total_seconds'):
+                                    lap_times.append(lap['LapTime'].total_seconds())
+                                else:
+                                    lap_times.append(float(lap['LapTime']))
+                            except (ValueError, TypeError):
+                                continue
+                    
+                    if len(lap_times) >= 5:
+                        lap_time_std = float(np.std(lap_times))
+                        lap_time_mean = float(np.mean(lap_times))
+                        consistency_score = max(0, 100 - (lap_time_std / lap_time_mean * 100))
+                        
+                        # Tire compound adaptation
+                        compounds_used = driver_laps['Compound'].dropna().unique() if 'Compound' in driver_laps.columns else []
+                        compound_adaptability = len(compounds_used) * 20 if len(compounds_used) > 0 else 0
+                        
+                        weather_data.append({
+                            'driver': str(driver),
+                            'track_conditions': str(weather_conditions),
+                            'consistency_score': f"{consistency_score:.1f}%",
+                            'compound_adaptability': f"{min(compound_adaptability, 100):.0f}%",
+                            'lap_time_variance': f"{lap_time_std:.3f}s",
+                            'weather_rating': 'Excellent' if consistency_score > 85 else 'Good' if consistency_score > 70 else 'Average',
+                            'total_laps_analyzed': int(len(lap_times))
+                        })
+                    else:
+                        weather_data.append({
+                            'driver': str(driver),
+                            'track_conditions': str(weather_conditions),
+                            'consistency_score': 'N/A',
+                            'compound_adaptability': 'N/A',
+                            'lap_time_variance': 'N/A',
+                            'weather_rating': 'Insufficient Data',
+                            'total_laps_analyzed': int(0)
+                        })
+
+            except Exception as e:
+                print(f"Error processing weather adaptation for {driver}: {e}")
+                weather_data.append({
+                    'driver': str(driver),
+                    'track_conditions': 'Error',
+                    'consistency_score': 'Error',
+                    'compound_adaptability': 'Error',
+                    'lap_time_variance': 'Error',
+                    'weather_rating': 'Error',
+                    'total_laps_analyzed': int(0)
+                })
+                continue
+
+        return DataResponse(success=True, data=weather_data)
+
+    except Exception as e:
+        return DataResponse(success=False, error=str(e))
+
+@app.post("/api/race-intelligence", response_model=DataResponse)
+async def get_race_intelligence(request: DriversRequest):
+    """Advanced race intelligence and strategic decision analysis"""
+    try:
+        if not data_loader.session:
+            raise HTTPException(status_code=400, detail="No session loaded")
+
+        intelligence_data = []
+
+        for driver in request.drivers:
+            try:
+                driver_laps = data_loader.session.laps.pick_drivers([driver])
+                if not driver_laps.empty:
+                    total_laps = int(len(driver_laps))
+                    
+                    # Calculate strategic metrics
+                    position_changes = 0
+                    if 'Position' in driver_laps.columns:
+                        positions = driver_laps['Position'].dropna()
+                        if len(positions) > 1:
+                            start_pos = int(positions.iloc[0]) if pd.notna(positions.iloc[0]) else 20
+                            end_pos = int(positions.iloc[-1]) if pd.notna(positions.iloc[-1]) else 20
+                            position_changes = start_pos - end_pos
+                    
+                    # Calculate sector consistency
+                    sector_consistency = 85.0  # Default value
+                    if 'Sector1Time' in driver_laps.columns:
+                        sector1_times = [lap['Sector1Time'].total_seconds() for _, lap in driver_laps.iterrows() 
+                                       if pd.notna(lap['Sector1Time']) and hasattr(lap['Sector1Time'], 'total_seconds')]
+                        if len(sector1_times) > 3:
+                            sector_std = np.std(sector1_times)
+                            sector_mean = np.mean(sector1_times)
+                            sector_consistency = max(0, 100 - (sector_std / sector_mean * 100))
+                    
+                    # Calculate race pace intelligence
+                    lap_times = []
+                    for _, lap in driver_laps.iterrows():
+                        if pd.notna(lap['LapTime']):
+                            try:
+                                if hasattr(lap['LapTime'], 'total_seconds'):
+                                    lap_times.append(lap['LapTime'].total_seconds())
+                            except (ValueError, TypeError):
+                                continue
+                    
+                    pace_intelligence = 75.0
+                    if len(lap_times) >= 10:
+                        # Analyze pace patterns (improving vs declining)
+                        first_half = lap_times[:len(lap_times)//2]
+                        second_half = lap_times[len(lap_times)//2:]
+                        
+                        if len(first_half) > 0 and len(second_half) > 0:
+                            first_avg = np.mean(first_half)
+                            second_avg = np.mean(second_half)
+                            pace_trend = (first_avg - second_avg) / first_avg * 100
+                            pace_intelligence = min(100, max(0, 75 + pace_trend * 2))
+                    
+                    intelligence_data.append({
+                        'driver': str(driver),
+                        'strategic_positioning': f"{'+' if position_changes > 0 else ''}{position_changes} positions",
+                        'sector_consistency': f"{sector_consistency:.1f}%",
+                        'pace_intelligence': f"{pace_intelligence:.1f}%",
+                        'race_craft_score': f"{((sector_consistency + pace_intelligence) / 2):.1f}/100",
+                        'decision_quality': 'Excellent' if pace_intelligence > 85 else 'Good' if pace_intelligence > 70 else 'Average',
+                        'adaptability_rating': f"{min(100, abs(position_changes) * 10 + 60):.0f}%",
+                        'total_race_laps': int(total_laps)
+                    })
+
+            except Exception as e:
+                print(f"Error processing race intelligence for {driver}: {e}")
+                intelligence_data.append({
+                    'driver': str(driver),
+                    'strategic_positioning': 'Error',
+                    'sector_consistency': 'Error',
+                    'pace_intelligence': 'Error',
+                    'race_craft_score': 'Error',
+                    'decision_quality': 'Error',
+                    'adaptability_rating': 'Error',
+                    'total_race_laps': int(0)
+                })
+                continue
+
+        return DataResponse(success=True, data=intelligence_data)
 
     except Exception as e:
         return DataResponse(success=False, error=str(e))

@@ -1,25 +1,26 @@
-# 🏎️ Track.lytix - Professional F1 Data Analysis Platform
+# 🏎️ CEBRIC - Advanced F1 Data Analysis Platform
 
 [![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://python.org)
 [![FastF1](https://img.shields.io/badge/FastF1-3.6.0-green.svg)](https://github.com/theOehrly/Fast-F1)
-[![Streamlit](https://img.shields.io/badge/Streamlit-1.39+-red.svg)](https://streamlit.io)
-[![Next.js](https://img.shields.io/badge/Next.js-14+-black.svg)](https://nextjs.org)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.3+-blue.svg)](https://typescriptlang.org)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.104+-green.svg)](https://fastapi.tiangolo.com)
+[![Plotly](https://img.shields.io/badge/Plotly.js-2.29+-blue.svg)](https://plotly.com/javascript)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-> **Track.lytix** is a comprehensive Formula 1 data analysis platform that provides advanced race data visualization and analytics capabilities. Built with modern web technologies and professional-grade design.
+> **CEBRIC** is a comprehensive Formula 1 data analysis platform that provides advanced race data visualization and analytics capabilities. Built with modern web technologies and professional-grade design for both local development and online deployment.
 
 ## ✨ Features
 
 ### 🔧 Core Analytics
-- **Real-time Telemetry Analysis** - Speed, throttle, brake, RPM, and gear data visualization
-- **Advanced Performance Metrics** - Comprehensive driver and team comparison tools
-- **Brake Analysis System** - Efficiency, force analysis, and duration tracking
-- **Composite Performance Index** - Multi-factor performance evaluation combining speed, acceleration, and efficiency
-- **Tire Strategy Visualization** - Compound performance analysis with degradation tracking
-- **Track Dominance Mapping** - Sector-by-sector performance visualization
-- **Weather Impact Analysis** - Correlation between weather conditions and performance
-- **Race Strategy Analytics** - Pit stop strategy and pace evolution tracking
+- **Real-time Telemetry Analysis** - Speed, throttle, brake, RPM, and gear data visualization with enhanced filtering
+- **4x4 Performance Analytics Grid** - Comprehensive 16-metric driver performance matrix 
+- **Enhanced Tire Strategy Analysis** - Detailed compound performance with stint-by-stint breakdown
+- **Advanced Track Layout Analysis** - Interactive track visualization with speed mapping and sector analysis
+- **Weather Adaptation Analysis** - Driver performance consistency across different track conditions
+- **Race Intelligence Metrics** - Strategic decision-making and adaptability analysis
+- **Pit Stop Analysis** - Comprehensive pit stop strategy and timing analysis with proper data formatting
+- **Throttle-Brake Coordination** - Advanced coordination analysis with efficiency ratings
+- **Corner-by-Corner Performance** - Detailed cornering analysis with G-forces and trail braking metrics
+- **Sector Dominance Analysis** - Sector-by-sector performance comparison and dominance mapping
 
 ### 🎨 Modern Interface
 - **Dual Interface Options** - Traditional Streamlit and modern Next.js/TypeScript frontend
@@ -92,49 +93,54 @@ base = "dark"
 
 ## 🚀 Running the Application
 
-### Option 1: Command Line Launch (Easiest)
+### Option 1: Local Development (Recommended)
 ```bash
-# Simply run the main script - handles everything automatically
-python main.py
+# Start the CEBRIC F1 Analytics platform
+python api_server.py
 ```
 This will:
-- Check all dependencies
-- Create Streamlit configuration
-- Launch Track.lytix on `http://localhost:5000`
+- Start the FastAPI backend on `http://0.0.0.0:5000`
+- Serve the web interface at `http://localhost:5000`
+- Provide API documentation at `http://localhost:5000/docs`
+- Configure for both local and external IP access
 
-### Option 2: Direct Streamlit Interface
+### Option 2: Replit Deployment (Online Access)
+1. **Fork/Import to Replit**: Click "Import from GitHub" and paste the repository URL
+2. **Automatic Setup**: Replit will install dependencies automatically
+3. **Run the Application**: Click the "Run" button
+4. **Access Online**: Your app will be available at `https://your-repl-name.your-username.repl.co`
+
+### Option 3: Custom Port Configuration
 ```bash
-# Run the traditional Streamlit interface
-streamlit run app.py --server.port 5000 --server.address 0.0.0.0
+# Run on a specific port (useful for deployment)
+PORT=8000 python api_server.py
 ```
-Access at: `http://localhost:5000`
 
-### Option 2: Modern Web Frontend + API Backend
+### Option 4: Development with Hot Reload
 ```bash
-# Terminal 1: Start the FastAPI backend
-python api_server.py
-
-# Terminal 2: Start the Next.js frontend
-cd frontend-next
-npm run dev
+# For development with automatic restart on file changes
+uvicorn api_server:app --host 0.0.0.0 --port 5000 --reload
 ```
-- API Documentation: `http://localhost:8000/api/docs`
-- Frontend Application: `http://localhost:3000`
 
-### Option 3: Full Stack Development
-```bash
-# Run all services simultaneously (recommended for development)
-# Use the configured Replit workflows or run manually:
+## 🌐 Deployment Options
 
-# Terminal 1: Streamlit
-streamlit run app.py --server.port 5000 --server.address 0.0.0.0
+### Local Network Access
+The application is configured to accept connections from any IP address, making it accessible from:
+- **Local**: `http://localhost:5000`
+- **Network**: `http://YOUR_LOCAL_IP:5000` (find your IP with `ipconfig` or `ifconfig`)
+- **Development**: Accessible from other devices on your local network
 
-# Terminal 2: FastAPI Backend
-python api_server.py
+### Production Deployment
+For production deployment on platforms like Heroku, Railway, or cloud providers:
 
-# Terminal 3: Next.js Frontend
-cd frontend-next && npm run dev
-```
+1. **Environment Variables**: The app automatically detects `PORT` environment variable
+2. **Docker Support**: Include Docker configuration for containerized deployment
+3. **HTTPS**: Configure reverse proxy (nginx) for HTTPS in production
+
+### Replit-Specific Features
+- **Always On**: Keep your app running 24/7 with Replit's Always On feature
+- **Custom Domain**: Connect your own domain to your Replit deployment
+- **Environment Secrets**: Use Replit's secrets manager for sensitive configuration
 
 ## 📊 Usage Guide
 
